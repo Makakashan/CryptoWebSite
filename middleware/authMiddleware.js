@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { SECRET_KEY } from "../config/secret";
+import { SECRET_KEY } from "../config/secret.js";
 
 // Middleware to authenticate JWT token from cookies
 export const authenticateToken = (req, res, next) => {

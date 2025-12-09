@@ -1,6 +1,8 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
+let dbinstance; // Store the database instance
+
 // Initialize and set up the SQLite database
 export async function initializeDB() {
   const db = await open({

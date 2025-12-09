@@ -1,7 +1,7 @@
 import express from "express";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { getDb } from "../database/db.js";
+import { getDB } from "../database.js";
 import { SECRET_KEY } from "../config/secret.js";
 
 // Create a router for authentication routes
@@ -10,7 +10,7 @@ const router = express.Router();
 // User Registration Endpoint
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
-  const db = getDb();
+  const db = getDB();
 
   if (!username || !password) {
     return res
@@ -43,7 +43,7 @@ router.post("/register", async (req, res) => {
 // User Login Endpoint
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  const db = getDb();
+  const db = getDB();
 
   if (!username || !password) {
     return res

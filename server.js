@@ -2,7 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { initializeDB } from "./database.js";
-import authRoutes from "./routes/authRoutes.js"; // Import auth routes
+import authRoutes from "./routes/authRoutes.js";
+import portfolioRoutes from "./routes/portfolioRoutes.js";
 
 const app = express();
 const PORT = 3000;
@@ -14,6 +15,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/portfolio", portfolioRoutes);
 
 // Start the server after initializing the database
 initializeDB()
