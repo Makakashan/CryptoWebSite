@@ -17,7 +17,7 @@ export async function initializeDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
       password TEXT,
-      balance REAL DEFAULT 0
+      balance REAL DEFAULT 10000.0
     );
   `);
 

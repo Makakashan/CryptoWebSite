@@ -5,6 +5,7 @@ import { initializeDB } from "./database.js";
 import authRoutes from "./routes/authRoutes.js";
 import portfolioRoutes from "./routes/portfolioRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import ordersRoutes from "./routes/ordersRoutes.js";
 
 const app = express();
 const PORT = 3000;
@@ -18,6 +19,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/orders", ordersRoutes);
 
 // Start the server after initializing the database
 initializeDB()
