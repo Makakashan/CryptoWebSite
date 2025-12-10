@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import portfolioRoutes from "./routes/portfolioRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
+import { connectToMarket } from "./services/priceService.js";
 
 const app = express();
 const PORT = 3000;
@@ -20,6 +21,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", ordersRoutes);
+
+connectToMarket();
 
 // Start the server after initializing the database
 initializeDB()

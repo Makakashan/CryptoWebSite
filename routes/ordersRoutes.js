@@ -1,31 +1,12 @@
 import express from "express";
 import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
+import { getCurrentPrice } from "../services/priceService.js";
 
 const router = express.Router();
 
-// Temporary fixed prices for assets
-const TEMP_PRICE = {
-  BTC: 50000,
-  ETH: 2000,
-  XRP: 0.5,
-  LTC: 100,
-};
-
 // Place Order
 router.post("/place", authenticateToken, async (req, res) => {
-  console.log("=== REQUEST DEBUG ===");
-  console.log("Body:", req.body);
-  console.log("Body type:", typeof req.body);
-  console.log("Content-Type:", req.headers["content-type"]);
-
-  if (!req.body || typeof req.body !== "object") {
-    return res.status(400).json({
-      message: "Invalid request body",
-      received: req.body,
-    });
-  }
-
   const db = getDB();
   const userId = req.user.id;
   const { asset_symbol, amount, order_type } = req.body;
@@ -36,9 +17,13 @@ router.post("/place", authenticateToken, async (req, res) => {
       .json({ message: "Asset symbol, amount, and order type are required." });
   }
 
-  const price = TEMP_PRICE[asset_symbol];
-  if (!price) {
-    return res.status(400).json({ message: "Unsupported asset symbol." });
+  const price = getCurrentPrice(asset_symbol);
+  if (!price || price <= 0) {
+    return res
+      .status(400)
+      .json({
+        message: `Price unavaible for ${asset_symbol}. Wait for MQTT update`,
+      });
   }
 
   const totalCost = amount * price;
