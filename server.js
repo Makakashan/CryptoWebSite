@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { WebSocketServer } from "ws";
+import http from "http";
+
 import { initializeDB } from "./database.js";
 import authRoutes from "./routes/authRoutes.js";
 import portfolioRoutes from "./routes/portfolioRoutes.js";
@@ -22,12 +25,33 @@ app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", ordersRoutes);
 
-connectToMarket();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+const broadcastPrice = (symbol, price) => {
+  const message = JSON.stringify({ type: "PRICE_UPDATE", symbol, price });
+
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      // 1 == Open
+      client.send(message);
+    }
+  });
+};
+
+wss.on("connection", (ws) => {
+  console.log("New WebSocket connection established.");
+  ws.send(JSON.stringify({ message: "Welcome to MakakaTrade" }));
+});
+
+connectToMarket((symbol, price) => {
+  broadcastPrice(symbol, price);
+});
 
 // Start the server after initializing the database
 initializeDB()
   .then(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);
     });
   })

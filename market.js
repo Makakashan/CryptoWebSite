@@ -15,7 +15,7 @@ client.on("connect", () => {
 
   setInterval(() => {
     fetchPricesAndPublish();
-  }, 3000); // Fetch prices every 3 seconds
+  }, 1000); // Fetch prices every 1 seconds
 });
 
 async function fetchPricesAndPublish() {

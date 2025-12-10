@@ -19,11 +19,9 @@ router.post("/place", authenticateToken, async (req, res) => {
 
   const price = getCurrentPrice(asset_symbol);
   if (!price || price <= 0) {
-    return res
-      .status(400)
-      .json({
-        message: `Price unavaible for ${asset_symbol}. Wait for MQTT update`,
-      });
+    return res.status(400).json({
+      message: `Price unavaible for ${asset_symbol}. Wait for MQTT update`,
+    });
   }
 
   const totalCost = amount * price;
@@ -115,6 +113,51 @@ router.get("/history", authenticateToken, async (req, res) => {
     [req.user.id],
   );
   res.json({ history });
+});
+
+// Get Specific Order by ID
+router.get("/:id", authenticateToken, async (req, res) => {
+  const db = getDB();
+  const orderId = req.params.id;
+
+  try {
+    const order = await db.get(
+      "SELECT * FROM orders WHERE id = ? AND user_id = ?",
+      [orderId, req.user.id],
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    res.json({ order });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+router.delete("/:id", authenticateToken, async (req, res) => {
+  const db = getDB();
+  const orderId = req.params.id;
+
+  try {
+    const result = await db.run(
+      "DELETE FROM orders WHERE id = ? AND user_id = ?",
+      [orderId, req.user.id],
+    );
+
+    if (result.changes === 0) {
+      return res
+        .status(404)
+        .json({ message: "Order not found or not authorized to delete." });
+    }
+
+    res.json({ message: "Order deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
 });
 
 export default router;

@@ -26,6 +26,36 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+// Update User Balance Endpoint
+router.put("/update", authenticateToken, async (req, res) => {
+  const db = getDB();
+  const { amount } = req.body;
+
+  if (!amount || isNaN(amount)) {
+    return res.status(400).json({ message: "Valid amount is required." });
+  }
+
+  try {
+    await db.run("UPDATE users SET balance = balance + ? WHERE id = ?", [
+      amount,
+      req.user.id,
+    ]);
+
+    const user = await db.get("SELECT balance FROM users WHERE id = ?", [
+      req.user.id,
+    ]);
+
+    res.json({
+      message: "Balance updated successfully.",
+      balance: user.balance,
+    });
+  } catch (error) {
+    console.error("Error updating balance:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Delete User Account Endpoint
 router.delete("/delete", authenticateToken, async (req, res) => {
   const db = getDB();
   const userId = req.user.id;

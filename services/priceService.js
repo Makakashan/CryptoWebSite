@@ -1,15 +1,16 @@
 import mqtt from "mqtt";
 
-let curretPrices = {
-  BTC: 0,
-  ETH: 0,
-  XRP: 0,
-  LTC: 0,
-};
-
+let curretPrices = {};
 const client = mqtt.connect("mqtt://test.mosquitto.org");
 
-export function connectToMarket() {
+let onPriceUpdateCallback = null;
+
+// Connect to MQTT broker and subscribe to market price updates
+export function connectToMarket(onPriceUpdate) {
+  if (onPriceUpdate) {
+    onPriceUpdateCallback = onPriceUpdate;
+  }
+
   client.on("connect", () => {
     console.log("Connected to MQTT broker for price updates");
 
@@ -17,12 +18,15 @@ export function connectToMarket() {
   });
   client.on("message", (topic, message) => {
     try {
-      const symnbol = topic.split("/").pop();
+      const symbol = topic.split("/").pop();
       const data = JSON.parse(message.toString());
 
       if (data.price) {
-        curretPrices[symnbol] = data.price;
-        console.log(`Updated price for ${symnbol}: ${data.price}`);
+        curretPrices[symbol] = data.price;
+
+        if (onPriceUpdateCallback) {
+          onPriceUpdateCallback(symbol, data.price);
+        }
       }
     } catch (error) {
       console.error("Error parsing MQTT message:", error);
