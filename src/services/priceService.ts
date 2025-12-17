@@ -1,12 +1,15 @@
-import mqtt from "mqtt";
+import mqtt, { MqttClient } from "mqtt";
+import { PriceUpdateCallback, PriceMap } from "../types/types.js";
 
-let curretPrices = {};
-const client = mqtt.connect("mqtt://test.mosquitto.org");
+// In-memory store for current prices
+let curretPrices: PriceMap = {};
+const client: MqttClient = mqtt.connect("mqtt://test.mosquitto.org");
 
-let onPriceUpdateCallback = null;
+// Callback to be invoked on price updates
+let onPriceUpdateCallback: PriceUpdateCallback | null = null;
 
 // Connect to MQTT broker and subscribe to market price updates
-export function connectToMarket(onPriceUpdate) {
+export function connectToMarket(onPriceUpdate?: PriceUpdateCallback): void {
   if (onPriceUpdate) {
     onPriceUpdateCallback = onPriceUpdate;
   }
@@ -16,12 +19,12 @@ export function connectToMarket(onPriceUpdate) {
 
     client.subscribe("vacetmax/market/+");
   });
-  client.on("message", (topic, message) => {
+  client.on("message", (topic: string, message: Buffer) => {
     try {
       const symbol = topic.split("/").pop();
       const data = JSON.parse(message.toString());
 
-      if (data.price) {
+      if (symbol && data.price) {
         curretPrices[symbol] = data.price;
 
         if (onPriceUpdateCallback) {
@@ -34,6 +37,6 @@ export function connectToMarket(onPriceUpdate) {
   });
 }
 
-export function getCurrentPrice(symbol) {
+export function getCurrentPrice(symbol: string): number {
   return curretPrices[symbol] || 0;
 }

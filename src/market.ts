@@ -1,9 +1,10 @@
-import mqtt from "mqtt";
+import mqtt, { MqttClient } from "mqtt";
 import axios from "axios";
+import { PairMap } from "./types/types.js";
 
 const client = mqtt.connect("mqtt://test.mosquitto.org");
 
-const pairs = {
+const pairs: PairMap = {
   BTCUSDT: "BTC",
   ETHUSDT: "ETH",
   XRPUSDT: "XRP",
@@ -18,7 +19,7 @@ client.on("connect", () => {
   }, 1000); // Fetch prices every 1 seconds
 });
 
-async function fetchPricesAndPublish() {
+async function fetchPricesAndPublish(): Promise<void> {
   try {
     const response = await axios.get(
       "https://api.binance.com/api/v3/ticker/price",
@@ -26,7 +27,7 @@ async function fetchPricesAndPublish() {
     const data = response.data;
 
     for (const [binanceSymbol, ourSymbol] of Object.entries(pairs)) {
-      const ticker = data.find((item) => item.symbol === binanceSymbol);
+      const ticker = data.find((item: any) => item.symbol === binanceSymbol);
       if (ticker) {
         const price = parseFloat(ticker.price);
         const topic = `vacetmax/market/${ourSymbol}`;

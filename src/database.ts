@@ -1,10 +1,11 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import { DB } from "./types/types.js";
 
-let dbinstance; // Store the database instance
+let dbinstance: DB | null = null; // Store the database instance
 
 // Initialize and set up the SQLite database
-export async function initializeDB() {
+export async function initializeDB(): Promise<DB> {
   const db = await open({
     filename: "./trading.db",
     driver: sqlite3.verbose().Database,
@@ -51,7 +52,7 @@ export async function initializeDB() {
 }
 
 // Export the initializeDB function for use in other modules
-export function getDB() {
+export function getDB(): DB {
   if (!dbinstance) {
     throw new Error("Database not initialized.");
   }

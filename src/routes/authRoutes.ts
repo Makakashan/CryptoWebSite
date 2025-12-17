@@ -1,30 +1,31 @@
-import express from "express";
+import express, { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { getDB } from "../database.js";
 import { SECRET_KEY } from "../config/secret.js";
+import { User } from "../types/types.js";
 
 // Create a router for authentication routes
-const router = express.Router();
+const router: Router = express.Router();
 
 // User Registration Endpoint
-router.post("/register", async (req, res) => {
+router.post("/register", async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body;
   const db = getDB();
 
   if (!username || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username and password are required." });
+    res.status(400).json({ message: "Username and password are required." });
+    return;
   }
 
   try {
-    const existingUser = await db.get(
+    const existingUser = await db.get<User>(
       "SELECT * FROM users WHERE username = ?",
       [username],
     );
     if (existingUser) {
-      return res.status(400).json({ message: "Username already exists." });
+      res.status(400).json({ message: "Username already exists." });
+      return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -41,14 +42,13 @@ router.post("/register", async (req, res) => {
 });
 
 // User Login Endpoint
-router.post("/login", async (req, res) => {
+router.post("/login", async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body;
   const db = getDB();
 
   if (!username || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username and password are required." });
+    res.status(400).json({ message: "Username and password are required." });
+    return;
   }
 
   try {
@@ -56,12 +56,14 @@ router.post("/login", async (req, res) => {
       username,
     ]);
     if (!user) {
-      return res.status(400).json({ message: "Invalid Username." });
+      res.status(400).json({ message: "Invalid Username." });
+      return;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid Password." });
+      res.status(400).json({ message: "Invalid Password." });
+      return;
     }
 
     // Generate JWT token
@@ -92,7 +94,7 @@ router.post("/login", async (req, res) => {
 });
 
 // User Logout Endpoint
-router.post("/logout", (req, res) => {
+router.post("/logout", (res: Response): void => {
   res.clearCookie("token");
   res.json({ message: "Logout successful." });
 });

@@ -1,7 +1,7 @@
-import express from "express";
+import express, { Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import http from "http";
 
 import { initializeDB } from "./database.js";
@@ -11,7 +11,7 @@ import userRoutes from "./routes/userRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
 import { connectToMarket } from "./services/priceService.js";
 
-const app = express();
+const app: Express = express();
 const PORT = 3000;
 
 // Middleware
@@ -28,23 +28,22 @@ app.use("/api/orders", ordersRoutes);
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const broadcastPrice = (symbol, price) => {
+const broadcastPrice = (symbol: string, price: number) => {
   const message = JSON.stringify({ type: "PRICE_UPDATE", symbol, price });
 
   wss.clients.forEach((client) => {
-    if (client.readyState === 1) {
-      // 1 == Open
+    if (client.readyState === WebSocket.OPEN) {
       client.send(message);
     }
   });
 };
 
-wss.on("connection", (ws) => {
+wss.on("connection", (ws: WebSocket) => {
   console.log("New WebSocket connection established.");
   ws.send(JSON.stringify({ message: "Welcome to MakakaTrade" }));
 });
 
-connectToMarket((symbol, price) => {
+connectToMarket((symbol: string, price: number) => {
   broadcastPrice(symbol, price);
 });
 
@@ -52,7 +51,7 @@ connectToMarket((symbol, price) => {
 initializeDB()
   .then(() => {
     server.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+      console.log(`Server is running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => console.error("DB Error:", err));
