@@ -9,6 +9,8 @@ import authRoutes from "./routes/authRoutes.js";
 import portfolioRoutes from "./routes/portfolioRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
+import assetsRoutes from "./routes/assetsRoutes.js";
+import statsRoutes from "./routes/statsRoutes.js";
 import { connectToMarket } from "./services/priceService.js";
 
 const app: Express = express();
@@ -24,6 +26,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", ordersRoutes);
+app.use("/api/assets", assetsRoutes);
+app.use("/api/stats", statsRoutes);
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });

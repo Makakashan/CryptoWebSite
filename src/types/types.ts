@@ -20,10 +20,87 @@ export interface Order {
   id: number;
   user_id: number;
   asset_symbol: string;
-  order_type: "buy" | "sell";
+  order_type: "BUY" | "SELL";
   amount: number;
   price_at_transaction: number;
   timestamp: Date;
+}
+
+export interface OrderWithTotal extends Order {
+  total: number;
+}
+
+export interface Asset {
+  id: number;
+  symbol: string;
+  name: string;
+  image_url: string | null;
+  category: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: Date;
+}
+
+export interface AssetWithPrice extends Asset {
+  price: number;
+}
+
+export interface PaginationParams {
+  page: number;
+  limit: number;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  sort: {
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+  };
+}
+
+export interface AssetFilters {
+  search?: string;
+  category?: string;
+  isActive?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+}
+
+export interface OrderFilters {
+  assetSymbol?: string;
+  orderType?: "BUY" | "SELL";
+  dateFrom?: string;
+  dateTo?: string;
+  minAmount?: number;
+  maxAmount?: number;
+}
+
+export interface UserFilters {
+  search?: string;
+  minBalance?: number;
+  maxBalance?: number;
+}
+
+export interface BinanceTicker {
+  symbol: string;
+  price: string;
+  quoteVolume: string;
+  priceChange: string;
+  priceChangePercent: string;
+  volume: string;
+}
+
+export interface BinancePriceResponse {
+  symbol: string;
+  price: string;
 }
 
 export interface JWTPayload {

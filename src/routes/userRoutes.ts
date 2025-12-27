@@ -2,28 +2,86 @@ import express, { Router, Response } from "express";
 import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { AuthRequest, User } from "../types/types.js";
+import {
+  parsePagination,
+  validateSortField,
+  validateSortOrder,
+  parseNumericFilter,
+  buildPaginationResponse,
+} from "../utils/helpers.js";
+import { ALLOWED_USER_SORT_FIELDS } from "../utils/constants.js";
 
 const router: Router = express.Router();
 
-// Get User Info Endpoint
+// GET /api/user - Get User Info with Pagination, Sorting, and Filtering
 router.get(
   "/",
   authenticateToken,
   async (req: AuthRequest, res: Response): Promise<void> => {
     const db = getDB();
-    const { search } = req.query;
+
+    const { page, limit, offset } = parsePagination(
+      req.query.page as string,
+      req.query.limit as string,
+    );
+    const sortBy = validateSortField(
+      req.query.sortBy as string,
+      ALLOWED_USER_SORT_FIELDS,
+      "id",
+    );
+    const sortOrder = validateSortOrder(req.query.sortOrder as string);
+    const sortOrderSQL = sortOrder.toUpperCase();
+
+    const search = req.query.search as string | undefined;
+    const minBalance = parseNumericFilter(req.query.minBalance as string);
+    const maxBalance = parseNumericFilter(req.query.maxBalance as string);
 
     try {
-      let query = "SELECT id, username, balance FROM users";
-      let params = [];
+      // Build WHERE clause
+      const conditions: string[] = [];
+      const params: (string | number)[] = [];
 
       if (search) {
-        query += " WHERE username LIKE ?";
+        conditions.push("username LIKE ?");
         params.push(`%${search}%`);
       }
 
-      const users = await db.all(query, params);
-      res.json({ users });
+      if (minBalance !== null) {
+        conditions.push("balance >= ?");
+        params.push(minBalance);
+      }
+
+      if (maxBalance !== null) {
+        conditions.push("balance <= ?");
+        params.push(maxBalance);
+      }
+
+      const whereClause =
+        conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+      // Get total count
+      const countResult = await db.get(
+        `SELECT COUNT(*) as total FROM users ${whereClause}`,
+        params,
+      );
+      const total = countResult?.total || 0;
+
+      // Get paginated users
+      const users = await db.all(
+        `SELECT id, username, balance FROM users ${whereClause} ORDER BY ${sortBy} ${sortOrderSQL} LIMIT ? OFFSET ?`,
+        [...params, limit, offset],
+      );
+
+      const response = buildPaginationResponse(
+        users,
+        page,
+        limit,
+        total,
+        sortBy,
+        sortOrder,
+      );
+
+      res.json(response);
     } catch (error) {
       console.error("Error fetching user info:", error);
       res.status(500).json({ message: "Internal server error." });
@@ -76,7 +134,6 @@ router.delete(
     try {
       await db.run("DELETE FROM portfolio WHERE user_id = ?", [userId]);
       await db.run("DELETE FROM orders WHERE user_id = ?", [userId]);
-
       await db.run("DELETE FROM users WHERE id = ?", [userId]);
 
       res.clearCookie("token");

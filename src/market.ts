@@ -1,41 +1,78 @@
 import mqtt, { MqttClient } from "mqtt";
 import axios from "axios";
-import { PairMap } from "./types/types.js";
+import { open } from "sqlite";
+import sqlite3 from "sqlite3";
+import { DB } from "./types/types.js";
 
 const client = mqtt.connect("mqtt://test.mosquitto.org");
+let db: DB;
 
-const pairs: PairMap = {
-  BTCUSDT: "BTC",
-  ETHUSDT: "ETH",
-  XRPUSDT: "XRP",
-  LTCUSDT: "LTC",
-};
+async function initDB(): Promise<void> {
+  db = await open({
+    filename: "./trading.db",
+    driver: sqlite3.verbose().Database,
+  });
+  console.log("Connected to the database for market service.");
+}
 
-client.on("connect", () => {
-  console.log("Connected to MQTT broker");
-
-  setInterval(() => {
-    fetchPricesAndPublish();
-  }, 1000); // Fetch prices every 1 seconds
-});
+async function getActiveAssets(): Promise<string[]> {
+  try {
+    const assets = await db.all(
+      "SELECT symbol FROM assets WHERE is_active = 1",
+    );
+    return assets.map((asset) => asset.symbol);
+  } catch (error) {
+    console.error("Error fetching active assets:", error);
+    return [];
+  }
+}
 
 async function fetchPricesAndPublish(): Promise<void> {
   try {
-    const response = await axios.get(
-      "https://api.binance.com/api/v3/ticker/price",
-    );
-    const data = response.data;
+    const activeSymbols = await getActiveAssets();
+    if (activeSymbols.length === 0) {
+      console.log("No active assets found.");
+      return;
+    }
 
-    for (const [binanceSymbol, ourSymbol] of Object.entries(pairs)) {
-      const ticker = data.find((item: any) => item.symbol === binanceSymbol);
+    const response = await axios.get(
+      `https://api.binance.com/api/v3/ticker/price`,
+    );
+    const binancePrices = response.data;
+
+    let publishedCount = 0;
+    for (const symbol of activeSymbols) {
+      const binanceSymbol = `${symbol}USDT`;
+      const ticker = binancePrices.find(
+        (item: any) => item.symbol === binanceSymbol,
+      );
       if (ticker) {
         const price = parseFloat(ticker.price);
-        const topic = `vacetmax/market/${ourSymbol}`;
-        client.publish(topic, JSON.stringify({ price: price }));
-        console.log(`Send to ${ourSymbol}: ${price}`);
+        const topic = `vacetmax/market/${symbol}`;
+        client.publish(topic, JSON.stringify({ price }));
+        console.log(`${symbol}: $${price.toFixed(2)}`);
+        publishedCount++;
+      } else {
+        console.log(`Price for ${symbol} not found on Binance.`);
       }
     }
+    console.log(`Published prices for ${publishedCount} assets.`);
   } catch (error) {
     console.error("Error fetching prices:", error);
   }
 }
+
+client.on("connect", async () => {
+  console.log("Connected to MQTT broker for market service.");
+  await initDB();
+
+  await fetchPricesAndPublish();
+
+  setInterval(() => {
+    fetchPricesAndPublish();
+  }, 3000);
+});
+
+client.on("error", (error) => {
+  console.error("MQTT connection error:", error);
+});

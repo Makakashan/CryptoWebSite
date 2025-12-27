@@ -45,6 +45,19 @@ export async function initializeDB(): Promise<DB> {
     );
   `);
 
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS assets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      symbol TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      image_url TEXT,
+      category TEXT DEFAULT 'other',
+      description TEXT,
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   console.log("Database tables are set up.");
 
   dbinstance = db; // Store the database instance for later use

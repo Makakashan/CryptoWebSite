@@ -3,10 +3,22 @@ import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { getCurrentPrice } from "../services/priceService.js";
 import { AuthRequest, User, PortfolioAsset, Order } from "../types/types.js";
+import {
+  parsePagination,
+  validateSortField,
+  validateSortOrder,
+  parseNumericFilter,
+  parseDateFilter,
+  buildPaginationResponse,
+} from "../utils/helpers.js";
+import {
+  ALLOWED_ORDER_TYPES,
+  ALLOWED_ORDER_SORT_FIELDS,
+} from "../utils/constants.js";
 
 const router: Router = express.Router();
 
-// Place Order
+// POST /api/orders/place - Place Buy/Sell Order
 router.post(
   "/place",
   authenticateToken,
@@ -116,21 +128,104 @@ router.post(
   },
 );
 
-// Get Order History
+// GET /api/orders/history - Get Order History with Pagination, Sorting, and Filtering
 router.get(
   "/history",
   authenticateToken,
   async (req: AuthRequest, res: Response): Promise<void> => {
     const db = getDB();
-    const history = await db.all(
-      "SELECT * FROM orders WHERE user_id = ? ORDER BY timestamp DESC",
-      [req.user!.id],
+    const userId = req.user!.id;
+
+    const { page, limit, offset } = parsePagination(
+      req.query.page as string,
+      req.query.limit as string,
     );
-    res.json({ history });
+
+    const sortBy = validateSortField(
+      req.query.sortBy as string,
+      ALLOWED_ORDER_SORT_FIELDS,
+      "timestamp",
+    );
+
+    const sortOrder = validateSortOrder(req.query.sortOrder as string);
+    const sortOrderSQL = sortOrder.toUpperCase();
+
+    const assetSymbol = req.query.asset_symbol as string | undefined;
+    const orderType = req.query.order_type as string | undefined;
+    const dateFrom = parseDateFilter(req.query.dateFrom as string);
+    const dateTo = parseDateFilter(req.query.dateTo as string);
+    const minAmount = parseNumericFilter(req.query.minAmount as string);
+    const maxAmount = parseNumericFilter(req.query.maxAmount as string);
+
+    try {
+      // Build WHERE clause
+      const conditions: string[] = [];
+      const params: (string | number)[] = [];
+
+      if (assetSymbol) {
+        conditions.push("(asset_symbol = ?)");
+        params.push(assetSymbol.toUpperCase());
+      }
+
+      if (orderType && ALLOWED_ORDER_TYPES.includes(orderType.toUpperCase())) {
+        conditions.push("order_type = ?");
+        params.push(orderType.toUpperCase());
+      }
+
+      if (dateFrom) {
+        conditions.push("timestamp >= ?");
+        params.push(dateFrom);
+      }
+
+      if (dateTo) {
+        conditions.push("timestamp <= ?");
+        params.push(dateTo);
+      }
+
+      if (minAmount !== null) {
+        conditions.push("amount >= ?");
+        params.push(minAmount);
+      }
+
+      if (maxAmount !== null) {
+        conditions.push("amount <= ?");
+        params.push(maxAmount);
+      }
+
+      // Price filtering will be handled after fetching data since price is not stored in DB
+      const whereClause =
+        conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+      // Get total count for pagination
+      const countResult = await db.get(
+        `SELECT COUNT(*) as total FROM assets ${whereClause}`,
+        params,
+      );
+      const total = countResult?.total || 0;
+
+      const orders = await db.all(
+        `SELECT * FROM orders ${whereClause} ORDER BY ${sortBy} ${sortOrderSQL} LIMIT ? OFFSET ?`,
+        [...params, limit, offset],
+      );
+
+      const response = buildPaginationResponse(
+        orders,
+        page,
+        limit,
+        total,
+        sortBy,
+        sortOrder,
+      );
+
+      res.json(response);
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+      res.status(500).json({ message: "Internal server error." });
+    }
   },
 );
 
-// Get Specific Order by ID
+// GET /api/orders/:id - Get Specific Order by ID
 router.get(
   "/:id",
   authenticateToken,
@@ -157,6 +252,7 @@ router.get(
   },
 );
 
+// Delete /api/orders/:id - Delete Specific Order by ID
 router.delete(
   "/:id",
   authenticateToken,
