@@ -42,13 +42,14 @@ async function fetchPricesAndPublish(): Promise<void> {
 
     let publishedCount = 0;
     for (const symbol of activeSymbols) {
-      const binanceSymbol = `${symbol}USDT`;
+      const binanceSymbol = symbol.endsWith("USDT") ? symbol : `${symbol}USDT`;
       const ticker = binancePrices.find(
         (item: any) => item.symbol === binanceSymbol,
       );
       if (ticker) {
         const price = parseFloat(ticker.price);
-        const topic = `vacetmax/market/${symbol}`;
+        const topicSymbol = symbol.replace(/USDT$/, "");
+        const topic = `vacetmax/market/${topicSymbol}`;
         client.publish(topic, JSON.stringify({ price }));
         console.log(`${symbol}: $${price.toFixed(2)}`);
         publishedCount++;
