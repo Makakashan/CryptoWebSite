@@ -42,12 +42,14 @@ async function fetchPricesAndPublish(): Promise<void> {
 
     let publishedCount = 0;
     for (const symbol of activeSymbols) {
+      // Symbol already includes USDT from database (e.g., "BTCUSDT")
       const binanceSymbol = symbol.endsWith("USDT") ? symbol : `${symbol}USDT`;
       const ticker = binancePrices.find(
         (item: any) => item.symbol === binanceSymbol,
       );
       if (ticker) {
         const price = parseFloat(ticker.price);
+        // Remove USDT for MQTT topic (e.g., "BTC" from "BTCUSDT")
         const topicSymbol = symbol.replace(/USDT$/, "");
         const topic = `vacetmax/market/${topicSymbol}`;
         client.publish(topic, JSON.stringify({ price }));

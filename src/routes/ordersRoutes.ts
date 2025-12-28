@@ -2,7 +2,14 @@ import express, { Router, Response } from "express";
 import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { getCurrentPrice } from "../services/priceService.js";
-import { AuthRequest, User, PortfolioAsset, Order } from "../types/types.js";
+import {
+  AuthRequest,
+  User,
+  PortfolioAsset,
+  CoinGeckoListItem,
+  CoinGeckoDetail,
+  BinancePriceResponse,
+} from "../types/types.js";
 import {
   parsePagination,
   validateSortField,
@@ -14,9 +21,87 @@ import {
 import {
   ALLOWED_ORDER_TYPES,
   ALLOWED_ORDER_SORT_FIELDS,
+  mapCoinGeckoCategory,
 } from "../utils/constants.js";
 
 const router: Router = express.Router();
+
+async function ensureAssetExists(asset_symbol: string): Promise<void> {
+  const db = getDB();
+
+  const existingAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
+    asset_symbol,
+  ]);
+
+  if (existingAsset) {
+    return;
+  }
+
+  try {
+    const binanceResponse = await fetch(
+      `https://api.binance.com/api/v3/ticker/price?symbol=${asset_symbol}`,
+    );
+
+    if (!binanceResponse.ok) {
+      throw new Error(`Asset ${asset_symbol} not found on Binance`);
+    }
+
+    let image_url: string | null = null;
+    let description: string | null = null;
+    let category = "other";
+
+    try {
+      const baseAsset = asset_symbol.replace(/USDT$/, "").toLowerCase();
+
+      const coinsListResponse = await fetch(
+        `https://api.coingecko.com/api/v3/coins/list`,
+      );
+
+      if (coinsListResponse.ok) {
+        const coinsList =
+          (await coinsListResponse.json()) as CoinGeckoListItem[];
+        const coin = coinsList.find(
+          (c) => c.symbol.toLowerCase() === baseAsset,
+        );
+
+        if (coin) {
+          const coinDetailResponse = await fetch(
+            `https://api.coingecko.com/api/v3/coins/${coin.id}`,
+          );
+
+          if (coinDetailResponse.ok) {
+            const coinDetail =
+              (await coinDetailResponse.json()) as CoinGeckoDetail;
+            image_url =
+              coinDetail.image?.large || coinDetail.image?.small || null;
+
+            // Get description and remove HTML tags
+            if (coinDetail.description?.en) {
+              description = coinDetail.description.en
+                .replace(/<[^>]*>/g, "") // Remove HTML tags
+                .substring(0, 500);
+            }
+
+            // Map CoinGecko categories to our categories
+            category = mapCoinGeckoCategory(coinDetail.categories);
+          }
+        }
+      }
+    } catch (error) {
+      console.log(`Could not fetch CoinGecko data for ${asset_symbol}:`, error);
+      // Continue without CoinGecko data
+    }
+
+    await db.run(
+      `INSERT INTO assets (symbol, name, image_url, category, description, is_active) VALUES (?, ?, ?, ?, ?, ?)`,
+      [asset_symbol, asset_symbol, image_url, category, description, 1],
+    );
+
+    console.log(`Auto-created asset: ${asset_symbol} (category: ${category})`);
+  } catch (error) {
+    throw new Error(`Error adding asset ${asset_symbol} to database: ${error}`);
+  }
+}
 
 // POST /api/orders/place - Place Buy/Sell Order
 router.post(
@@ -25,7 +110,7 @@ router.post(
   async (req: AuthRequest, res: Response): Promise<void> => {
     const db = getDB();
     const userId = req.user!.id;
-    const { asset_symbol, amount, order_type } = req.body;
+    let { asset_symbol, amount, order_type } = req.body;
 
     if (!asset_symbol || !amount || !order_type) {
       res.status(400).json({
@@ -34,12 +119,52 @@ router.post(
       return;
     }
 
-    const price = getCurrentPrice(asset_symbol);
-    if (!price || price <= 0) {
+    // Normalize symbol
+    asset_symbol = asset_symbol.toUpperCase();
+    if (!asset_symbol.endsWith("USDT")) {
+      asset_symbol = `${asset_symbol}USDT`;
+    }
+
+    // Auto-create asset if it doesn't exist
+    try {
+      await ensureAssetExists(asset_symbol);
+    } catch (error) {
       res.status(400).json({
-        message: `Price unavaible for ${asset_symbol}. Wait for MQTT update`,
+        message: `${error}`,
       });
       return;
+    }
+
+    // Get price using symbol without USDT (e.g., "DOGE" from "DOGEUSDT")
+    const priceSymbol = asset_symbol.replace(/USDT$/, "");
+    let price = getCurrentPrice(priceSymbol);
+
+    // If price not available from MQTT, fetch directly from Binance
+    if (!price || price <= 0) {
+      try {
+        console.log(
+          `Price not in cache, fetching from Binance for ${asset_symbol}`,
+        );
+        const binanceResponse = await fetch(
+          `https://api.binance.com/api/v3/ticker/price?symbol=${asset_symbol}`,
+        );
+
+        if (binanceResponse.ok) {
+          const data = (await binanceResponse.json()) as BinancePriceResponse;
+          price = parseFloat(data.price);
+          console.log(`Got price from Binance: ${asset_symbol} = $${price}`);
+        } else {
+          res.status(400).json({
+            message: `Price unavailable for ${asset_symbol}. Asset may not be traded on Binance.`,
+          });
+          return;
+        }
+      } catch (error) {
+        res.status(400).json({
+          message: `Failed to fetch price for ${asset_symbol}. Please try again later.`,
+        });
+        return;
+      }
     }
 
     const totalCost = amount * price;
@@ -52,7 +177,7 @@ router.post(
           [userId],
         );
         if (!user || user.balance < totalCost) {
-          res.status(400).json({ message: "Insufficient balance.(USD)" });
+          res.status(400).json({ message: "Insufficient balance (USD)." });
           return;
         }
 

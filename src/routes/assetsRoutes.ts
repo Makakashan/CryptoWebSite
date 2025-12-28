@@ -1,7 +1,13 @@
 import express, { Router, Request, Response } from "express";
 import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
-import { AuthRequest, Asset, BinanceTicker } from "../types/types.js";
+import {
+  AuthRequest,
+  Asset,
+  BinanceTicker,
+  CoinGeckoListItem,
+  CoinGeckoDetail,
+} from "../types/types.js";
 import {
   parsePagination,
   validateSortField,
@@ -13,6 +19,7 @@ import {
 import {
   ALLOWED_ASSET_CATEGORIES,
   ALLOWED_ASSET_SORT_FIELDS,
+  mapCoinGeckoCategory,
 } from "../utils/constants.js";
 
 const router: Router = express.Router();
@@ -122,7 +129,7 @@ router.get("/categories", (_req: Request, res: Response): void => {
   res.json({ categories: ALLOWED_ASSET_CATEGORIES });
 });
 
-// POST /assets/sync - Synchronize Assets from External API
+// POST /assets/sync - Synchronize Assets from External API with CoinGecko data
 router.post(
   "/sync",
   authenticateToken,
@@ -174,6 +181,27 @@ router.post(
       let addedCount = 0;
       let skippedCount = 0;
 
+      // Fetch CoinGecko list once for all assets
+      let coinsListMap: Map<string, string> = new Map();
+      try {
+        const coinsListResponse = await fetch(
+          "https://api.coingecko.com/api/v3/coins/list",
+        );
+        if (coinsListResponse.ok) {
+          const coinsList =
+            (await coinsListResponse.json()) as CoinGeckoListItem[];
+          coinsList.forEach((coin) => {
+            coinsListMap.set(coin.symbol.toLowerCase(), coin.id);
+          });
+          console.log(`Loaded ${coinsListMap.size} coins from CoinGecko`);
+        }
+      } catch (error) {
+        console.log(
+          "Could not fetch CoinGecko list, continuing without it:",
+          error,
+        );
+      }
+
       for (const ticker of usdtPairs) {
         const symbol = ticker.symbol;
 
@@ -187,13 +215,53 @@ router.post(
           continue;
         }
 
+        // Try to get CoinGecko data for this asset
+        let image_url: string | null = null;
+        let description: string | null = null;
+        let category = "other";
+
+        try {
+          const baseAsset = symbol.replace(/USDT$/, "").toLowerCase();
+          const coinId = coinsListMap.get(baseAsset);
+
+          if (coinId) {
+            const coinDetailResponse = await fetch(
+              `https://api.coingecko.com/api/v3/coins/${coinId}`,
+            );
+
+            if (coinDetailResponse.ok) {
+              const coinDetail =
+                (await coinDetailResponse.json()) as CoinGeckoDetail;
+              image_url =
+                coinDetail.image?.large || coinDetail.image?.small || null;
+
+              // Get description and remove HTML tags
+              if (coinDetail.description?.en) {
+                description = coinDetail.description.en
+                  .replace(/<[^>]*>/g, "") // Remove HTML tags
+                  .substring(0, 500);
+              }
+
+              // Map CoinGecko categories to our categories
+              category = mapCoinGeckoCategory(coinDetail.categories);
+            }
+
+            // Small delay to avoid rate limiting
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+        } catch (error) {
+          console.log(`Could not fetch CoinGecko data for ${symbol}`);
+          // Continue without CoinGecko data
+        }
+
         await db.run(
-          `INSERT INTO assets (symbol, name, category, is_active)
-           VALUES (?, ?, ?, ?)`,
-          [symbol, symbol, "crypto", 1],
+          `INSERT INTO assets (symbol, name, image_url, category, description, is_active)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [symbol, symbol, image_url, category, description, 1],
         );
 
         addedCount++;
+        console.log(`Added ${symbol} (category: ${category})`);
       }
 
       res.json({
@@ -275,6 +343,216 @@ router.get(
     }
   },
 );
+
+// GET /api/assets/:symbol/orders - Get all orders for specific asset
+router.get(
+  "/:symbol/orders",
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    const db = getDB();
+    let symbol = req.params.symbol.toUpperCase();
+
+    if (!symbol.endsWith("USDT")) {
+      symbol = `${symbol}USDT`;
+    }
+
+    const { page, limit, offset } = parsePagination(
+      req.query.page as string,
+      req.query.limit as string,
+    );
+
+    const sortBy = (req.query.sortBy as string) || "timestamp";
+    const sortOrder = validateSortOrder(req.query.sortOrder as string);
+    const sortOrderSQL = sortOrder.toUpperCase();
+
+    try {
+      // Check if asset exists
+      const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
+        symbol,
+      ]);
+
+      if (!asset) {
+        res.status(404).json({ message: "Asset not found." });
+        return;
+      }
+
+      // Get total count
+      const countResult = await db.get(
+        `SELECT COUNT(*) as total FROM orders WHERE asset_symbol = ?`,
+        [symbol],
+      );
+      const total = countResult?.total || 0;
+
+      // Get orders with user information
+      const orders = await db.all(
+        `SELECT
+          o.*,
+          u.username
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        WHERE o.asset_symbol = ?
+        ORDER BY ${sortBy} ${sortOrderSQL}
+        LIMIT ? OFFSET ?`,
+        [symbol, limit, offset],
+      );
+
+      const assetWithPrice = assetToAssetWithPrice(asset);
+
+      const response = buildPaginationResponse(
+        orders,
+        page,
+        limit,
+        total,
+        sortBy,
+        sortOrder,
+      );
+
+      res.json({
+        asset: assetWithPrice,
+        orders: response,
+      });
+    } catch (error) {
+      console.error("Error fetching asset orders:", error);
+      res.status(500).json({ message: "Internal server error." });
+    }
+  },
+);
+
+// GET /api/assets/:symbol/holders - Get all holders of specific asset
+router.get(
+  "/:symbol/holders",
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    const db = getDB();
+    let symbol = req.params.symbol.toUpperCase();
+
+    if (!symbol.endsWith("USDT")) {
+      symbol = `${symbol}USDT`;
+    }
+
+    const { page, limit, offset } = parsePagination(
+      req.query.page as string,
+      req.query.limit as string,
+    );
+
+    try {
+      // Check if asset exists
+      const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
+        symbol,
+      ]);
+
+      if (!asset) {
+        res.status(404).json({ message: "Asset not found." });
+        return;
+      }
+
+      // Get total count of holders
+      const countResult = await db.get(
+        `SELECT COUNT(*) as total FROM portfolio WHERE asset_symbol = ?`,
+        [symbol],
+      );
+      const total = countResult?.total || 0;
+
+      // Get holders with user information
+      const holders = await db.all(
+        `SELECT
+          u.id,
+          u.username,
+          u.balance,
+          p.amount as holdings
+        FROM portfolio p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.asset_symbol = ?
+        ORDER BY p.amount DESC
+        LIMIT ? OFFSET ?`,
+        [symbol, limit, offset],
+      );
+
+      const assetWithPrice = assetToAssetWithPrice(asset);
+      const currentPrice = assetWithPrice.price;
+
+      // Calculate value for each holder
+      const holdersWithValue = holders.map((holder) => ({
+        ...holder,
+        value: Math.round(holder.holdings * currentPrice * 100) / 100,
+      }));
+
+      const response = buildPaginationResponse(
+        holdersWithValue,
+        page,
+        limit,
+        total,
+        "amount",
+        "desc",
+      );
+
+      res.json({
+        asset: assetWithPrice,
+        holders: response,
+      });
+    } catch (error) {
+      console.error("Error fetching asset holders:", error);
+      res.status(500).json({ message: "Internal server error." });
+    }
+  },
+);
+
+// GET /api/assets/:symbol - Get detailed asset information
+router.get("/:symbol", async (req: Request, res: Response): Promise<void> => {
+  const db = getDB();
+  let symbol = req.params.symbol.toUpperCase();
+
+  if (!symbol.endsWith("USDT")) {
+    symbol = `${symbol}USDT`;
+  }
+
+  try {
+    const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
+      symbol,
+    ]);
+
+    if (!asset) {
+      res.status(404).json({ message: "Asset not found." });
+      return;
+    }
+
+    // Get asset with current price
+    const assetWithPrice = assetToAssetWithPrice(asset);
+
+    // Get statistics for this asset
+    const orderStats = await db.get(
+      `SELECT
+          COUNT(*) as totalOrders,
+          SUM(CASE WHEN order_type = 'BUY' THEN 1 ELSE 0 END) as buyOrders,
+          SUM(CASE WHEN order_type = 'SELL' THEN 1 ELSE 0 END) as sellOrders,
+          SUM(amount) as totalVolume
+        FROM orders
+        WHERE asset_symbol = ?`,
+      [symbol],
+    );
+
+    const holdersCount = await db.get(
+      `SELECT COUNT(DISTINCT user_id) as holders
+        FROM portfolio
+        WHERE asset_symbol = ?`,
+      [symbol],
+    );
+
+    res.json({
+      asset: assetWithPrice,
+      statistics: {
+        totalOrders: orderStats?.totalOrders || 0,
+        buyOrders: orderStats?.buyOrders || 0,
+        sellOrders: orderStats?.sellOrders || 0,
+        totalVolume: orderStats?.totalVolume || 0,
+        holders: holdersCount?.holders || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching asset details:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
 
 // POST /api/assets - Create New Asset
 router.post(
@@ -418,6 +696,7 @@ router.put(
   },
 );
 
+// DELETE /api/assets/:symbol - Delete Asset
 router.delete(
   "/:symbol",
   authenticateToken,

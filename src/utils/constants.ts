@@ -6,6 +6,42 @@ export const ALLOWED_ASSET_CATEGORIES = [
   "meme",
   "other",
 ];
+
+// CoinGecko category mapping
+export const COINGECKO_CATEGORY_MAP: Record<string, string> = {
+  "Decentralized Finance (DeFi)": "defi",
+  DeFi: "defi",
+  "Decentralized Finance": "defi",
+  "Non-Fungible Tokens (NFT)": "nft",
+  NFT: "nft",
+  "Non-Fungible Token": "nft",
+  "Collectibles & NFTs": "nft",
+  Meme: "meme",
+  "Meme Tokens": "meme",
+  Stablecoins: "currency",
+  Stablecoin: "currency",
+  Cryptocurrency: "currency",
+  "Layer 1 (L1)": "currency",
+  "Layer 2 (L2)": "currency",
+};
+
+// Helper function to map CoinGecko categories to our categories
+export function mapCoinGeckoCategory(categories?: string[]): string {
+  if (!categories || categories.length === 0) {
+    return "other";
+  }
+
+  // Check each category in order of priority
+  for (const category of categories) {
+    if (COINGECKO_CATEGORY_MAP[category]) {
+      return COINGECKO_CATEGORY_MAP[category];
+    }
+  }
+
+  // Default to "other" if no match found
+  return "other";
+}
+
 export const ALLOWED_ASSET_SORT_FIELDS = [
   "symbol",
   "name",

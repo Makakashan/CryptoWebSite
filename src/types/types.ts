@@ -103,6 +103,34 @@ export interface BinancePriceResponse {
   price: string;
 }
 
+export interface CoinGeckoListItem {
+  id: string;
+  symbol: string;
+  name: string;
+}
+
+export interface CoinGeckoImage {
+  thumb?: string;
+  small?: string;
+  large?: string;
+}
+
+export interface CoinGeckoDescription {
+  en?: string;
+  [key: string]: string | undefined;
+}
+
+export interface CoinGeckoDetail {
+  id: string;
+  symbol: string;
+  name: string;
+  image?: CoinGeckoImage;
+  description?: CoinGeckoDescription;
+  categories?: string[];
+  market_cap_rank?: number;
+  market_data?: any;
+}
+
 export interface JWTPayload {
   id: number;
   username: string;
