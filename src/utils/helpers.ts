@@ -86,8 +86,12 @@ export const buildPaginationResponse = <T>(
 });
 
 // Helper to convert Asset to AssetWithPrice
-export const assetToAssetWithPrice = (asset: Asset): AssetWithPrice => ({
-  ...asset,
-  is_active: Boolean(asset.is_active),
-  price: getCurrentPrice(asset.symbol) || 0,
-});
+export const assetToAssetWithPrice = (asset: Asset): AssetWithPrice => {
+  // Remove USDT suffix to match MQTT topic format (e.g., "BTCUSDT" -> "BTC")
+  const priceSymbol = asset.symbol.replace(/USDT$/, "");
+  return {
+    ...asset,
+    is_active: Boolean(asset.is_active),
+    price: getCurrentPrice(priceSymbol) || 0,
+  };
+};

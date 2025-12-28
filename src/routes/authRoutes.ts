@@ -94,7 +94,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
 });
 
 // User Logout Endpoint
-router.post("/logout", (res: Response): void => {
+router.post("/logout", (_req: Request, res: Response): void => {
   res.clearCookie("token");
   res.json({ message: "Logout successful." });
 });

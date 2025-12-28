@@ -20,7 +20,9 @@ async function getActiveAssets(): Promise<string[]> {
     const assets = await db.all(
       "SELECT symbol FROM assets WHERE is_active = 1",
     );
-    return assets.map((asset) => asset.symbol);
+    const symbols = assets.map((asset) => asset.symbol);
+    console.log(`Found ${symbols.length} active assets in database`);
+    return symbols;
   } catch (error) {
     console.error("Error fetching active assets:", error);
     return [];
@@ -34,6 +36,8 @@ async function fetchPricesAndPublish(): Promise<void> {
       console.log("No active assets found.");
       return;
     }
+
+    console.log(`Fetching prices for: ${activeSymbols.join(", ")}`);
 
     const response = await axios.get(
       `https://api.binance.com/api/v3/ticker/price`,
@@ -53,13 +57,15 @@ async function fetchPricesAndPublish(): Promise<void> {
         const topicSymbol = symbol.replace(/USDT$/, "");
         const topic = `vacetmax/market/${topicSymbol}`;
         client.publish(topic, JSON.stringify({ price }));
-        console.log(`${symbol}: $${price.toFixed(2)}`);
+        console.log(`${symbol}: $${price.toFixed(2)} → ${topic}`);
         publishedCount++;
       } else {
         console.log(`Price for ${symbol} not found on Binance.`);
       }
     }
-    console.log(`Published prices for ${publishedCount} assets.`);
+    console.log(
+      `Published prices for ${publishedCount}/${activeSymbols.length} assets.`,
+    );
   } catch (error) {
     console.error("Error fetching prices:", error);
   }
@@ -69,6 +75,7 @@ client.on("connect", async () => {
   console.log("Connected to MQTT broker for market service.");
   await initDB();
 
+  console.log("Starting price publishing...");
   await fetchPricesAndPublish();
 
   setInterval(() => {
