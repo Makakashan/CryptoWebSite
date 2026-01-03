@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { type Asset } from "../types/index";
+import type { Asset } from "../types";
 
 const AssetCard = ({ asset }: { asset: Asset }) => {
   const navigate = useNavigate();

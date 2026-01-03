@@ -1,24 +1,32 @@
-import api from "./axiosConfig.js";
+import api from "./axiosConfig";
+import {
+  type LoginRequest,
+  type RegisterRequest,
+  type AuthResponse,
+  type PortfolioResponse,
+} from "../types";
 
 export const authApi = {
-  login: async (username: string, password: string) => {
-    const response = await api.post("/auth/login", { username, password });
+  login: async (credentials: LoginRequest): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>("/auth/login", credentials);
     return response.data;
   },
 
-  register: async (username: string, password: string) => {
-    const response = await api.post("/auth/register", { username, password });
+  register: async (credentials: RegisterRequest): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>(
+      "/auth/register",
+      credentials,
+    );
     return response.data;
   },
 
-  logout: async () => {
+  logout: async (): Promise<{ message: string }> => {
     const response = await api.post("/auth/logout");
     return response.data;
   },
 
-  // Отримати дані поточного користувача
-  getProfile: async () => {
-    const response = await api.get("/portfolio"); // Повертає username + balance
+  getProfile: async (): Promise<PortfolioResponse> => {
+    const response = await api.get<PortfolioResponse>("/portfolio");
     return response.data;
   },
 };

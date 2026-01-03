@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { assetsApi } from "../api/assetsApi";
-import { type Asset } from "../types/index";
+import type { Asset } from "../types";
 import AssetCard from "../components/AssetCard";
 
 const Markets = () => {

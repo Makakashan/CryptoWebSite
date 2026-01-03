@@ -1,0 +1,52 @@
+@use "../variables.scss" as *;
+
+.sidebar {
+  width: $sidebar-width;
+  height: 100vh;
+  background: $bg-card;
+  border-right: 1px solid $bg-hover;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: $spacing-lg;
+  z-index: 100;
+
+  h2 {
+    color: $blue;
+    margin-bottom: $spacing-lg;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    a {
+      padding: 12px $spacing-md;
+      color: $text-secondary;
+      text-decoration: none;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+      font-weight: 500;
+
+      &:hover {
+        background: $bg-hover;
+        color: $text-primary;
+      }
+
+      &.active {
+        background: rgba($blue, 0.1);
+        color: $blue;
+      }
+
+      svg {
+        font-size: 18px;
+      }
+    }
+  }
+}

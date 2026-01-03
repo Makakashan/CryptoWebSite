@@ -1,20 +1,26 @@
+// User & Auth
 export interface User {
   id: number;
   username: string;
   balance: number;
 }
 
-export interface AssetsFilters {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  search?: string;
-  category?: string;
-  isActive?: boolean;
-  minPrice?: number;
-  maxPrice?: number;
+export interface LoginRequest {
+  username: string;
+  password: string;
 }
+
+export interface RegisterRequest {
+  username: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  user?: User;
+}
+
+// Assets
 
 export interface Asset {
   symbol: string;
@@ -27,7 +33,19 @@ export interface Asset {
   price?: number;
   price_change_24h?: number;
 }
+export interface AssetsFilters {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  search?: string;
+  category?: string;
+  isActive?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+}
 
+// Orders
 export interface Order {
   id: number;
   user_id: number;
@@ -38,6 +56,7 @@ export interface Order {
   timestamp: string;
 }
 
+// Portfolio
 export interface PortfolioAsset {
   asset_symbol: string;
   name?: string;
@@ -48,17 +67,40 @@ export interface PortfolioAsset {
   category?: string;
 }
 
-export interface PortfolioResponse {
-  username: string;
-  balance: number;
-  assets: PortfolioAsset[];
+// Stats
+export interface UserStats {
+  orders: {
+    total: number;
+    buyOrders: number;
+    sellOrders: number;
+    totalSpent: number;
+    totalEarned: number;
+  };
+  portfolio: {
+    assets: PortfolioAsset[];
+    totalValue: number;
+    totalAssets: number;
+    assetsCount?: number;
+  };
+  performance: {
+    profitLoss: number;
+    profitPercentage: number;
+  };
 }
 
+// ApiResponse
 export interface PaginationInfo {
   currentPage: number;
   totalPages: number;
   totalItems: number;
   itemsPerPage: number;
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  pagination?: PaginationInfo;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface AssetsResponse {
@@ -68,9 +110,8 @@ export interface AssetsResponse {
   sortOrder?: string;
 }
 
-export interface ApiResponse<T> {
-  data: T;
-  pagination?: PaginationInfo;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
+export interface PortfolioResponse {
+  username: string;
+  balance: number;
+  assets: PortfolioAsset[];
 }

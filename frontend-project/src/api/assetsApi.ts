@@ -1,9 +1,10 @@
 import api from "./axiosConfig";
-import { type AssetsFilters, type AssetsResponse } from "../types/index.js";
+import type { AssetsFilters, AssetsResponse, Asset } from "../types";
 
 export const assetsApi = {
   getAssets: async (filters?: AssetsFilters): Promise<AssetsResponse> => {
     const params = new URLSearchParams();
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== "" && value !== null) {
@@ -17,7 +18,7 @@ export const assetsApi = {
     return response.data;
   },
 
-  getAsset: async (symbol: string) => {
+  getAsset: async (symbol: string): Promise<Asset> => {
     const response = await api.get(`/assets/${symbol}`);
     return response.data;
   },
