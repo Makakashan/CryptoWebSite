@@ -30,6 +30,7 @@ router.get(
       );
 
       res.json({
+        id: userId,
         username: req.user!.username,
         balance: user.balance,
         assets: assets,
