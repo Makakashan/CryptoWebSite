@@ -21,7 +21,6 @@ export interface AuthResponse {
 }
 
 // Assets
-
 export interface Asset {
   symbol: string;
   name: string;
@@ -33,6 +32,7 @@ export interface Asset {
   price?: number;
   price_change_24h?: number;
 }
+
 export interface AssetsFilters {
   page?: number;
   limit?: number;
@@ -54,6 +54,13 @@ export interface Order {
   amount: number;
   price_at_transaction: number;
   timestamp: string;
+  status?: string;
+}
+
+export interface PlaceOrderRequest {
+  asset_symbol: string;
+  order_type: "BUY" | "SELL";
+  amount: number;
 }
 
 // Portfolio
@@ -65,6 +72,14 @@ export interface PortfolioAsset {
   value?: number;
   image_url?: string;
   category?: string;
+  symbol?: string;
+}
+
+export interface Portfolio {
+  id: number;
+  username: string;
+  balance: number;
+  assets: PortfolioAsset[];
 }
 
 // Stats
@@ -111,6 +126,7 @@ export interface AssetsResponse {
 }
 
 export interface PortfolioResponse {
+  id: number;
   username: string;
   balance: number;
   assets: PortfolioAsset[];
