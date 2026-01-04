@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
 import Markets from "./pages/Markets";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -20,13 +21,7 @@ function App() {
             <div className="app">
               <Sidebar />
               <div className="main-content">
-                <div className="header">
-                  <h2>Welcome to MakakaTrade</h2>
-                  <div className="balance">
-                    Balance: <span>$10,000.00</span>
-                  </div>
-                </div>
-
+                <Header />
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/markets" element={<Markets />} />

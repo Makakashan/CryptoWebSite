@@ -1,6 +1,7 @@
 @use "./variables.scss" as *;
 @use "./base.scss";
 @use "./components/sidebar.scss";
+@use "./components/header.scss";
 @use "./components/asset-card.scss";
 @use "./pages/auth.scss";
 @use "./pages/dashboard.scss";
