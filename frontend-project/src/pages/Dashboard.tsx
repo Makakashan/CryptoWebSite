@@ -1,104 +1,59 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AxiosError } from "axios";
-import axios from "../api/axiosConfig";
-import type { UserStats, PortfolioResponse, Asset } from "../types";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { fetchAssets } from "../store/slices/assetsSlice";
+import { fetchPortfolio } from "../store/slices/portfolioSlice";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [topAssets, setTopAssets] = useState<Asset[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { assets, isLoading: assetsLoading } = useAppSelector(
+    (state) => state.assets,
+  );
+  const { portfolio, isLoading: portfolioLoading } = useAppSelector(
+    (state) => state.portfolio,
+  );
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    // Fetch top assets (public data)
+    if (assets.length === 0) {
+      dispatch(fetchAssets({ limit: 5, sortBy: "price", sortOrder: "desc" }));
+    }
 
-        const assetsRes = await axios.get(
-          "/assets?limit=5&sortBy=price&sortOrder=desc",
-        );
-        setTopAssets(assetsRes.data.data || []);
+    // Fetch portfolio if authenticated
+    if (isAuthenticated && !portfolio) {
+      dispatch(fetchPortfolio());
+    }
+  }, [dispatch, isAuthenticated, assets.length, portfolio]);
 
-        try {
-          const portfolioRes = await axios.get("/portfolio");
-          setPortfolio(portfolioRes.data);
+  const isLoading = assetsLoading || portfolioLoading;
+  const topAssets = assets.slice(0, 5);
 
-          const statsRes = await axios.get("/stats/user");
-          setStats(statsRes.data);
-        } catch (authError) {
-          if (
-            authError instanceof AxiosError &&
-            authError.response?.status === 401
-          ) {
-            console.log("Not authenticated - showing public data only");
-          } else {
-            throw authError;
-          }
-        }
+  // Calculate stats
+  const totalBalance = portfolio?.balance || 0;
+  const portfolioValue =
+    portfolio?.assets.reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+  const totalAssets = totalBalance + portfolioValue;
 
-        setLoading(false);
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          console.error("Error fetching dashboard data:", error.response?.data);
-          setError("Failed to load data");
-        } else {
-          console.error("Unexpected error:", error);
-          setError("An unexpected error occurred");
-        }
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
+  if (isLoading && assets.length === 0) {
     return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        <h2>Loading dashboard...</h2>
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading dashboard...</p>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        <h2 className="text-red">{error}</h2>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/markets")}
-        >
-          Go to Markets
-        </button>
-      </div>
-    );
-  }
-
-  const totalAssets =
-    (portfolio?.balance || 0) + (stats?.portfolio.totalValue || 0);
-  const profitLoss = stats?.performance.profitLoss || 0;
-  const profitLossPercent = stats?.performance.profitPercentage || 0;
 
   return (
     <div className="dashboard">
-      {!portfolio && (
+      {/* Login prompt for non-authenticated users */}
+      {!isAuthenticated && (
         <div className="dashboard-section" style={{ marginBottom: "24px" }}>
-          <div
-            style={{
-              background: "rgba(56, 97, 251, 0.1)",
-              padding: "20px",
-              borderRadius: "12px",
-              border: "1px solid rgba(56, 97, 251, 0.3)",
-            }}
-          >
-            <h3>Login to see your portfolio</h3>
-            <p style={{ color: "#848e9c", marginTop: "8px" }}>
-              You need to be logged in to view personal statistics
-            </p>
+          <div className="info-banner">
+            <h3>Welcome to MakakaTrade</h3>
+            <p>Login to view your portfolio and start trading</p>
             <button
               className="btn btn-primary"
               style={{ marginTop: "16px" }}
@@ -110,51 +65,36 @@ const Dashboard = () => {
         </div>
       )}
 
-      {portfolio && stats && (
+      {/* Portfolio Stats (authenticated users only) */}
+      {isAuthenticated && portfolio && (
         <div className="dashboard-grid">
           <div className="dashboard-card">
             <h3>Total Balance</h3>
             <div className="big-number">${totalAssets.toFixed(2)}</div>
-            <div className={profitLoss >= 0 ? "text-green" : "text-red"}>
-              {profitLoss >= 0 ? "+" : ""}
-              {profitLossPercent.toFixed(2)}% (All time)
-            </div>
+            <div className="text-muted">Cash + Holdings</div>
+          </div>
+
+          <div className="dashboard-card">
+            <h3>Cash Balance</h3>
+            <div className="big-number">${totalBalance.toFixed(2)}</div>
+            <div className="text-muted">Available</div>
           </div>
 
           <div className="dashboard-card">
             <h3>Portfolio Value</h3>
-            <div className="big-number">
-              ${stats?.portfolio.totalValue.toFixed(2) || "0.00"}
-            </div>
-            <div className="text-muted">
-              {stats?.portfolio.assetsCount || 0} assets
-            </div>
+            <div className="big-number">${portfolioValue.toFixed(2)}</div>
+            <div className="text-muted">{portfolio.assets.length} assets</div>
           </div>
 
           <div className="dashboard-card">
-            <h3>Profit/Loss</h3>
-            <div
-              className={`big-number ${profitLoss >= 0 ? "text-green" : "text-red"}`}
-            >
-              {profitLoss >= 0 ? "+" : ""}${profitLoss.toFixed(2)}
-            </div>
-            <div className="text-muted">
-              {profitLoss >= 0 ? "+" : ""}
-              {profitLossPercent.toFixed(2)}%
-            </div>
-          </div>
-
-          <div className="dashboard-card">
-            <h3>🛒 Total Orders</h3>
-            <div className="big-number">{stats?.orders.total || 0}</div>
-            <div className="text-muted">
-              {stats?.orders.buyOrders || 0} buy /{" "}
-              {stats?.orders.sellOrders || 0} sell
-            </div>
+            <h3>Total Assets</h3>
+            <div className="big-number">{portfolio.assets.length}</div>
+            <div className="text-muted">In portfolio</div>
           </div>
         </div>
       )}
 
+      {/* Top Cryptocurrencies */}
       <div className="dashboard-section">
         <h2>Top Cryptocurrencies by Price</h2>
         {topAssets.length > 0 ? (
@@ -168,28 +108,21 @@ const Dashboard = () => {
                 <div
                   key={asset.symbol}
                   className="coin-row"
-                  onClick={() => navigate(`/markets/${asset.symbol}`)}
-                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate("/markets")}
+                  role="button"
+                  tabIndex={0}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                    }}
-                  >
+                  <div className="coin-info">
                     <img
                       src={asset.image_url || defaultIcon}
                       alt={shortName}
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "50%",
+                      onError={(e) => {
+                        e.currentTarget.src = defaultIcon;
                       }}
                     />
                     <span>{shortName}</span>
                   </div>
-                  <span className="text-green">${price.toFixed(2)}</span>
+                  <span className="coin-price">${price.toFixed(2)}</span>
                 </div>
               );
             })}
@@ -199,8 +132,9 @@ const Dashboard = () => {
         )}
       </div>
 
+      {/* Quick Actions */}
       <div className="dashboard-section">
-        <h2>⚡ Quick Actions</h2>
+        <h2>Quick Actions</h2>
         <div className="quick-actions">
           <button
             className="btn btn-primary"

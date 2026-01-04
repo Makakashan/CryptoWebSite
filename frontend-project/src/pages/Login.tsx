@@ -1,37 +1,27 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AxiosError } from "axios";
-import { authApi } from "../api/authApi";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { login, clearError } from "../store/slices/authSlice";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated } = useAppSelector(
+    (state) => state.auth,
+  );
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      await authApi.login({ username, password });
-      navigate("/");
-      window.location.reload();
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        setError(
-          err.response?.data?.message || "Login failed. Please try again.",
-        );
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred");
-      }
-    } finally {
-      setLoading(false);
-    }
+    dispatch(clearError());
+    dispatch(login({ username, password }));
   };
 
   return (
@@ -44,38 +34,51 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Username</label>
+            <label htmlFor="username">Username</label>
             <input
+              id="username"
               type="text"
               placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              disabled={loading}
+              disabled={isLoading}
               autoComplete="username"
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              disabled={loading}
+              disabled={isLoading}
               autoComplete="current-password"
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isLoading || !username || !password}
+          >
+            {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <p className="text-muted">
-          Don't have an account? <a href="/register">Register here</a>
+          Don't have an account?{" "}
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => navigate("/register")}
+          >
+            Register here
+          </button>
         </p>
       </div>
     </div>
