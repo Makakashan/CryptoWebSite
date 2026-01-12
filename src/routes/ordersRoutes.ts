@@ -284,8 +284,8 @@ router.get(
 
     try {
       // Build WHERE clause
-      const conditions: string[] = [];
-      const params: (string | number)[] = [];
+      const conditions: string[] = ["user_id = ?"];
+      const params: (string | number)[] = [userId];
 
       if (assetSymbol) {
         conditions.push("(asset_symbol = ?)");
@@ -318,12 +318,11 @@ router.get(
       }
 
       // Price filtering will be handled after fetching data since price is not stored in DB
-      const whereClause =
-        conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+      const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
       // Get total count for pagination
       const countResult = await db.get(
-        `SELECT COUNT(*) as total FROM assets ${whereClause}`,
+        `SELECT COUNT(*) as total FROM orders ${whereClause}`,
         params,
       );
       const total = countResult?.total || 0;
