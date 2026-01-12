@@ -5,33 +5,18 @@ import {
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { assetsApi } from "../../api/assetsApi";
-import type {
-  Asset,
-  AssetsFilters,
-  PaginationInfo,
-  AssetsResponse,
-} from "../../types";
-
-interface AssetsState {
-  assets: Asset[];
-  currentAsset: Asset | null;
-  filters: AssetsFilters;
-  isLoading: boolean;
-  error: string | null;
-  pagination: PaginationInfo | null;
-}
+import type { AssetsFilters, AssetsResponse, AssetsState } from "../../types";
 
 const initialState: AssetsState = {
   assets: [],
-  currentAsset: null,
+  isLoading: false,
+  error: null,
   filters: {
     page: 1,
-    limit: 10,
+    limit: 12,
     sortBy: "price",
     sortOrder: "desc",
   },
-  isLoading: false,
-  error: null,
   pagination: null,
 };
 
@@ -53,24 +38,6 @@ export const fetchAssets = createAsyncThunk<
   }
 });
 
-export const fetchAssetBySymbol = createAsyncThunk<
-  Asset,
-  string,
-  { rejectValue: string }
->("assets/fetchAssetBySymbol", async (symbol, { rejectWithValue }) => {
-  try {
-    const response = await assetsApi.getAsset(symbol);
-    return response;
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch asset",
-      );
-    }
-    return rejectWithValue("Failed to fetch asset");
-  }
-});
-
 const assetsSlice = createSlice({
   name: "assets",
   initialState,
@@ -80,9 +47,6 @@ const assetsSlice = createSlice({
     },
     clearFilters: (state) => {
       state.filters = initialState.filters;
-    },
-    clearCurrentAsset: (state) => {
-      state.currentAsset = null;
     },
   },
   extraReducers: (builder) => {
@@ -99,22 +63,9 @@ const assetsSlice = createSlice({
       .addCase(fetchAssets.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload || "Failed to fetch assets";
-      })
-      .addCase(fetchAssetBySymbol.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchAssetBySymbol.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentAsset = action.payload;
-      })
-      .addCase(fetchAssetBySymbol.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload || "Failed to fetch asset";
       });
   },
 });
 
-export const { setFilters, clearFilters, clearCurrentAsset } =
-  assetsSlice.actions;
+export const { setFilters, clearFilters } = assetsSlice.actions;
 export default assetsSlice.reducer;

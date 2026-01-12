@@ -1,104 +1,113 @@
 @use "../variables.scss" as *;
+@use "sass:color";
 
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $bg-dark;
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $bg-dark;
+    padding: 20px;
 }
 
-.login-card {
-  background: $bg-card;
-  padding: 40px;
-  border-radius: 12px;
-  width: 400px;
-  max-width: 90%;
+.auth-card {
+    background: $bg-card;
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 
-  h1 {
-    text-align: center;
-    font-size: 32px;
-    margin-bottom: 8px;
-    color: $text-primary;
-  }
-
-  h2 {
-    text-align: center;
-    color: $text-secondary;
-    margin-bottom: 32px;
-    font-size: 18px;
-    font-weight: normal;
-  }
-
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .form-group {
-    margin-bottom: $spacing-md;
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: $text-primary;
-      font-weight: 500;
+    h1 {
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 8px;
+        color: $text-primary;
     }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      background: $bg-dark;
-      border: 1px solid $bg-hover;
-      border-radius: 8px;
-      color: $text-primary;
-      font-size: 14px;
-      transition: border-color 0.2s;
-
-      &:focus {
-        outline: none;
-        border-color: $blue;
-      }
-
-      &::placeholder {
+    h2 {
+        text-align: center;
         color: $text-secondary;
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+        margin-bottom: 32px;
+        font-size: 18px;
+        font-weight: normal;
     }
-  }
 
-  .error-message {
-    background: rgba($red, 0.1);
-    border: 1px solid $red;
-    color: $red;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    text-align: center;
-    font-size: 14px;
-  }
-
-  button[type="submit"] {
-    margin-top: 8px;
-  }
-
-  p {
-    text-align: center;
-    margin-top: 16px;
-    color: $text-secondary;
-
-    a {
-      color: $blue;
-      text-decoration: none;
-      font-weight: 500;
-
-      &:hover {
-        text-decoration: underline;
-      }
+    form {
+        display: flex;
+        flex-direction: column;
     }
-  }
+
+    .form-group {
+        margin-bottom: 20px;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: $text-primary;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: $bg-dark;
+            border: 1px solid $bg-hover;
+            border-radius: 8px;
+            color: $text-primary;
+            font-size: 14px;
+            transition: all 0.2s;
+            box-sizing: border-box;
+
+            &:focus {
+                outline: none;
+                border-color: $blue;
+                background: color.adjust($bg-dark, $lightness: 2%);
+            }
+
+            &::placeholder {
+                color: $text-secondary;
+            }
+
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    .error-message {
+        background: rgba($red, 0.1);
+        border: 1px solid $red;
+        color: $red;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    button[type="submit"] {
+        margin-top: 8px;
+        width: 100%;
+    }
+
+    .auth-link {
+        text-align: center;
+        margin-top: 20px;
+        color: $text-secondary;
+        font-size: 14px;
+
+        a {
+            color: $blue;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
 }

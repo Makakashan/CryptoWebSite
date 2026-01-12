@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Asset } from "../types";
+import { formatPrice } from "../utils/formatPrice";
 
 interface AssetCardProps {
   asset: Asset;
@@ -11,28 +12,14 @@ const AssetCard = ({ asset }: AssetCardProps) => {
   const shortName = asset.symbol.replace("USDT", "");
   const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=40`;
   const price = asset.price || asset.current_price || 0;
-  const priceChange = asset.price_change_24h;
+  const priceChange = asset.price_change_24h || 0;
 
   const handleClick = () => {
     navigate(`/markets/${asset.symbol}`);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleClick();
-    }
-  };
-
   return (
-    <div
-      className="asset-card"
-      onClick={handleClick}
-      onKeyPress={handleKeyPress}
-      role="button"
-      tabIndex={0}
-      aria-label={`View details for ${shortName}`}
-    >
+    <div className="asset-card" onClick={handleClick}>
       <div className="asset-header">
         <img
           src={asset.image_url || defaultIcon}
@@ -46,19 +33,12 @@ const AssetCard = ({ asset }: AssetCardProps) => {
           <div className="symbol">{asset.name || asset.symbol}</div>
         </div>
       </div>
-      <div className="asset-price">${price.toFixed(2)}</div>
+      <div className="asset-price">{formatPrice(price)}</div>
       <div
-        className={`asset-change ${
-          priceChange && priceChange > 0
-            ? "text-green"
-            : priceChange && priceChange < 0
-              ? "text-red"
-              : ""
-        }`}
+        className={`asset-change ${priceChange > 0 ? "positive" : priceChange < 0 ? "negative" : ""}`}
       >
-        {priceChange !== undefined && priceChange !== null
-          ? `${priceChange > 0 ? "+" : ""}${priceChange.toFixed(2)}%`
-          : "—"}
+        {priceChange > 0 ? "+" : ""}
+        {priceChange.toFixed(2)}%
       </div>
     </div>
   );

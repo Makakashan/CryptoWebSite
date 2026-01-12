@@ -5,14 +5,12 @@ import {
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { authApi } from "../../api/authApi";
-import type { User, LoginRequest, RegisterRequest } from "../../types";
-
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
+import type {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  AuthState,
+} from "../../types";
 
 const initialState: AuthState = {
   user: null,

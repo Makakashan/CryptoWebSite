@@ -25,63 +25,47 @@
 
     .user-info {
         display: flex;
-        align-items: center;
-        gap: $spacing-md;
-        padding: 8px 16px;
-        background: $bg-hover;
-        border-radius: 8px;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
 
         .username {
             font-weight: 600;
             color: $text-primary;
+            font-size: 14px;
         }
 
         .balance {
-            font-size: 14px;
-            color: $text-secondary;
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            padding-left: $spacing-md;
+            font-size: 16px;
+            color: $green;
+            font-weight: 700;
+        }
+    }
 
-            span {
-                color: $green;
-                font-weight: 600;
-                margin-left: 4px;
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+
+        &.btn-secondary {
+            background: transparent;
+            color: $text-secondary;
+            border: 1px solid $bg-hover;
+
+            &:hover:not(:disabled) {
+                background: $bg-hover;
+                border-color: $text-secondary;
+                color: $text-primary;
             }
         }
     }
 
-    .btn-sm {
-        padding: 8px 16px;
-        font-size: 13px;
-    }
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: $spacing-sm;
 
-    .btn-secondary {
-        background: transparent;
-        color: $text-secondary;
-        border: 1px solid $bg-hover;
-
-        &:hover:not(:disabled) {
-            background: $bg-hover;
-            border-color: $text-secondary;
-            color: $text-primary;
+        .user-info {
+            align-items: center;
         }
-    }
-}
-
-// Link button (for auth pages)
-.link-button {
-    background: none;
-    border: none;
-    color: $blue;
-    cursor: pointer;
-    font-size: inherit;
-    font-weight: 600;
-    padding: 0;
-    text-decoration: underline;
-    transition: color 0.2s;
-
-    &:hover {
-        color: color.adjust($blue, $lightness: 10%);
     }
 }
 
@@ -127,36 +111,5 @@
 @keyframes spin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-// Markets header
-.markets-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: $spacing-lg;
-
-    h1 {
-        margin: 0;
-    }
-}
-
-// Info banner for Dashboard
-.info-banner {
-    background: rgba($blue, 0.1);
-    padding: $spacing-lg;
-    border-radius: 12px;
-    border: 1px solid rgba($blue, 0.3);
-    text-align: center;
-
-    h3 {
-        margin: 0 0 8px 0;
-        color: $text-primary;
-    }
-
-    p {
-        color: $text-secondary;
-        margin: 0 0 16px 0;
     }
 }

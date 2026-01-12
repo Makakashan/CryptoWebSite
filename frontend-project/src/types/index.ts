@@ -105,10 +105,10 @@ export interface UserStats {
 
 // ApiResponse
 export interface PaginationInfo {
-  currentPage: number;
+  page: number;
+  limit: number;
+  total: number;
   totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
 }
 
 export interface ApiResponse<T> {
@@ -130,4 +130,32 @@ export interface PortfolioResponse {
   username: string;
   balance: number;
   assets: PortfolioAsset[];
+}
+
+// Redux State Types
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface AssetsState {
+  assets: Asset[];
+  isLoading: boolean;
+  error: string | null;
+  filters: AssetsFilters;
+  pagination: PaginationInfo | null;
+}
+
+export interface PortfolioState {
+  portfolio: Portfolio | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface OrdersState {
+  orders: Order[];
+  isLoading: boolean;
+  error: string | null;
 }

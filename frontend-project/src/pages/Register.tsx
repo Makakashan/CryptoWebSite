@@ -1,132 +1,99 @@
-import { useState, type FormEvent, useEffect } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { register, clearError } from "../store/slices/authSlice";
+import { register } from "../store/slices/authSlice";
 
 const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [validationError, setValidationError] = useState("");
+  const [localError, setLocalError] = useState("");
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, isAuthenticated } = useAppSelector(
-    (state) => state.auth,
-  );
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
-
-  const validateForm = (): boolean => {
-    setValidationError("");
-
-    if (username.length < 3) {
-      setValidationError("Username must be at least 3 characters");
-      return false;
-    }
-
-    if (password.length < 6) {
-      setValidationError("Password must be at least 6 characters");
-      return false;
-    }
-
-    if (password !== confirmPassword) {
-      setValidationError("Passwords do not match");
-      return false;
-    }
-
-    return true;
-  };
+  const { isLoading, error } = useAppSelector((state) => state.auth);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    dispatch(clearError());
+    setLocalError("");
 
-    if (validateForm()) {
-      dispatch(register({ username, password }));
+    if (username.length < 3) {
+      setLocalError("Username must be at least 3 characters");
+      return;
     }
+
+    if (password.length < 6) {
+      setLocalError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setLocalError("Passwords do not match");
+      return;
+    }
+
+    dispatch(register({ username, password })).then((result) => {
+      if (result.meta.requestStatus === "fulfilled") {
+        navigate("/login");
+      }
+    });
   };
 
-  const displayError = validationError || error;
-  const isFormValid =
-    username.length >= 3 &&
-    password.length >= 6 &&
-    password === confirmPassword;
+  const displayError = localError || error;
 
   return (
-    <div className="login-page">
-      <div className="login-card">
+    <div className="auth-page">
+      <div className="auth-card">
         <h1>MakakaTrade</h1>
-        <h2>Create Account</h2>
+        <h2>Register</h2>
 
         {displayError && <div className="error-message">{displayError}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label>Username</label>
             <input
-              id="username"
               type="text"
-              placeholder="Choose a username (min 3 characters)"
+              placeholder="Enter username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              disabled={isLoading}
-              minLength={3}
-              autoComplete="username"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
-              id="password"
               type="password"
-              placeholder="Choose a password (min 6 characters)"
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              disabled={isLoading}
-              minLength={6}
-              autoComplete="new-password"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label>Confirm Password</label>
             <input
-              id="confirmPassword"
               type="password"
-              placeholder="Confirm your password"
+              placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              disabled={isLoading}
-              autoComplete="new-password"
             />
           </div>
 
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={isLoading || !isFormValid}
+            disabled={isLoading}
           >
-            {isLoading ? "Creating account..." : "Register"}
+            {isLoading ? "Loading..." : "Register"}
           </button>
         </form>
 
-        <p className="text-muted">
-          Already have an account?{" "}
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => navigate("/login")}
-          >
-            Login here
-          </button>
+        <p className="auth-link">
+          Already have an account? <a href="/login">Login</a>
         </p>
       </div>
     </div>
