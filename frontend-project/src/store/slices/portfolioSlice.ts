@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { portfolioApi } from "../../api/portfolioApi";
-import type { Portfolio, PortfolioState } from "../../types";
+import type { Portfolio, PortfolioState } from "../types";
 
 const initialState: PortfolioState = {
   portfolio: null,
@@ -48,7 +48,7 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolio.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload || "Failed to fetch portfolio";
+        state.error = (action.payload as string) || "Failed to fetch portfolio";
       });
   },
 });

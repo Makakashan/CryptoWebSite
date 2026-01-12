@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { ordersApi } from "../../api/ordersApi";
-import type { Order, PlaceOrderRequest, OrdersState } from "../../types";
+import type { Order, PlaceOrderRequest, OrdersState } from "../types";
 
 const initialState: OrdersState = {
   orders: [],

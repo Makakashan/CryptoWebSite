@@ -1,5 +1,17 @@
 import api from "./axiosConfig";
-import type { AssetsFilters, AssetsResponse, Asset } from "../types";
+import type { AssetsFilters, Asset } from "../store/types";
+
+interface AssetsResponse {
+  data: Asset[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  sortBy?: string;
+  sortOrder?: string;
+}
 
 export const assetsApi = {
   getAssets: async (filters?: AssetsFilters): Promise<AssetsResponse> => {

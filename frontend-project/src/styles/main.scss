@@ -1,8 +1,12 @@
 @use "./variables.scss" as *;
 @use "./base.scss";
+@use "./common.scss";
 @use "./components/sidebar.scss";
 @use "./components/header.scss";
 @use "./components/asset-card.scss";
 @use "./pages/auth.scss";
 @use "./pages/dashboard.scss";
 @use "./pages/markets.scss";
+@use "./pages/portfolio.scss";
+@use "./pages/orders.scss";
+@use "./pages/asset-detail.scss";

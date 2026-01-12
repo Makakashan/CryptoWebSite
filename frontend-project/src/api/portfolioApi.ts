@@ -1,12 +1,10 @@
 import axiosInstance from "./axiosConfig";
-import type { Portfolio, ApiResponse } from "../types";
+import type { Portfolio } from "../store/types";
 
 export const portfolioApi = {
   getPortfolio: async (): Promise<Portfolio> => {
-    const response = await axiosInstance.get<ApiResponse<Portfolio>>(
-      "/portfolio",
-    );
-    return response.data.data;
+    const response = await axiosInstance.get<Portfolio>("/portfolio");
+    return response.data;
   },
 
   updatePortfolioAsset: async (

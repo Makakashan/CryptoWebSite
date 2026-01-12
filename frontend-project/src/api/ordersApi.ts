@@ -1,10 +1,19 @@
 import axiosInstance from "./axiosConfig";
-import type {
-  Order,
-  PlaceOrderRequest,
-  ApiResponse,
-  PaginationInfo,
-} from "../types";
+import type { Order, PlaceOrderRequest, PaginationInfo } from "../store/types";
+
+interface OrdersResponse {
+  data: Order[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  sorting?: {
+    sortBy: string;
+    sortOrder: string;
+  };
+}
 
 export const ordersApi = {
   getOrders: async (filters?: {
@@ -13,28 +22,59 @@ export const ordersApi = {
     page?: number;
     limit?: number;
   }): Promise<{ data: Order[]; pagination?: PaginationInfo }> => {
-    const response = await axiosInstance.get<ApiResponse<Order[]>>("/orders", {
-      params: filters,
-    });
+    const response = await axiosInstance.get<OrdersResponse>(
+      "/orders/history",
+      {
+        params: {
+          order_type: filters?.type,
+          page: filters?.page,
+          limit: filters?.limit,
+        },
+      },
+    );
+
+    // Handle both paginated response and direct array
+    if (
+      response.data &&
+      typeof response.data === "object" &&
+      "data" in response.data
+    ) {
+      return {
+        data: response.data.data || [],
+        pagination: response.data.pagination,
+      };
+    }
+
+    // Fallback for direct array response
     return {
-      data: response.data.data,
-      pagination: response.data.pagination,
+      data: Array.isArray(response.data) ? response.data : [],
+      pagination: undefined,
     };
   },
 
   getOrderById: async (id: number): Promise<Order> => {
-    const response = await axiosInstance.get<ApiResponse<Order>>(
-      `/orders/${id}`,
-    );
-    return response.data.data;
+    const response = await axiosInstance.get<{ order: Order }>(`/orders/${id}`);
+    return response.data.order;
   },
 
   placeOrder: async (orderData: PlaceOrderRequest): Promise<Order> => {
-    const response = await axiosInstance.post<ApiResponse<Order>>(
-      "/orders/place",
-      orderData,
-    );
-    return response.data.data;
+    const response = await axiosInstance.post<{
+      message: string;
+      asset: string;
+      price: number;
+      total: number;
+    }>("/orders/place", orderData);
+
+    // Backend doesn't return full order object, so we construct one
+    return {
+      id: Date.now(), // Temporary ID
+      user_id: 0, // Will be filled by backend
+      asset_symbol: response.data.asset,
+      order_type: orderData.order_type,
+      amount: orderData.amount,
+      price_at_transaction: response.data.price,
+      timestamp: new Date().toISOString(),
+    };
   },
 
   cancelOrder: async (id: number): Promise<void> => {

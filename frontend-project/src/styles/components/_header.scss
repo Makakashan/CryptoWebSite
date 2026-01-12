@@ -21,6 +21,24 @@
         display: flex;
         align-items: center;
         gap: $spacing-md;
+
+        .language-switcher {
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid $bg-hover;
+            border-radius: 8px;
+            color: $text-secondary;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+                background: $bg-hover;
+                border-color: $blue;
+                color: $text-primary;
+            }
+        }
     }
 
     .user-info {

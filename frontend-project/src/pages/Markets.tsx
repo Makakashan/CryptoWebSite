@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets, setFilters } from "../store/slices/assetsSlice";
+import { useWebSocket } from "../hooks/useWebSocket";
 import AssetCard from "../components/AssetCard";
 
 const Markets = () => {
+  useWebSocket();
   const dispatch = useAppDispatch();
   const { assets, isLoading, error, filters, pagination } = useAppSelector(
     (state) => state.assets,

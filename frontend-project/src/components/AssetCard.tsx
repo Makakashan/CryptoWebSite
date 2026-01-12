@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import type { Asset } from "../types";
+import type { Asset } from "../store/types";
 import { formatPrice } from "../utils/formatPrice";
 
 interface AssetCardProps {

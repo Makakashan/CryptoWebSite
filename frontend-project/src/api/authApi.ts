@@ -3,8 +3,8 @@ import {
   type LoginRequest,
   type RegisterRequest,
   type AuthResponse,
-  type PortfolioResponse,
-} from "../types";
+} from "../store/types";
+import type { Portfolio } from "../store/types";
 
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -25,8 +25,8 @@ export const authApi = {
     return response.data;
   },
 
-  getProfile: async (): Promise<PortfolioResponse> => {
-    const response = await api.get<PortfolioResponse>("/portfolio");
+  getProfile: async (): Promise<Portfolio> => {
+    const response = await api.get<Portfolio>("/portfolio");
     return response.data;
   },
 };

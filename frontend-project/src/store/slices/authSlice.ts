@@ -5,12 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { authApi } from "../../api/authApi";
-import type {
-  User,
-  LoginRequest,
-  RegisterRequest,
-  AuthState,
-} from "../../types";
+import type { User, LoginRequest, RegisterRequest, AuthState } from "../types";
 
 const initialState: AuthState = {
   user: null,

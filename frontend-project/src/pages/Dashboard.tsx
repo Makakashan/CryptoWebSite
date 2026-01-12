@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets } from "../store/slices/assetsSlice";
@@ -31,8 +31,19 @@ const Dashboard = () => {
   const topAssets = assets.slice(0, 5);
 
   const totalBalance = portfolio?.balance || 0;
-  const portfolioValue =
-    portfolio?.assets.reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+
+  // Calculate portfolio holdings value with current prices
+  const portfolioValue = useMemo(() => {
+    if (!portfolio) return 0;
+    return portfolio.assets.reduce((sum, portfolioAsset) => {
+      const assetData = assets.find(
+        (a) => a.symbol === portfolioAsset.asset_symbol,
+      );
+      const currentPrice = assetData?.price || assetData?.current_price || 0;
+      return sum + portfolioAsset.amount * currentPrice;
+    }, 0);
+  }, [portfolio, assets]);
+
   const totalAssets = totalBalance + portfolioValue;
 
   if (isLoading && assets.length === 0) {

@@ -5,6 +5,9 @@ import Markets from "./pages/Markets";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Portfolio from "./pages/Portfolio";
+import Orders from "./pages/Orders";
+import AssetDetail from "./pages/AssetDetail";
 
 function App() {
   return (
@@ -25,30 +28,9 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/markets" element={<Markets />} />
-                  <Route
-                    path="/portfolio"
-                    element={
-                      <div>
-                        <h1>Portfolio (coming soon)</h1>
-                      </div>
-                    }
-                  />
-                  <Route
-                    path="/orders"
-                    element={
-                      <div>
-                        <h1>Orders (coming soon)</h1>
-                      </div>
-                    }
-                  />
-                  <Route
-                    path="/stats"
-                    element={
-                      <div>
-                        <h1>Statistics (coming soon)</h1>
-                      </div>
-                    }
-                  />
+                  <Route path="/markets/:symbol" element={<AssetDetail />} />
+                  <Route path="/portfolio" element={<Portfolio />} />
+                  <Route path="/orders" element={<Orders />} />
                 </Routes>
               </div>
             </div>

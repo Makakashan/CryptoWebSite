@@ -5,7 +5,19 @@ import {
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { assetsApi } from "../../api/assetsApi";
-import type { AssetsFilters, AssetsResponse, AssetsState } from "../../types";
+import type {
+  AssetsFilters,
+  AssetsState,
+  Asset,
+  PaginationInfo,
+} from "../types";
+
+interface AssetsResponse {
+  data: Asset[];
+  pagination?: PaginationInfo;
+  sortBy?: string;
+  sortOrder?: string;
+}
 
 const initialState: AssetsState = {
   assets: [],

@@ -1,5 +1,4 @@
 @use "../variables.scss" as *;
-@use "sass:color";
 
 .auth-page {
     min-height: 100vh;
@@ -31,61 +30,6 @@
         margin-bottom: 32px;
         font-size: 18px;
         font-weight: normal;
-    }
-
-    form {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: $text-primary;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px 16px;
-            background: $bg-dark;
-            border: 1px solid $bg-hover;
-            border-radius: 8px;
-            color: $text-primary;
-            font-size: 14px;
-            transition: all 0.2s;
-            box-sizing: border-box;
-
-            &:focus {
-                outline: none;
-                border-color: $blue;
-                background: color.adjust($bg-dark, $lightness: 2%);
-            }
-
-            &::placeholder {
-                color: $text-secondary;
-            }
-
-            &:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-        }
-    }
-
-    .error-message {
-        background: rgba($red, 0.1);
-        border: 1px solid $red;
-        color: $red;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        text-align: center;
-        font-size: 14px;
     }
 
     button[type="submit"] {

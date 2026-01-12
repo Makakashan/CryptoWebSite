@@ -1,19 +1,28 @@
 // Simple price formatting utilities
 
 export function formatPrice(price: number | undefined | null): string {
-  if (!price || price === 0) {
+  if (price === undefined || price === null) {
     return "$0.00";
   }
 
-  if (price >= 1) {
-    return `$${price.toFixed(2)}`;
+  if (price === 0) {
+    return "$0.00";
   }
 
-  if (price >= 0.01) {
-    return `$${price.toFixed(4)}`;
+  const isNegative = price < 0;
+  const absPrice = Math.abs(price);
+
+  let formatted = "";
+
+  if (absPrice >= 1) {
+    formatted = `$${absPrice.toFixed(2)}`;
+  } else if (absPrice >= 0.01) {
+    formatted = `$${absPrice.toFixed(4)}`;
+  } else {
+    formatted = `$${absPrice.toFixed(6)}`;
   }
 
-  return `$${price.toFixed(6)}`;
+  return isNegative ? `-${formatted}` : formatted;
 }
 
 export function formatNumber(value: number | undefined | null): string {

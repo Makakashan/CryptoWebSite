@@ -4,7 +4,6 @@ import {
   FiTrendingUp,
   FiBriefcase,
   FiShoppingCart,
-  FiBarChart2,
 } from "react-icons/fi";
 
 const Sidebar = () => {
@@ -27,10 +26,6 @@ const Sidebar = () => {
         <NavLink to="/orders">
           <FiShoppingCart />
           Orders
-        </NavLink>
-        <NavLink to="/stats">
-          <FiBarChart2 />
-          Statistics
         </NavLink>
       </nav>
     </div>
