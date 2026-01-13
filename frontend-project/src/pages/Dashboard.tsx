@@ -1,11 +1,13 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets } from "../store/slices/assetsSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { formatPrice } from "../utils/formatPrice";
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -50,7 +52,7 @@ const Dashboard = () => {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
-        <p>Loading...</p>
+        <p>{t("loading")}</p>
       </div>
     );
   }
@@ -59,13 +61,13 @@ const Dashboard = () => {
     <div className="dashboard">
       {!isAuthenticated && (
         <div className="info-banner">
-          <h3>Welcome to MakakaTrade</h3>
-          <p>Login to view your portfolio and start trading</p>
+          <h3>{t("welcomeToMakakaTrade")}</h3>
+          <p>{t("loginToViewPortfolio")}</p>
           <button
             className="btn btn-primary"
             onClick={() => navigate("/login")}
           >
-            Login
+            {t("login")}
           </button>
         </div>
       )}
@@ -73,33 +75,35 @@ const Dashboard = () => {
       {isAuthenticated && portfolio && (
         <div className="dashboard-grid">
           <div className="dashboard-card">
-            <h3>Total Balance</h3>
+            <h3>{t("totalBalance")}</h3>
             <div className="big-number">{formatPrice(totalAssets)}</div>
-            <p>Cash + Holdings</p>
+            <p>{t("cashAndHoldings")}</p>
           </div>
 
           <div className="dashboard-card">
-            <h3>Cash Balance</h3>
+            <h3>{t("cashBalance")}</h3>
             <div className="big-number">{formatPrice(totalBalance)}</div>
-            <p>Available</p>
+            <p>{t("available")}</p>
           </div>
 
           <div className="dashboard-card">
-            <h3>Portfolio Value</h3>
+            <h3>{t("portfolioValue")}</h3>
             <div className="big-number">{formatPrice(portfolioValue)}</div>
-            <p>{portfolio.assets.length} assets</p>
+            <p>
+              {portfolio.assets.length} {t("assets")}
+            </p>
           </div>
 
           <div className="dashboard-card">
-            <h3>Total Assets</h3>
+            <h3>{t("totalAssets")}</h3>
             <div className="big-number">{portfolio.assets.length}</div>
-            <p>In portfolio</p>
+            <p>{t("inPortfolio")}</p>
           </div>
         </div>
       )}
 
       <div className="dashboard-section">
-        <h2>Top Cryptocurrencies</h2>
+        <h2>{t("topCryptocurrencies")}</h2>
         {topAssets.length > 0 ? (
           <div className="top-coins">
             {topAssets.map((asset) => {
@@ -129,24 +133,24 @@ const Dashboard = () => {
             })}
           </div>
         ) : (
-          <p>No assets available</p>
+          <p>{t("noAssetsAvailable")}</p>
         )}
       </div>
 
       <div className="dashboard-section">
-        <h2>Quick Actions</h2>
+        <h2>{t("quickActions")}</h2>
         <div className="quick-actions">
           <button
             className="btn btn-primary"
             onClick={() => navigate("/markets")}
           >
-            View Markets
+            {t("viewMarkets")}
           </button>
           <button className="btn" onClick={() => navigate("/portfolio")}>
-            My Portfolio
+            {t("myPortfolio")}
           </button>
           <button className="btn" onClick={() => navigate("/orders")}>
-            Order History
+            {t("orderHistory")}
           </button>
         </div>
       </div>

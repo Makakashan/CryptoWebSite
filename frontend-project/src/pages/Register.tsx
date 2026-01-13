@@ -1,26 +1,28 @@
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { register } from "../store/slices/authSlice";
 
-const validationSchema = Yup.object({
-  username: Yup.string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be less than 20 characters")
-    .required("Username is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password")], "Passwords must match")
-    .required("Please confirm your password"),
-});
-
 const Register = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useAppSelector((state) => state.auth);
+
+  const validationSchema = Yup.object({
+    username: Yup.string()
+      .min(3, t("usernameMin"))
+      .max(20, t("usernameMax"))
+      .required(t("usernameRequired")),
+    password: Yup.string()
+      .min(6, t("passwordMin"))
+      .required(t("passwordRequired")),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password")], t("passwordsMustMatch"))
+      .required(t("pleaseConfirmPassword")),
+  });
 
   const formik = useFormik({
     initialValues: {
@@ -44,18 +46,18 @@ const Register = () => {
     <div className="auth-page">
       <div className="auth-card">
         <h1>MakakaTrade</h1>
-        <h2>Register</h2>
+        <h2>{t("register")}</h2>
 
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={formik.handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">{t("username")}</label>
             <input
               id="username"
               name="username"
               type="text"
-              placeholder="Enter username"
+              placeholder={t("enterUsername")}
               value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -66,12 +68,12 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t("password")}</label>
             <input
               id="password"
               name="password"
               type="password"
-              placeholder="Enter password"
+              placeholder={t("enterPassword")}
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -82,12 +84,12 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">{t("confirmPassword")}</label>
             <input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
-              placeholder="Confirm password"
+              placeholder={t("confirmPasswordPlaceholder")}
               value={formik.values.confirmPassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -105,12 +107,12 @@ const Register = () => {
             className="btn btn-primary"
             disabled={isLoading || !formik.isValid}
           >
-            {isLoading ? "Loading..." : "Register"}
+            {isLoading ? t("loading") : t("register")}
           </button>
         </form>
 
         <p className="auth-link">
-          Already have an account? <a href="/login">Login</a>
+          {t("alreadyHaveAccount")} <a href="/login">{t("login")}</a>
         </p>
       </div>
     </div>

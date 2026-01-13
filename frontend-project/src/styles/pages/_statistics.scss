@@ -1,0 +1,118 @@
+@use "../variables.scss" as *;
+@use "../common.scss" as *;
+
+.statistics-page {
+    .statistics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: $spacing-lg;
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            color: $text-primary;
+        }
+    }
+
+    .statistics-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: $spacing-md;
+        margin-bottom: $spacing-xl;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: $spacing-lg;
+        margin-bottom: $spacing-xl;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chart-card {
+        @extend .card;
+
+        &.full-width {
+            grid-column: 1 / -1;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: $text-primary;
+            margin: 0 0 $spacing-md 0;
+        }
+
+        .recharts-wrapper {
+            margin: 0 auto;
+        }
+
+        .recharts-legend-wrapper {
+            color: $text-secondary;
+        }
+    }
+
+    .top-performers {
+        @extend .card;
+        margin-bottom: $spacing-xl;
+
+        h2 {
+            font-size: 20px;
+            color: $text-primary;
+            margin: 0 0 $spacing-md 0;
+        }
+
+        .performers-list {
+            display: flex;
+            flex-direction: column;
+            gap: $spacing-sm;
+        }
+
+        .performer-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: $spacing-md;
+            padding: $spacing-md;
+            background: $bg-dark;
+            border-radius: 8px;
+            align-items: center;
+            transition: background 0.2s;
+
+            &:hover {
+                background: $bg-hover;
+            }
+
+            .performer-name {
+                font-weight: 600;
+                color: $text-primary;
+                font-size: 16px;
+            }
+
+            .performer-amount {
+                color: $text-secondary;
+                font-size: 14px;
+                text-align: right;
+            }
+
+            .performer-value {
+                font-weight: 700;
+                color: $green;
+                font-size: 16px;
+                text-align: right;
+            }
+
+            @media (max-width: 768px) {
+                grid-template-columns: 1fr;
+                gap: 4px;
+
+                .performer-amount,
+                .performer-value {
+                    text-align: left;
+                }
+            }
+        }
+    }
+}

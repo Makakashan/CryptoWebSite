@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Portfolio from "./pages/Portfolio";
 import Orders from "./pages/Orders";
+import Statistics from "./pages/Statistics";
 import AssetDetail from "./pages/AssetDetail";
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
                   <Route path="/markets/:symbol" element={<AssetDetail />} />
                   <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/orders" element={<Orders />} />
+                  <Route path="/statistics" element={<Statistics />} />
                 </Routes>
               </div>
             </div>

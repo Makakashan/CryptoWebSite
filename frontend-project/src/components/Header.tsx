@@ -1,9 +1,12 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/slices/authSlice";
 import { formatPrice } from "../utils/formatPrice";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
@@ -20,6 +23,7 @@ const Header = () => {
     <div className="header">
       <h2>MakakaTrade</h2>
       <div className="header-actions">
+        <LanguageSwitcher />
         {isAuthenticated && user ? (
           <>
             <div className="user-info">
@@ -27,7 +31,7 @@ const Header = () => {
               <span className="balance">{formatPrice(balance)}</span>
             </div>
             <button className="btn btn-secondary" onClick={handleLogout}>
-              Logout
+              {t("logout")}
             </button>
           </>
         ) : (
@@ -35,7 +39,7 @@ const Header = () => {
             className="btn btn-primary"
             onClick={() => navigate("/login")}
           >
-            Login
+            {t("login")}
           </button>
         )}
       </div>

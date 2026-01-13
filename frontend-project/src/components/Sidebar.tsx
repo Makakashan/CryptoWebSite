@@ -1,31 +1,39 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FiHome,
   FiTrendingUp,
   FiBriefcase,
   FiShoppingCart,
+  FiBarChart2,
 } from "react-icons/fi";
 
 const Sidebar = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="sidebar">
       <h2>MakakaTrade</h2>
       <nav>
         <NavLink to="/">
           <FiHome />
-          Dashboard
+          {t("dashboard")}
         </NavLink>
         <NavLink to="/markets">
           <FiTrendingUp />
-          Markets
+          {t("markets")}
         </NavLink>
         <NavLink to="/portfolio">
           <FiBriefcase />
-          Portfolio
+          {t("portfolio")}
         </NavLink>
         <NavLink to="/orders">
           <FiShoppingCart />
-          Orders
+          {t("orders")}
+        </NavLink>
+        <NavLink to="/statistics">
+          <FiBarChart2 />
+          {t("statistics")}
         </NavLink>
       </nav>
     </div>
