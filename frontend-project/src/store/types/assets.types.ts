@@ -1,5 +1,7 @@
 // Assets Domain Types
 
+import type { PaginationInfo } from "./common.types";
+
 export interface Asset {
   symbol: string;
   name: string;
@@ -22,13 +24,6 @@ export interface AssetsFilters {
   isActive?: boolean;
   minPrice?: number;
   maxPrice?: number;
-}
-
-export interface PaginationInfo {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
 }
 
 export interface AssetsState {

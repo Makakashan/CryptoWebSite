@@ -38,6 +38,15 @@
         border: 1px solid $bg-hover;
     }
 
+    &.btn-danger {
+        background: $red;
+        color: white;
+
+        &:hover:not(:disabled) {
+            background: color.adjust($red, $lightness: -10%);
+        }
+    }
+
     &.btn-sm {
         padding: 8px 16px;
         font-size: 13px;

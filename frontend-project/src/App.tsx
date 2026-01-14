@@ -9,6 +9,7 @@ import Portfolio from "./pages/Portfolio";
 import Orders from "./pages/Orders";
 import Statistics from "./pages/Statistics";
 import AssetDetail from "./pages/AssetDetail";
+import AssetForm from "./pages/AssetForm";
 
 function App() {
   return (
@@ -29,6 +30,8 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/markets" element={<Markets />} />
+                  <Route path="/markets/add" element={<AssetForm />} />
+                  <Route path="/markets/edit/:symbol" element={<AssetForm />} />
                   <Route path="/markets/:symbol" element={<AssetDetail />} />
                   <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/orders" element={<Orders />} />

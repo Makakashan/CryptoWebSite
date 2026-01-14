@@ -52,7 +52,8 @@ export const pl = {
   myPortfolio: "Moje portfolio",
   orderHistory: "Historia zamówień",
   welcomeToMakakaTrade: "Witaj w MakakaTrade",
-  loginToViewPortfolio: "Zaloguj się, aby zobaczyć portfolio i rozpocząć handel",
+  loginToViewPortfolio:
+    "Zaloguj się, aby zobaczyć portfolio i rozpocząć handel",
   noAssetsAvailable: "Brak dostępnych aktywów",
 
   // Rynki
@@ -119,6 +120,55 @@ export const pl = {
   topPerformers: "Top aktywa",
   recentActivity: "Ostatnia aktywność",
   now: "Teraz",
+
+  // Zarządzanie aktywami
+  addNewAsset: "Dodaj nowy aktyw",
+  editAsset: "Edytuj aktyw",
+  deleteAsset: "Usuń aktyw",
+  createAsset: "Utwórz aktyw",
+  updateAsset: "Zaktualizuj aktyw",
+  assetSymbol: "Symbol aktywa",
+  assetName: "Nazwa aktywa",
+  imageUrl: "URL obrazu",
+  description: "Opis",
+  isActive: "Jest aktywny",
+  active: "Aktywny",
+  inactive: "Nieaktywny",
+  assetCreatedSuccessfully: "Aktyw utworzony pomyślnie!",
+  assetUpdatedSuccessfully: "Aktyw zaktualizowany pomyślnie!",
+  assetDeletedSuccessfully: "Aktyw usunięty pomyślnie!",
+  confirmDeleteAsset: "Czy na pewno chcesz usunąć ten aktyw?",
+  symbolRequired: "Symbol jest wymagany",
+  nameRequired: "Nazwa jest wymagana",
+  symbolFormat:
+    "Symbol musi być wielkimi literami i kończyć się na USDT (np. BTCUSDT)",
+
+  // Filtry i sortowanie
+  orderType: "Typ zamówienia",
+  dateFrom: "Data od",
+  dateTo: "Data do",
+  minAmount: "Minimalna ilość",
+  maxAmount: "Maksymalna ilość",
+  sortBy: "Sortuj według",
+  sortOrder: "Kolejność sortowania",
+  ascending: "Rosnąco",
+  descending: "Malejąco",
+  highToLow: "Od najwyższej do najniższej",
+  lowToHigh: "Od najniższej do najwyższej",
+  newest: "Najnowsze",
+  oldest: "Najstarsze",
+  timestamp: "Znacznik czasu",
+  symbol: "Symbol",
+  name: "Nazwa",
+
+  // Paginacja
+  page: "Strona",
+  of: "z",
+  previous: "Poprzednia",
+  next: "Następna",
+  showing: "Pokazano",
+  to: "do",
+  entries: "wpisów",
 
   // Walidacja
   required: "To pole jest wymagane",

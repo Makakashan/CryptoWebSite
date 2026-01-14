@@ -2,16 +2,20 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { placeOrder } from "../store/slices/ordersSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
+import { deleteAsset } from "../store/slices/assetsSlice";
 import { formatPrice } from "../utils/formatPrice";
 
 const AssetDetail = () => {
+  const { t } = useTranslation();
   const { symbol } = useParams<{ symbol: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [successMessage, setSuccessMessage] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const { assets } = useAppSelector((state) => state.assets);
@@ -98,6 +102,31 @@ const AssetDetail = () => {
     },
   });
 
+  const handleEdit = () => {
+    navigate(`/markets/edit/${symbol}`);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!symbol) return;
+
+    const result = await dispatch(deleteAsset(symbol));
+    if (result.meta.requestStatus === "fulfilled") {
+      setSuccessMessage(t("assetDeletedSuccessfully"));
+      setTimeout(() => {
+        navigate("/markets");
+      }, 1500);
+    }
+    setShowDeleteConfirm(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+  };
+
   if (!asset) {
     return (
       <div className="asset-detail-page">
@@ -122,9 +151,41 @@ const AssetDetail = () => {
 
   return (
     <div className="asset-detail-page">
-      <button className="btn back-btn" onClick={() => navigate("/markets")}>
-        ← Back to Markets
-      </button>
+      <div className="page-header-actions">
+        <button className="btn back-btn" onClick={() => navigate("/markets")}>
+          ← {t("back")}
+        </button>
+        <div className="action-buttons">
+          <button className="btn btn-secondary" onClick={handleEdit}>
+            {t("edit")}
+          </button>
+          <button className="btn btn-danger" onClick={handleDeleteClick}>
+            {t("delete")}
+          </button>
+        </div>
+      </div>
+
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={handleDeleteCancel}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>{t("confirmDeleteAsset")}</h3>
+            <p>
+              {t("asset")}: <strong>{asset?.name || asset?.symbol}</strong>
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={handleDeleteCancel}
+              >
+                {t("cancel")}
+              </button>
+              <button className="btn btn-danger" onClick={handleDeleteConfirm}>
+                {t("delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="asset-detail-header">
         <div className="asset-header-info">

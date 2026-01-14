@@ -1,5 +1,6 @@
 @use "../variables.scss" as *;
 @use "../common.scss" as *;
+@use "sass:color";
 
 .portfolio-page {
     .portfolio-header {
@@ -37,16 +38,160 @@
             margin-bottom: $spacing-md;
             color: $text-primary;
         }
+
+        // Filters Card
+        .filters-card {
+            background: $bg-card;
+            border: 1px solid $bg-hover;
+            border-radius: 12px;
+            padding: $spacing-lg;
+            margin-bottom: $spacing-lg;
+
+            .filters-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: $spacing-md;
+                margin-bottom: $spacing-md;
+
+                @media (max-width: 768px) {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .filter-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+
+                label {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: $text-secondary;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                input,
+                select {
+                    padding: 10px 12px;
+                    background: $bg-dark;
+                    border: 1px solid $bg-hover;
+                    border-radius: 8px;
+                    color: $text-primary;
+                    font-size: 14px;
+                    transition: all 0.2s;
+
+                    &:focus {
+                        outline: none;
+                        border-color: $blue;
+                        background: color.adjust($bg-dark, $lightness: 2%);
+                    }
+
+                    &::placeholder {
+                        color: $text-secondary;
+                    }
+                }
+
+                select {
+                    cursor: pointer;
+
+                    &:hover {
+                        border-color: rgba($blue, 0.5);
+                    }
+                }
+            }
+
+            .filter-actions {
+                display: flex;
+                gap: $spacing-sm;
+                justify-content: flex-end;
+
+                @media (max-width: 768px) {
+                    flex-direction: column;
+
+                    .btn {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+
+        // Pagination
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: $spacing-md;
+            margin-top: $spacing-xl;
+            padding: $spacing-lg 0;
+
+            .btn {
+                min-width: 120px;
+                padding: 10px 20px;
+            }
+
+            .page-info {
+                color: $text-secondary;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 0 $spacing-md;
+            }
+
+            @media (max-width: 768px) {
+                flex-direction: column;
+                gap: $spacing-sm;
+
+                .btn {
+                    width: 100%;
+                }
+            }
+        }
     }
 
     .portfolio-table-container {
-        @extend .card;
+        background: $bg-card;
+        border-radius: 12px;
+        border: 1px solid $bg-hover;
         padding: 0;
         overflow: hidden;
     }
 
     .portfolio-table {
-        @extend .data-table;
+        width: 100%;
+        border-collapse: collapse;
+
+        thead {
+            tr {
+                border-bottom: 1px solid $bg-hover;
+
+                th {
+                    padding: 16px;
+                    text-align: left;
+                    color: $text-secondary;
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                border-bottom: 1px solid $bg-hover;
+                transition: background 0.2s;
+
+                &:hover {
+                    background: $bg-hover;
+                }
+
+                td {
+                    padding: 16px;
+                    color: $text-primary;
+                    font-size: 14px;
+                }
+            }
+        }
 
         .asset-info {
             display: flex;

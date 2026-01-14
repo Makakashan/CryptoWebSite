@@ -1,6 +1,19 @@
 import axiosInstance from "./axiosConfig";
 import type { Order, PlaceOrderRequest, PaginationInfo } from "../store/types";
 
+interface OrdersFilters {
+  asset_symbol?: string;
+  order_type?: "BUY" | "SELL";
+  dateFrom?: string;
+  dateTo?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+}
+
 interface OrdersResponse {
   data: Order[];
   pagination?: {
@@ -16,21 +29,21 @@ interface OrdersResponse {
 }
 
 export const ordersApi = {
-  getOrders: async (filters?: {
-    type?: "BUY" | "SELL";
-    status?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<{ data: Order[]; pagination?: PaginationInfo }> => {
+  getOrders: async (
+    filters?: OrdersFilters,
+  ): Promise<{ data: Order[]; pagination?: PaginationInfo }> => {
+    const params = new URLSearchParams();
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== "" && value !== null) {
+          params.append(key, String(value));
+        }
+      });
+    }
+
     const response = await axiosInstance.get<OrdersResponse>(
-      "/orders/history",
-      {
-        params: {
-          order_type: filters?.type,
-          page: filters?.page,
-          limit: filters?.limit,
-        },
-      },
+      `/orders/history?${params.toString()}`,
     );
 
     // Handle both paginated response and direct array

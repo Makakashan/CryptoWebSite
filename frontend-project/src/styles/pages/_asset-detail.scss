@@ -5,15 +5,97 @@
     max-width: 1400px;
     margin: 0 auto;
 
-    .back-btn {
+    .page-header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: $spacing-lg;
-        background: transparent;
-        border: 1px solid $bg-hover;
-        color: $text-secondary;
 
-        &:hover {
-            background: $bg-hover;
-            color: $text-primary;
+        @media (max-width: 768px) {
+            flex-direction: column;
+            gap: $spacing-md;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid $bg-hover;
+            color: $text-secondary;
+
+            &:hover {
+                background: $bg-hover;
+                color: $text-primary;
+            }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: $spacing-sm;
+
+            @media (max-width: 768px) {
+                width: 100%;
+
+                .btn {
+                    flex: 1;
+                }
+            }
+        }
+    }
+
+    .btn-danger {
+        background: $red;
+        color: white;
+
+        &:hover:not(:disabled) {
+            background: color.adjust($red, $lightness: -10%);
+        }
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: $spacing-lg;
+
+        .modal-content {
+            background: $bg-card;
+            border: 1px solid $bg-hover;
+            border-radius: 12px;
+            padding: $spacing-xl;
+            max-width: 500px;
+            width: 100%;
+
+            h3 {
+                margin: 0 0 $spacing-md 0;
+                color: $text-primary;
+                font-size: 20px;
+            }
+
+            p {
+                color: $text-secondary;
+                margin: 0 0 $spacing-lg 0;
+                line-height: 1.6;
+
+                strong {
+                    color: $text-primary;
+                }
+            }
+
+            .modal-actions {
+                display: flex;
+                gap: $spacing-sm;
+                justify-content: flex-end;
+
+                .btn {
+                    min-width: 100px;
+                }
+            }
         }
     }
 

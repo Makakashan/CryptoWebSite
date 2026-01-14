@@ -1,22 +1,47 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { ordersApi } from "../../api/ordersApi";
-import type { Order, PlaceOrderRequest, OrdersState } from "../types";
+import type {
+  Order,
+  PlaceOrderRequest,
+  OrdersState,
+  OrdersFilters,
+  PaginationInfo,
+} from "../types";
+
+interface OrdersResponse {
+  data: Order[];
+  pagination?: PaginationInfo;
+}
 
 const initialState: OrdersState = {
   orders: [],
   isLoading: false,
   error: null,
+  filters: {
+    page: 1,
+    limit: 20,
+    sortBy: "timestamp",
+    sortOrder: "desc",
+  },
+  pagination: null,
 };
 
 export const fetchOrders = createAsyncThunk<
-  Order[],
-  void,
+  OrdersResponse,
+  OrdersFilters | undefined,
   { rejectValue: string }
->("orders/fetch", async (_, { rejectWithValue }) => {
+>("orders/fetch", async (filters, { rejectWithValue }) => {
   try {
-    const response = await ordersApi.getOrders();
-    return response.data;
+    const response = await ordersApi.getOrders(filters);
+    return {
+      data: response.data,
+      pagination: response.pagination,
+    };
   } catch (error) {
     if (error instanceof AxiosError) {
       return rejectWithValue(
@@ -53,6 +78,12 @@ const ordersSlice = createSlice({
       state.orders = [];
       state.error = null;
     },
+    setOrdersFilters: (state, action: PayloadAction<OrdersFilters>) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    clearOrdersFilters: (state) => {
+      state.filters = initialState.filters;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -62,7 +93,8 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.orders = action.payload;
+        state.orders = action.payload.data;
+        state.pagination = action.payload.pagination || null;
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.isLoading = false;
@@ -83,5 +115,6 @@ const ordersSlice = createSlice({
   },
 });
 
-export const { clearOrders } = ordersSlice.actions;
+export const { clearOrders, setOrdersFilters, clearOrdersFilters } =
+  ordersSlice.actions;
 export default ordersSlice.reducer;

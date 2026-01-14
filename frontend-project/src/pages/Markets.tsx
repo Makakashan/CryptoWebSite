@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets, setFilters } from "../store/slices/assetsSlice";
 import { useWebSocket } from "../hooks/useWebSocket";
 import AssetCard from "../components/AssetCard";
 
 const Markets = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   useWebSocket();
   const dispatch = useAppDispatch();
   const { assets, isLoading, error, filters, pagination } = useAppSelector(
@@ -76,14 +80,22 @@ const Markets = () => {
   return (
     <div className="markets-page">
       <div className="markets-header">
-        <h1>Markets</h1>
-        <button
-          className="btn btn-secondary"
-          onClick={() => dispatch(fetchAssets(filters))}
-          disabled={isLoading}
-        >
-          {isLoading ? "Loading..." : "Refresh"}
-        </button>
+        <h1>{t("markets")}</h1>
+        <div className="header-actions">
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/markets/add")}
+          >
+            {t("addNewAsset")}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => dispatch(fetchAssets(filters))}
+            disabled={isLoading}
+          >
+            {isLoading ? t("loading") : "Refresh"}
+          </button>
+        </div>
       </div>
 
       <div className="filters-card">
