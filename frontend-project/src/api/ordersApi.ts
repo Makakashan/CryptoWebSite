@@ -1,18 +1,10 @@
 import axiosInstance from "./axiosConfig";
-import type { Order, PlaceOrderRequest, PaginationInfo } from "../store/types";
-
-interface OrdersFilters {
-  asset_symbol?: string;
-  order_type?: "BUY" | "SELL";
-  dateFrom?: string;
-  dateTo?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  page?: number;
-  limit?: number;
-}
+import type {
+  Order,
+  PlaceOrderRequest,
+  PaginationInfo,
+  OrdersFilters,
+} from "../store/types";
 
 interface OrdersResponse {
   data: Order[];

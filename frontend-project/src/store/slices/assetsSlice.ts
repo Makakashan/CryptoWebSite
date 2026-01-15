@@ -4,16 +4,14 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
-import {
-  assetsApi,
-  type CreateAssetDto,
-  type UpdateAssetDto,
-} from "../../api/assetsApi";
+import { assetsApi } from "../../api/assetsApi";
 import type {
   AssetsFilters,
   AssetsState,
   Asset,
   PaginationInfo,
+  CreateAssetDto,
+  UpdateAssetDto,
 } from "../types";
 
 interface AssetsResponse {

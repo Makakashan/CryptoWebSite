@@ -26,6 +26,23 @@ export interface AssetsFilters {
   maxPrice?: number;
 }
 
+export interface CreateAssetDto {
+  symbol: string;
+  name: string;
+  image_url?: string | null;
+  category?: string;
+  description?: string | null;
+  is_active?: boolean;
+}
+
+export interface UpdateAssetDto {
+  name?: string;
+  image_url?: string | null;
+  category?: string;
+  description?: string | null;
+  is_active?: boolean;
+}
+
 export interface AssetsState {
   assets: Asset[];
   isLoading: boolean;

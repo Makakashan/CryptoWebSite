@@ -9,7 +9,7 @@ import {
   updateAsset,
   fetchAssets,
 } from "../store/slices/assetsSlice";
-import type { CreateAssetDto } from "../api/assetsApi";
+import type { CreateAssetDto } from "../store/types";
 
 const AssetForm = () => {
   const { t } = useTranslation();

@@ -1,5 +1,10 @@
 import api from "./axiosConfig";
-import type { AssetsFilters, Asset } from "../store/types";
+import type {
+  AssetsFilters,
+  Asset,
+  CreateAssetDto,
+  UpdateAssetDto,
+} from "../store/types";
 
 interface AssetsResponse {
   data: Asset[];
@@ -11,23 +16,6 @@ interface AssetsResponse {
   };
   sortBy?: string;
   sortOrder?: string;
-}
-
-export interface CreateAssetDto {
-  symbol: string;
-  name: string;
-  image_url?: string | null;
-  category?: string;
-  description?: string | null;
-  is_active?: boolean;
-}
-
-export interface UpdateAssetDto {
-  name?: string;
-  image_url?: string | null;
-  category?: string;
-  description?: string | null;
-  is_active?: boolean;
 }
 
 export const assetsApi = {
