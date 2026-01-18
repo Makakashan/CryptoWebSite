@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
+import type { RootState } from "../store";
 import { fetchOrders } from "../store/slices/ordersSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { fetchAssets } from "../store/slices/assetsSlice";
@@ -101,14 +102,14 @@ const Statistics = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated } = useAppSelector((state: RootState) => state.auth);
   const { orders, isLoading: ordersLoading } = useAppSelector(
-    (state) => state.orders,
+    (state: RootState) => state.orders,
   );
   const { portfolio, isLoading: portfolioLoading } = useAppSelector(
-    (state) => state.portfolio,
+    (state: RootState) => state.portfolio,
   );
-  const { assets } = useAppSelector((state) => state.assets);
+  const { assets } = useAppSelector((state: RootState) => state.assets);
 
   useEffect(() => {
     if (!isAuthenticated) {
