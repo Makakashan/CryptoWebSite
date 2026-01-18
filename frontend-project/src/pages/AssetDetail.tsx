@@ -145,7 +145,6 @@ const AssetDetail = () => {
 
   const shortName = asset.symbol.replace("USDT", "");
   const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=80`;
-  const priceChange = asset.price_change_24h || 0;
   const ownedValue = ownedAmount * currentPrice;
   const canSell = ownedAmount > 0;
 
@@ -207,12 +206,6 @@ const AssetDetail = () => {
 
         <div className="asset-price-info">
           <div className="current-price">{formatPrice(currentPrice)}</div>
-          <div
-            className={`price-change ${priceChange > 0 ? "positive" : priceChange < 0 ? "negative" : ""}`}
-          >
-            {priceChange > 0 ? "+" : ""}
-            {priceChange.toFixed(2)}%
-          </div>
         </div>
       </div>
 
@@ -284,17 +277,32 @@ const AssetDetail = () => {
 
             <div className="form-group">
               <label htmlFor="amount">Amount</label>
-              <input
-                id="amount"
-                name="amount"
-                type="number"
-                step="0.000001"
-                min="0"
-                placeholder="Enter amount"
-                value={formik.values.amount}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
+              <div className="amount-input-wrapper">
+                <input
+                  id="amount"
+                  name="amount"
+                  type="number"
+                  step="0.000001"
+                  min="0"
+                  placeholder="Enter amount"
+                  value={formik.values.amount}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                <button
+                  type="button"
+                  className="btn-max"
+                  onClick={() => {
+                    const maxAmount =
+                      formik.values.orderType === "BUY"
+                        ? maxBuyAmount
+                        : maxSellAmount;
+                    formik.setFieldValue("amount", maxAmount.toFixed(6));
+                  }}
+                >
+                  {formik.values.orderType === "BUY" ? "Buy All" : "Sell All"}
+                </button>
+              </div>
               {formik.touched.amount && formik.errors.amount && (
                 <div className="field-error">{formik.errors.amount}</div>
               )}

@@ -12,7 +12,6 @@ const AssetCard = ({ asset }: AssetCardProps) => {
   const shortName = asset.symbol.replace("USDT", "");
   const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=40`;
   const price = asset.price || asset.current_price || 0;
-  const priceChange = asset.price_change_24h || 0;
 
   const handleClick = () => {
     navigate(`/markets/${asset.symbol}`);
@@ -34,12 +33,6 @@ const AssetCard = ({ asset }: AssetCardProps) => {
         </div>
       </div>
       <div className="asset-price">{formatPrice(price)}</div>
-      <div
-        className={`asset-change ${priceChange > 0 ? "positive" : priceChange < 0 ? "negative" : ""}`}
-      >
-        {priceChange > 0 ? "+" : ""}
-        {priceChange.toFixed(2)}%
-      </div>
     </div>
   );
 };
