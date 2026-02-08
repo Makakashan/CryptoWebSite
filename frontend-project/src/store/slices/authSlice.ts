@@ -10,7 +10,7 @@ import type { User, LoginRequest, RegisterRequest, AuthState } from "../types";
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   error: null,
 };
 
@@ -145,11 +145,11 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
       })
-      .addCase(fetchProfile.rejected, (state, action) => {
+      .addCase(fetchProfile.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
-        state.error = action.payload || "Failed to fetch profile";
+        state.error = null;
       });
   },
 });
