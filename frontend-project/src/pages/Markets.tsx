@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets, setFilters } from "../store/slices/assetsSlice";
 import { useWebSocket } from "../hooks/useWebSocket";
 import AssetCard from "../components/AssetCard";
+import Button from "@/components/ui/button";
 
 const Markets = () => {
   const { t } = useTranslation();
@@ -69,7 +70,7 @@ const Markets = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner mb-4"></div>
-        <p className="text-text-secondary">Loading markets...</p>
+        <p className="text-text-secondary">{t("loading")}</p>
       </div>
     );
   }
@@ -84,30 +85,28 @@ const Markets = () => {
           {t("markets")}
         </h1>
         <div className="flex gap-4">
-          <button
-            className="btn-primary"
-            onClick={() => navigate("/markets/add")}
-          >
+          <Button onClick={() => navigate("/markets/add")}>
             {t("addNewAsset")}
-          </button>
-          <button
-            className="btn-outline btn-small"
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => dispatch(fetchAssets(filters))}
             disabled={isLoading}
           >
-            {isLoading ? t("loading") : "Refresh"}
-          </button>
+            {isLoading ? t("loading") : t("refresh")}
+          </Button>
         </div>
       </div>
 
       <div className="card-padded mb-6">
-        <h3 className="m-0 mb-4 text-lg text-text-primary">Filters</h3>
+        <h3 className="m-0 mb-4 text-lg text-text-primary">{t("filters")}</h3>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
           <div className="flex flex-col gap-2">
-            <label className="filter-label">Search</label>
+            <label className="filter-label">{t("search")}</label>
             <input
               type="text"
-              placeholder="Search assets..."
+              placeholder={t("searchAssets")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input"
@@ -115,13 +114,13 @@ const Markets = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="filter-label">Category</label>
+            <label className="filter-label">{t("category")}</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="select"
             >
-              <option value="">All</option>
+              <option value="">{t("all")}</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -131,41 +130,36 @@ const Markets = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="filter-label">Sort By</label>
+            <label className="filter-label">{t("sortBy")}</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="select"
             >
-              <option value="price">Price</option>
-              <option value="symbol">Symbol</option>
-              <option value="name">Name</option>
+              <option value="price">{t("price")}</option>
+              <option value="symbol">{t("symbol")}</option>
+              <option value="name">{t("name")}</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="filter-label">Order</label>
+            <label className="filter-label">{t("order")}</label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
               className="select"
             >
-              <option value="desc">High to Low</option>
-              <option value="asc">Low to High</option>
+              <option value="desc">{t("highToLow")}</option>
+              <option value="asc">{t("lowToHigh")}</option>
             </select>
           </div>
         </div>
 
         <div className="flex gap-2 justify-end">
-          <button className="btn-primary" onClick={handleApplyFilters}>
-            Apply
-          </button>
-          <button
-            className="btn-secondary hover:-translate-y-px"
-            onClick={handleReset}
-          >
-            Reset
-          </button>
+          <Button onClick={handleApplyFilters}>{t("apply")}</Button>
+          <Button variant="secondary" onClick={handleReset}>
+            {t("reset")}
+          </Button>
         </div>
       </div>
 
@@ -185,29 +179,33 @@ const Markets = () => {
 
       {!error && !isLoading && assets.length === 0 && (
         <div className="flex flex-col items-center justify-center p-14 text-center">
-          <p className="text-text-secondary">No assets found</p>
+          <p className="text-text-secondary">{t("noAssetsAvailable")}</p>
         </div>
       )}
 
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-8 pt-6">
-          <button
-            className="btn-secondary btn-small min-w-120"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
+            className="min-w-30"
           >
-            Previous
-          </button>
+            {t("previous")}
+          </Button>
           <span className="text-text-secondary text-sm font-medium px-4">
-            Page {currentPage} of {totalPages}
+            {t("page")} {currentPage} {t("of")} {totalPages}
           </span>
-          <button
-            className="btn-secondary btn-small min-w-120"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
+            className="min-w-30"
           >
-            Next
-          </button>
+            {t("next")}
+          </Button>
         </div>
       )}
     </div>

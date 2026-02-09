@@ -5,6 +5,7 @@ export const pl = {
   portfolio: "Portfolio",
   orders: "Zamówienia",
   statistics: "Statystyki",
+  profile: "Profil",
 
   // Autoryzacja
   login: "Zaloguj się",
@@ -33,6 +34,7 @@ export const pl = {
   success: "Sukces",
   search: "Szukaj",
   filter: "Filtruj",
+  filters: "Filtry",
   sort: "Sortuj",
   reset: "Resetuj",
   apply: "Zastosuj",
@@ -42,11 +44,24 @@ export const pl = {
   edit: "Edytuj",
   add: "Dodaj",
   back: "Wstecz",
+  refresh: "Odśwież",
   enterUsername: "Wprowadź nazwę użytkownika",
   enterPassword: "Wprowadź hasło",
   confirmPasswordPlaceholder: "Potwierdź hasło",
   usernameMax: "Nazwa użytkownika musi mieć mniej niż 20 znaków",
   pleaseConfirmPassword: "Proszę potwierdzić hasło",
+  searchAssets: "Szukaj aktywów...",
+  all: "Wszystkie",
+  order: "Kolejność",
+
+  // Profil
+  accountInformation: "Informacje o koncie",
+  balance: "Saldo",
+  userId: "ID użytkownika",
+  removeAvatar: "Usuń awatar",
+  saving: "Zapisywanie...",
+  saveChanges: "Zapisz zmiany",
+  deleting: "Usuwanie...",
 
   // Panel główny
   totalBalance: "Całkowite saldo",

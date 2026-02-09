@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AvatarUpload } from "../components/ui/AvatarUpload";
+import Button from "@/components/ui/button";
 import axios from "axios";
 import { fetchProfile } from "../store/slices/authSlice";
 
@@ -81,7 +82,7 @@ const Profile = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p className="mt-4 text-text-secondary">Loading profile...</p>
+        <p className="mt-4 text-text-secondary">{t("loading")}</p>
       </div>
     );
   }
@@ -91,13 +92,11 @@ const Profile = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-text-primary mb-6">
-        {t("Profile")}
+        {t("profile")}
       </h1>
 
       <div className="card-padded max-w-2xl">
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4"></h2>
-
           {message && (
             <div
               className={
@@ -118,65 +117,51 @@ const Profile = () => {
 
             {hasChanges && (
               <div className="flex gap-3">
-                <button
-                  onClick={handleSaveAvatar}
-                  disabled={isUploading}
-                  className="btn-primary"
-                >
-                  {isUploading
-                    ? t("saving") || "Saving..."
-                    : t("saveChanges") || "Save Changes"}
-                </button>
-                <button
+                <Button onClick={handleSaveAvatar} disabled={isUploading}>
+                  {isUploading ? t("saving") : t("saveChanges")}
+                </Button>
+                <Button
+                  variant="secondary"
                   onClick={() => setAvatar(user.avatar || null)}
                   disabled={isUploading}
-                  className="btn-secondary"
                 >
-                  {t("cancel") || "Cancel"}
-                </button>
+                  {t("cancel")}
+                </Button>
               </div>
             )}
 
             {avatar && !hasChanges && (
-              <button
+              <Button
+                variant="destructive"
                 onClick={handleDeleteAvatar}
                 disabled={isUploading}
-                className="btn-danger"
               >
-                {isUploading
-                  ? t("deleting") || "Deleting..."
-                  : t("removeAvatar") || "Remove Avatar"}
-              </button>
+                {isUploading ? t("deleting") : t("removeAvatar")}
+              </Button>
             )}
           </div>
         </div>
 
         <div className="border-t border-bg-hover pt-6">
           <h2 className="text-lg font-semibold text-text-primary mb-4">
-            {t("Account Information")}
+            {t("accountInformation")}
           </h2>
 
           <div className="space-y-4">
             <div className="data-item">
-              <span className="data-item-label">
-                {t("username") || "Username"}
-              </span>
+              <span className="data-item-label">{t("username")}</span>
               <span className="data-item-value">{user.username}</span>
             </div>
 
             <div className="data-item">
-              <span className="data-item-label">
-                {t("balance") || "Balance"}
-              </span>
+              <span className="data-item-label">{t("balance")}</span>
               <span className="data-item-value text-green">
                 ${user.balance.toFixed(2)}
               </span>
             </div>
 
             <div className="data-item">
-              <span className="data-item-label">
-                {t("userId") || "User ID"}
-              </span>
+              <span className="data-item-label">{t("userId")}</span>
               <span className="data-item-value">#{user.id}</span>
             </div>
           </div>

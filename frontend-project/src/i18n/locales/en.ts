@@ -5,6 +5,7 @@ export const en = {
   portfolio: "Portfolio",
   orders: "Orders",
   statistics: "Statistics",
+  profile: "Profile",
 
   // Auth
   login: "Login",
@@ -33,6 +34,7 @@ export const en = {
   success: "Success",
   search: "Search",
   filter: "Filter",
+  filters: "Filters",
   sort: "Sort",
   reset: "Reset",
   apply: "Apply",
@@ -42,11 +44,24 @@ export const en = {
   edit: "Edit",
   add: "Add",
   back: "Back",
+  refresh: "Refresh",
   enterUsername: "Enter username",
   enterPassword: "Enter password",
   confirmPasswordPlaceholder: "Confirm password",
   usernameMax: "Username must be less than 20 characters",
   pleaseConfirmPassword: "Please confirm your password",
+  searchAssets: "Search assets...",
+  all: "All",
+  order: "Order",
+
+  // Profile
+  accountInformation: "Account Information",
+  balance: "Balance",
+  userId: "User ID",
+  removeAvatar: "Remove Avatar",
+  saving: "Saving...",
+  saveChanges: "Save Changes",
+  deleting: "Deleting...",
 
   // Dashboard
   totalBalance: "Total Balance",

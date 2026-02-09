@@ -328,7 +328,7 @@ const AssetDetail = () => {
                 />
                 <button
                   type="button"
-                  className="btn-primary absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs"
+                  className={`${formik.values.orderType === "BUY" ? "btn-success" : "btn-primary"} absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs`}
                   onClick={() => {
                     const maxAmount =
                       formik.values.orderType === "BUY"

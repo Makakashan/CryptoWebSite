@@ -170,6 +170,30 @@
     cursor: not-allowed;
 }
 
+.btn-success {
+    padding: 0.75rem 1.5rem;
+    border: 0;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: var(--color-green);
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(14, 203, 129, 0.2);
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: rgba(14, 203, 129, 0.9);
+    box-shadow: 0 6px 20px 0 rgba(14, 203, 129, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-success:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .btn-small {
     padding: 0.625rem 1.25rem;
     font-size: 0.875rem;
