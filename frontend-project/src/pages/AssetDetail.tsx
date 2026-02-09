@@ -218,9 +218,7 @@ const AssetDetail = () => {
               {asset.name || asset.symbol}
             </p>
             {asset.category && (
-              <span className="inline-block px-3 py-1 bg-blue/20 text-blue rounded-full text-xs font-semibold">
-                {asset.category}
-              </span>
+              <span className="badge-primary">{asset.category}</span>
             )}
           </div>
         </div>
@@ -245,35 +243,21 @@ const AssetDetail = () => {
         <div className="card-padded">
           <h2 className="section-header">Your Holdings</h2>
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
-                Amount Owned
-              </span>
-              <span className="text-lg font-semibold text-text-primary">
-                {ownedAmount.toFixed(6)}
-              </span>
+            <div className="data-item">
+              <span className="data-item-label">Amount Owned</span>
+              <span className="data-item-value">{ownedAmount.toFixed(6)}</span>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
-                Total Value
-              </span>
-              <span className="text-lg font-semibold text-text-primary">
-                {formatPrice(ownedValue)}
-              </span>
+            <div className="data-item">
+              <span className="data-item-label">Total Value</span>
+              <span className="data-item-value">{formatPrice(ownedValue)}</span>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
-                Available Balance
-              </span>
-              <span className="text-lg font-semibold text-text-primary">
-                {formatPrice(balance)}
-              </span>
+            <div className="data-item">
+              <span className="data-item-label">Available Balance</span>
+              <span className="data-item-value">{formatPrice(balance)}</span>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
-                Max Buy Amount
-              </span>
-              <span className="text-lg font-semibold text-text-primary">
+            <div className="data-item">
+              <span className="data-item-label">Max Buy Amount</span>
+              <span className="data-item-value">
                 {maxBuyAmount > 0 ? maxBuyAmount.toFixed(6) : "0.000000"}
               </span>
             </div>

@@ -50,8 +50,8 @@ const Dashboard = () => {
 
   if (isLoading && assets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-14 text-center">
-        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+      <div className="loading-container">
+        <div className="loading-spinner mb-4"></div>
         <p className="text-text-secondary">{t("loading")}</p>
       </div>
     );

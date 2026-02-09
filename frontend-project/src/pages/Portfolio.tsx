@@ -137,7 +137,7 @@ const Portfolio = () => {
       <div className="flex flex-col items-center justify-center p-14 text-center gap-4">
         <p className="text-red text-base">{error}</p>
         <button
-          className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary"
           onClick={() => dispatch(fetchPortfolio())}
         >
           Retry
@@ -156,10 +156,7 @@ const Portfolio = () => {
         <h1 className="text-text-primary text-2xl font-bold m-0">
           {t("myPortfolio")}
         </h1>
-        <button
-          className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => navigate("/markets")}
-        >
+        <button className="btn-primary" onClick={() => navigate("/markets")}>
           {t("tradeAssets")}
         </button>
       </div>
@@ -199,7 +196,7 @@ const Portfolio = () => {
           <div className="flex flex-col items-center justify-center p-14 text-center">
             <p className="text-text-secondary mb-4">{t("noAssetsYet")}</p>
             <button
-              className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary"
               onClick={() => navigate("/markets")}
             >
               {t("browseMarkets")}
@@ -210,28 +207,24 @@ const Portfolio = () => {
             <div className="card-padded mb-6">
               <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    {t("search")}
-                  </label>
+                  <label className="filter-label">{t("search")}</label>
                   <input
                     type="text"
                     placeholder={t("search")}
                     value={searchAsset}
                     onChange={(e) => setSearchAsset(e.target.value)}
-                    className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 focus:outline-none focus:border-blue focus:bg-bg-dark/102 placeholder:text-text-secondary"
+                    className="input"
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    {t("sortBy")}
-                  </label>
+                  <label className="filter-label">{t("sortBy")}</label>
                   <select
                     value={sortBy}
                     onChange={(e) =>
                       setSortBy(e.target.value as "symbol" | "amount" | "value")
                     }
-                    className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102 hover:border-blue/50"
+                    className="select"
                   >
                     <option value="value">{t("totalValue")}</option>
                     <option value="symbol">{t("symbol")}</option>
@@ -240,9 +233,7 @@ const Portfolio = () => {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    {t("sortOrder")}
-                  </label>
+                  <label className="filter-label">{t("sortOrder")}</label>
                   <select
                     value={sortOrder}
                     onChange={(e) =>
@@ -258,7 +249,7 @@ const Portfolio = () => {
 
               <div className="flex gap-2 justify-end">
                 <button
-                  className="px-6 py-3 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-secondary hover:-translate-y-px"
                   onClick={handleResetFilters}
                 >
                   {t("reset")}
@@ -336,7 +327,7 @@ const Portfolio = () => {
                         </td>
                         <td className="p-4 text-text-primary text-sm">
                           <button
-                            className="px-4 py-2 bg-bg-hover text-text-primary border-0 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn-secondary px-4 py-2 text-xs"
                             onClick={() =>
                               navigate(`/markets/${asset.asset_symbol}`)
                             }
@@ -354,7 +345,7 @@ const Portfolio = () => {
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-4 mt-8 pt-6">
                 <button
-                  className="min-w-120 px-5 py-2.5 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-secondary btn-small min-w-120"
                   onClick={() => handlePageChange(effectiveCurrentPage - 1)}
                   disabled={effectiveCurrentPage === 1}
                 >
@@ -364,7 +355,7 @@ const Portfolio = () => {
                   {t("page")} {effectiveCurrentPage} {t("of")} {totalPages}
                 </span>
                 <button
-                  className="min-w-120 px-5 py-2.5 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-secondary btn-small min-w-120"
                   onClick={() => handlePageChange(effectiveCurrentPage + 1)}
                   disabled={effectiveCurrentPage === totalPages}
                 >

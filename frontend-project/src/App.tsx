@@ -19,8 +19,8 @@ const ProtectedRoutes = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+      <div className="loading-container h-screen">
+        <div className="loading-spinner mb-4"></div>
         <p className="text-text-secondary">Loading...</p>
       </div>
     );

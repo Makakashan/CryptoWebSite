@@ -256,7 +256,7 @@ const AssetForm = () => {
                 type="checkbox"
                 checked={formik.values.is_active}
                 onChange={formik.handleChange}
-                className="w-5 h-5 rounded border-bg-hover bg-bg-dark text-blue focus:ring-2 focus:ring-blue focus:ring-offset-0 cursor-pointer"
+                className="checkbox"
               />
               <span className="text-text-primary font-medium text-sm">
                 {t("isActive")}

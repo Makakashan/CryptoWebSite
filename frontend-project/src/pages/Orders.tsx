@@ -139,9 +139,7 @@ const Orders = () => {
         <h3 className="m-0 mb-4 text-lg text-text-primary">{t("filter")}</h3>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              {t("asset")}
-            </label>
+            <label className="filter-label">{t("asset")}</label>
             <select
               value={assetSymbol}
               onChange={(e) => setAssetSymbol(e.target.value)}
@@ -157,15 +155,13 @@ const Orders = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              {t("orderType")}
-            </label>
+            <label className="filter-label">{t("orderType")}</label>
             <select
               value={orderType}
               onChange={(e) =>
                 setOrderType(e.target.value as "" | "BUY" | "SELL")
               }
-              className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102 hover:border-blue/50"
+              className="select"
             >
               <option value="">{t("allAssets")}</option>
               <option value="BUY">{t("buy")}</option>
@@ -181,7 +177,7 @@ const Orders = () => {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102"
+              className="input"
             />
           </div>
 
@@ -193,14 +189,12 @@ const Orders = () => {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102"
+              className="input"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              {t("sortBy")}
-            </label>
+            <label className="filter-label">{t("sortBy")}</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -214,9 +208,7 @@ const Orders = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              {t("sortOrder")}
-            </label>
+            <label className="filter-label">{t("sortOrder")}</label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
@@ -229,14 +221,11 @@ const Orders = () => {
         </div>
 
         <div className="flex gap-2 justify-end">
-          <button
-            className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleApplyFilters}
-          >
+          <button className="btn-primary" onClick={handleApplyFilters}>
             {t("apply")}
           </button>
           <button
-            className="px-6 py-3 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-secondary hover:-translate-y-px"
             onClick={handleResetFilters}
           >
             {t("reset")}
@@ -302,7 +291,7 @@ const Orders = () => {
           <div className="flex flex-col items-center justify-center p-14 text-center">
             <p className="text-text-secondary mb-4">{t("noOrdersYet")}</p>
             <button
-              className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary"
               onClick={() => navigate("/markets")}
             >
               {t("startTrading")}

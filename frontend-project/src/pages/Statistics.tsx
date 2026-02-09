@@ -222,10 +222,7 @@ const Statistics = () => {
       {hasNoData ? (
         <div className="flex flex-col items-center justify-center p-14 text-center">
           <p className="text-text-secondary mb-4">{t("noOrdersYet")}</p>
-          <button
-            className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => navigate("/markets")}
-          >
+          <button className="btn-primary" onClick={() => navigate("/markets")}>
             {t("startTrading")}
           </button>
         </div>

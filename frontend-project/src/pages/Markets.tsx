@@ -67,8 +67,8 @@ const Markets = () => {
 
   if (isLoading && assets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-14 text-center">
-        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+      <div className="loading-container">
+        <div className="loading-spinner mb-4"></div>
         <p className="text-text-secondary">Loading markets...</p>
       </div>
     );
@@ -104,9 +104,7 @@ const Markets = () => {
         <h3 className="m-0 mb-4 text-lg text-text-primary">Filters</h3>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Search
-            </label>
+            <label className="filter-label">Search</label>
             <input
               type="text"
               placeholder="Search assets..."
@@ -117,9 +115,7 @@ const Markets = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Category
-            </label>
+            <label className="filter-label">Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -135,9 +131,7 @@ const Markets = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Sort By
-            </label>
+            <label className="filter-label">Sort By</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -150,9 +144,7 @@ const Markets = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Order
-            </label>
+            <label className="filter-label">Order</label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
