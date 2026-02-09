@@ -13,6 +13,7 @@ import Orders from "./pages/Orders";
 import Statistics from "./pages/Statistics";
 import AssetDetail from "./pages/AssetDetail";
 import AssetForm from "./pages/AssetForm";
+import Profile from "./pages/Profile";
 
 const ProtectedRoutes = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
@@ -75,6 +76,7 @@ function App() {
                     <Route path="/portfolio" element={<Portfolio />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/statistics" element={<Statistics />} />
+                    <Route path="/profile" element={<Profile />} />
                   </Routes>
                 </div>
               </div>

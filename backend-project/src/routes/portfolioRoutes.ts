@@ -15,9 +15,10 @@ router.get(
     const userId = req.user!.id;
 
     try {
-      const user = await db.get("SELECT balance FROM users WHERE id = ?", [
-        userId,
-      ]);
+      const user = await db.get(
+        "SELECT balance, avatar FROM users WHERE id = ?",
+        [userId],
+      );
 
       if (!user) {
         res.status(401).json({ message: "Access denied. User not found." });
@@ -33,6 +34,7 @@ router.get(
         id: userId,
         username: req.user!.username,
         balance: user.balance,
+        avatar: user.avatar,
         assets: assets,
       });
     } catch (error) {

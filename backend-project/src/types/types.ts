@@ -7,6 +7,7 @@ export interface User {
   username: string;
   password: string;
   balance: number;
+  avatar: string | null;
 }
 
 export interface PortfolioAsset {

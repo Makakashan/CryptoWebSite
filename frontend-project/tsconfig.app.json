@@ -23,6 +23,11 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+
+    /* Path Mapping */
+    "paths": {
+      "@/*": ["./src/*"],
+    },
   },
   "include": ["src"],
 }

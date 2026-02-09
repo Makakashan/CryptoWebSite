@@ -12,6 +12,7 @@ export interface Portfolio {
   id: number;
   username: string;
   balance: number;
+  avatar?: string | null;
   assets: PortfolioAsset[];
 }
 

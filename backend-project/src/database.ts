@@ -24,7 +24,8 @@ export async function initializeDB(): Promise<DB> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
       password TEXT,
-      balance REAL DEFAULT 10000.0
+      balance REAL DEFAULT 10000.0,
+      avatar TEXT DEFAULT NULL
     );
   `);
 
@@ -65,6 +66,18 @@ export async function initializeDB(): Promise<DB> {
   `);
 
   console.log("Database tables are set up.");
+
+  // Add avatar column to users table if it doesn't exist
+  try {
+    await db.exec(`
+      ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL;
+    `);
+    console.log("Avatar column added to users table.");
+  } catch (error: any) {
+    if (!error.message.includes("duplicate column name")) {
+      console.error("Failed to add avatar column to users table:", error);
+    }
+  }
 
   dbinstance = db; // Store the database instance for later use
 

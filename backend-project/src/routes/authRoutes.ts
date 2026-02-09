@@ -10,7 +10,7 @@ const router: Router = express.Router();
 
 // User Registration Endpoint
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
-  const { username, password } = req.body;
+  const { username, password, avatar } = req.body;
   const db = getDB();
 
   if (!username || !password) {
@@ -29,10 +29,10 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await db.run("INSERT INTO users (username, password) VALUES (?, ?)", [
-      username,
-      hashedPassword,
-    ]);
+    await db.run(
+      "INSERT INTO users (username, password, avatar) VALUES (?, ?, ?)",
+      [username, hashedPassword, avatar],
+    );
 
     res.json({ message: "User registered successfully." });
   } catch (error) {
@@ -85,7 +85,12 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
 
     res.json({
       message: "Login successful.",
-      user: { id: user.id, username: user.username },
+      user: {
+        id: user.id,
+        username: user.username,
+        avatar: user.avatar,
+        balance: user.balance,
+      },
     });
   } catch (error) {
     console.error("Error during login:", error);

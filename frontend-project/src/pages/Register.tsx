@@ -1,15 +1,18 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { register } from "../store/slices/authSlice";
+import { AvatarUpload } from "../components/ui/AvatarUpload";
 
 const Register = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useAppSelector((state) => state.auth);
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   const validationSchema = Yup.object({
     username: Yup.string()
@@ -33,7 +36,11 @@ const Register = () => {
     validationSchema,
     onSubmit: (values) => {
       dispatch(
-        register({ username: values.username, password: values.password }),
+        register({
+          username: values.username,
+          password: values.password,
+          avatar: avatar,
+        }),
       ).then((result) => {
         if (result.meta.requestStatus === "fulfilled") {
           navigate("/login");
@@ -55,6 +62,15 @@ const Register = () => {
         {error && <div className="alert-error">{error}</div>}
 
         <form onSubmit={formik.handleSubmit}>
+          {/* Avatar Upload */}
+          <div className="mb-6 flex justify-center">
+            <AvatarUpload
+              currentAvatar={avatar}
+              username={formik.values.username || "User"}
+              onAvatarChange={setAvatar}
+            />
+          </div>
+
           <div className="mb-6">
             <label htmlFor="username" className="form-label font-semibold">
               {t("username")}

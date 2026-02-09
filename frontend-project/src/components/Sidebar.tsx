@@ -6,6 +6,7 @@ import {
   FiBriefcase,
   FiShoppingCart,
   FiBarChart2,
+  FiUser,
 } from "react-icons/fi";
 
 const Sidebar = () => {
@@ -59,6 +60,15 @@ const Sidebar = () => {
         >
           <FiBarChart2 className="text-lg" />
           {t("statistics")}
+        </NavLink>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            isActive ? "nav-link-active" : "nav-link-inactive"
+          }
+        >
+          <FiUser className="text-lg" />
+          {t("profile")}
         </NavLink>
       </nav>
     </div>

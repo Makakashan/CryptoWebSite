@@ -4,6 +4,7 @@ export interface User {
   id: number;
   username: string;
   balance: number;
+  avatar?: string | null;
 }
 
 export interface LoginRequest {
@@ -14,6 +15,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
   username: string;
   password: string;
+  avatar?: string | null;
 }
 
 export interface AuthResponse {

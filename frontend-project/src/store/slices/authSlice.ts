@@ -26,6 +26,7 @@ export const login = createAsyncThunk<
       id: profile.id,
       username: profile.username,
       balance: profile.balance,
+      avatar: profile.avatar,
     };
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -51,6 +52,7 @@ export const register = createAsyncThunk<
       id: profile.id,
       username: profile.username,
       balance: profile.balance,
+      avatar: profile.avatar,
     };
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -77,6 +79,7 @@ export const fetchProfile = createAsyncThunk<
       id: response.id,
       username: response.username,
       balance: response.balance,
+      avatar: response.avatar,
     };
   } catch (error) {
     if (error instanceof AxiosError) {
