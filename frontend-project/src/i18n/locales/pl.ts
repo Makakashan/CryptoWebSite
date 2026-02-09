@@ -16,6 +16,16 @@ export const pl = {
   dontHaveAccount: "Nie masz konta?",
   alreadyHaveAccount: "Masz już konto?",
   registerHere: "Zarejestruj się tutaj",
+  signUp: "Zarejestruj się",
+  loginToYourAccount: "Zaloguj się na swoje konto",
+  enterYourEmailBelowToLoginToYourAccount:
+    "Wprowadź swój email poniżej, aby zalogować się na swoje konto",
+  forgotYourPassword: "Zapomniałeś hasła?",
+  loginWithGoogle: "Zaloguj się przez Google",
+  createAnAccount: "Utwórz konto",
+  enterYourInformationBelowToCreateYourAccount:
+    "Wprowadź swoje dane poniżej, aby utworzyć konto",
+  signUpWithGoogle: "Zarejestruj się przez Google",
 
   // Wspólne
   loading: "Ładowanie...",

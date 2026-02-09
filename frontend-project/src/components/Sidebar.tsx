@@ -68,7 +68,7 @@ const Sidebar = () => {
           }
         >
           <FiUser className="text-lg" />
-          {t("profile")}
+          {t("Profile")}
         </NavLink>
       </nav>
     </div>

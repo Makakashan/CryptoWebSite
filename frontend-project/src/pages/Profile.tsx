@@ -91,14 +91,12 @@ const Profile = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-text-primary mb-6">
-        {t("profile") || "Profile"}
+        {t("Profile")}
       </h1>
 
       <div className="card-padded max-w-2xl">
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
-            {t("profilePicture") || "Profile Picture"}
-          </h2>
+          <h2 className="text-lg font-semibold text-text-primary mb-4"></h2>
 
           {message && (
             <div
@@ -155,7 +153,7 @@ const Profile = () => {
 
         <div className="border-t border-bg-hover pt-6">
           <h2 className="text-lg font-semibold text-text-primary mb-4">
-            {t("accountInfo") || "Account Information"}
+            {t("Account Information")}
           </h2>
 
           <div className="space-y-4">

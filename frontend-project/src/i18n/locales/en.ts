@@ -16,6 +16,16 @@ export const en = {
   dontHaveAccount: "Don't have an account?",
   alreadyHaveAccount: "Already have an account?",
   registerHere: "Register here",
+  signUp: "Sign Up",
+  loginToYourAccount: "Login to your account",
+  enterYourEmailBelowToLoginToYourAccount:
+    "Enter your email below to login to your account",
+  forgotYourPassword: "Forgot your password?",
+  loginWithGoogle: "Login with Google",
+  createAnAccount: "Create an account",
+  enterYourInformationBelowToCreateYourAccount:
+    "Enter your information below to create your account",
+  signUpWithGoogle: "Sign up with Google",
 
   // Common
   loading: "Loading...",
