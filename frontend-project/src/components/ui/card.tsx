@@ -22,7 +22,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-2 p-6 relative", className)}
+    className={cn("flex flex-col space-y-2 p-6 pr-20 relative", className)}
     {...props}
   />
 ));
@@ -61,7 +61,7 @@ const CardAction = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("absolute top-6 right-6", className)}
+    className={cn("absolute top-4 right-4", className)}
     {...props}
   />
 ));
