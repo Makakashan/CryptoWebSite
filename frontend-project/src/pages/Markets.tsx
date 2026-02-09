@@ -67,9 +67,9 @@ const Markets = () => {
 
   if (isLoading && assets.length === 0) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading markets...</p>
+      <div className="flex flex-col items-center justify-center p-14 text-center">
+        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+        <p className="text-text-secondary">Loading markets...</p>
       </div>
     );
   }
@@ -78,18 +78,20 @@ const Markets = () => {
   const totalPages = pagination?.totalPages || 1;
 
   return (
-    <div className="markets-page">
-      <div className="markets-header">
-        <h1>{t("markets")}</h1>
-        <div className="header-actions">
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-text-primary text-2xl font-bold m-0">
+          {t("markets")}
+        </h1>
+        <div className="flex gap-4">
           <button
-            className="btn btn-primary"
+            className="btn-primary"
             onClick={() => navigate("/markets/add")}
           >
             {t("addNewAsset")}
           </button>
           <button
-            className="btn btn-secondary"
+            className="btn-outline btn-small"
             onClick={() => dispatch(fetchAssets(filters))}
             disabled={isLoading}
           >
@@ -98,24 +100,30 @@ const Markets = () => {
         </div>
       </div>
 
-      <div className="filters-card">
-        <h3>Filters</h3>
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label>Search</label>
+      <div className="card-padded mb-6">
+        <h3 className="m-0 mb-4 text-lg text-text-primary">Filters</h3>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              Search
+            </label>
             <input
               type="text"
               placeholder="Search assets..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="input"
             />
           </div>
 
-          <div className="filter-group">
-            <label>Category</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              Category
+            </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
+              className="select"
             >
               <option value="">All</option>
               {categories.map((cat) => (
@@ -126,20 +134,29 @@ const Markets = () => {
             </select>
           </div>
 
-          <div className="filter-group">
-            <label>Sort By</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              Sort By
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="select"
+            >
               <option value="price">Price</option>
               <option value="symbol">Symbol</option>
               <option value="name">Name</option>
             </select>
           </div>
 
-          <div className="filter-group">
-            <label>Order</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              Order
+            </label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+              className="select"
             >
               <option value="desc">High to Low</option>
               <option value="asc">Low to High</option>
@@ -147,24 +164,27 @@ const Markets = () => {
           </div>
         </div>
 
-        <div className="filter-actions">
-          <button className="btn btn-primary" onClick={handleApplyFilters}>
+        <div className="flex gap-2 justify-end">
+          <button className="btn-primary" onClick={handleApplyFilters}>
             Apply
           </button>
-          <button className="btn" onClick={handleReset}>
+          <button
+            className="btn-secondary hover:-translate-y-px"
+            onClick={handleReset}
+          >
             Reset
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="error-container">
-          <p>{error}</p>
+        <div className="flex flex-col items-center justify-center p-14 text-center gap-4">
+          <p className="text-red text-base">{error}</p>
         </div>
       )}
 
       {!error && assets.length > 0 && (
-        <div className="assets-grid">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
           {assets.map((asset) => (
             <AssetCard key={asset.symbol} asset={asset} />
           ))}
@@ -172,25 +192,25 @@ const Markets = () => {
       )}
 
       {!error && !isLoading && assets.length === 0 && (
-        <div className="empty-state">
-          <p>No assets found</p>
+        <div className="flex flex-col items-center justify-center p-14 text-center">
+          <p className="text-text-secondary">No assets found</p>
         </div>
       )}
 
       {totalPages > 1 && (
-        <div className="pagination">
+        <div className="flex justify-center items-center gap-4 mt-8 pt-6">
           <button
-            className="btn"
+            className="btn-secondary btn-small min-w-120"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
             Previous
           </button>
-          <span className="page-info">
+          <span className="text-text-secondary text-sm font-medium px-4">
             Page {currentPage} of {totalPages}
           </span>
           <button
-            className="btn"
+            className="btn-secondary btn-small min-w-120"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >

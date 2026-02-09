@@ -129,13 +129,10 @@ const AssetDetail = () => {
 
   if (!asset) {
     return (
-      <div className="asset-detail-page">
-        <div className="error-container">
-          <p>Asset not found</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate("/markets")}
-          >
+      <div>
+        <div className="flex flex-col items-center justify-center p-14 text-center gap-4">
+          <p className="text-red text-base">Asset not found</p>
+          <button className="btn-primary" onClick={() => navigate("/markets")}>
             Back to Markets
           </button>
         </div>
@@ -149,36 +146,53 @@ const AssetDetail = () => {
   const canSell = ownedAmount > 0;
 
   return (
-    <div className="asset-detail-page">
-      <div className="page-header-actions">
-        <button className="btn back-btn" onClick={() => navigate("/markets")}>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <button
+          className="btn-secondary btn-small"
+          onClick={() => navigate("/markets")}
+        >
           ← {t("back")}
         </button>
-        <div className="action-buttons">
-          <button className="btn btn-secondary" onClick={handleEdit}>
+        <div className="flex gap-3">
+          <button className="btn-outline btn-small" onClick={handleEdit}>
             {t("edit")}
           </button>
-          <button className="btn btn-danger" onClick={handleDeleteClick}>
+          <button className="btn-danger btn-small" onClick={handleDeleteClick}>
             {t("delete")}
           </button>
         </div>
       </div>
 
       {showDeleteConfirm && (
-        <div className="modal-overlay" onClick={handleDeleteCancel}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>{t("confirmDeleteAsset")}</h3>
-            <p>
-              {t("asset")}: <strong>{asset?.name || asset?.symbol}</strong>
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-1000"
+          onClick={handleDeleteCancel}
+        >
+          <div
+            className="card p-8 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-semibold text-text-primary mb-4">
+              {t("confirmDeleteAsset")}
+            </h3>
+            <p className="text-text-secondary mb-6">
+              {t("asset")}:{" "}
+              <strong className="text-text-primary">
+                {asset?.name || asset?.symbol}
+              </strong>
             </p>
-            <div className="modal-actions">
+            <div className="flex gap-3 justify-end">
               <button
-                className="btn btn-secondary"
+                className="btn-outline btn-small"
                 onClick={handleDeleteCancel}
               >
                 {t("cancel")}
               </button>
-              <button className="btn btn-danger" onClick={handleDeleteConfirm}>
+              <button
+                className="btn-danger btn-small"
+                onClick={handleDeleteConfirm}
+              >
                 {t("delete")}
               </button>
             </div>
@@ -186,75 +200,104 @@ const AssetDetail = () => {
         </div>
       )}
 
-      <div className="asset-detail-header">
-        <div className="asset-header-info">
+      <div className="flex justify-between items-start mb-6 card-padded">
+        <div className="flex items-start gap-4">
           <img
             src={asset.image_url || defaultIcon}
             alt={shortName}
+            className="w-20 h-20 rounded-full"
             onError={(e) => {
               e.currentTarget.src = defaultIcon;
             }}
           />
           <div>
-            <h1>{shortName}</h1>
-            <p className="asset-full-name">{asset.name || asset.symbol}</p>
+            <h1 className="text-3xl font-bold text-text-primary mb-1">
+              {shortName}
+            </h1>
+            <p className="text-text-secondary text-sm mb-2">
+              {asset.name || asset.symbol}
+            </p>
             {asset.category && (
-              <span className="category-badge">{asset.category}</span>
+              <span className="inline-block px-3 py-1 bg-blue/20 text-blue rounded-full text-xs font-semibold">
+                {asset.category}
+              </span>
             )}
           </div>
         </div>
 
-        <div className="asset-price-info">
-          <div className="current-price">{formatPrice(currentPrice)}</div>
+        <div className="text-right">
+          <div className="text-3xl font-bold text-text-primary">
+            {formatPrice(currentPrice)}
+          </div>
         </div>
       </div>
 
       {asset.description && (
-        <div className="asset-description">
-          <h2>About {shortName}</h2>
-          <p>{asset.description}</p>
+        <div className="card-padded mb-6">
+          <h2 className="section-header mb-3">About {shortName}</h2>
+          <p className="text-text-secondary leading-relaxed">
+            {asset.description}
+          </p>
         </div>
       )}
 
-      <div className="asset-detail-grid">
-        <div className="asset-stats">
-          <h2>Your Holdings</h2>
-          <div className="stats-grid">
-            <div className="stat-item">
-              <span className="stat-label">Amount Owned</span>
-              <span className="stat-value">{ownedAmount.toFixed(6)}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card-padded">
+          <h2 className="section-header">Your Holdings</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
+                Amount Owned
+              </span>
+              <span className="text-lg font-semibold text-text-primary">
+                {ownedAmount.toFixed(6)}
+              </span>
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Total Value</span>
-              <span className="stat-value">{formatPrice(ownedValue)}</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
+                Total Value
+              </span>
+              <span className="text-lg font-semibold text-text-primary">
+                {formatPrice(ownedValue)}
+              </span>
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Available Balance</span>
-              <span className="stat-value">{formatPrice(balance)}</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
+                Available Balance
+              </span>
+              <span className="text-lg font-semibold text-text-primary">
+                {formatPrice(balance)}
+              </span>
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Max Buy Amount</span>
-              <span className="stat-value">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-text-secondary uppercase tracking-wider font-medium">
+                Max Buy Amount
+              </span>
+              <span className="text-lg font-semibold text-text-primary">
                 {maxBuyAmount > 0 ? maxBuyAmount.toFixed(6) : "0.000000"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="trading-panel">
-          <h2>Trade {shortName}</h2>
+        <div className="card-padded">
+          <h2 className="section-header">Trade {shortName}</h2>
 
           {successMessage && (
-            <div className="success-message">{successMessage}</div>
+            <div className="alert-success">{successMessage}</div>
           )}
 
-          {orderError && <div className="error-message">{orderError}</div>}
+          {orderError && <div className="alert-error">{orderError}</div>}
 
           <form onSubmit={formik.handleSubmit}>
-            <div className="order-type-selector">
+            <div className="grid grid-cols-2 gap-3 mb-6">
               <button
                 type="button"
-                className={`type-btn ${formik.values.orderType === "BUY" ? "active buy" : ""}`}
+                className={`py-3 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 border-2 ${
+                  formik.values.orderType === "BUY"
+                    ? "bg-green/20 border-green text-green"
+                    : "bg-transparent border-bg-hover text-text-secondary hover:border-green/50"
+                }`}
                 onClick={() => {
                   formik.setFieldValue("orderType", "BUY");
                   formik.setFieldValue("amount", "");
@@ -264,7 +307,11 @@ const AssetDetail = () => {
               </button>
               <button
                 type="button"
-                className={`type-btn ${formik.values.orderType === "SELL" ? "active sell" : ""}`}
+                className={`py-3 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 border-2 ${
+                  formik.values.orderType === "SELL"
+                    ? "bg-red/20 border-red text-red"
+                    : "bg-transparent border-bg-hover text-text-secondary hover:border-red/50"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
                 onClick={() => {
                   formik.setFieldValue("orderType", "SELL");
                   formik.setFieldValue("amount", "");
@@ -275,9 +322,14 @@ const AssetDetail = () => {
               </button>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="amount">Amount</label>
-              <div className="amount-input-wrapper">
+            <div className="mb-6">
+              <label
+                htmlFor="amount"
+                className="block mb-2 text-text-primary font-semibold text-sm"
+              >
+                Amount
+              </label>
+              <div className="relative">
                 <input
                   id="amount"
                   name="amount"
@@ -288,10 +340,11 @@ const AssetDetail = () => {
                   value={formik.values.amount}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
+                  className="input pr-24"
                 />
                 <button
                   type="button"
-                  className="btn-max"
+                  className="btn-primary absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs"
                   onClick={() => {
                     const maxAmount =
                       formik.values.orderType === "BUY"
@@ -304,9 +357,11 @@ const AssetDetail = () => {
                 </button>
               </div>
               {formik.touched.amount && formik.errors.amount && (
-                <div className="field-error">{formik.errors.amount}</div>
+                <div className="text-red text-xs mt-1">
+                  {formik.errors.amount}
+                </div>
               )}
-              <div className="amount-helper">
+              <div className="text-text-secondary text-xs mt-1">
                 {formik.values.orderType === "BUY" ? (
                   <span>Max: {maxBuyAmount.toFixed(6)}</span>
                 ) : (
@@ -316,20 +371,22 @@ const AssetDetail = () => {
             </div>
 
             {formik.values.amount && Number(formik.values.amount) > 0 && (
-              <div className="order-summary">
-                <div className="summary-row">
-                  <span>Amount:</span>
-                  <span>
+              <div className="bg-bg-dark rounded-lg p-4 mb-6 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-secondary">Amount:</span>
+                  <span className="text-text-primary font-medium">
                     {Number(formik.values.amount).toFixed(6)} {shortName}
                   </span>
                 </div>
-                <div className="summary-row">
-                  <span>Price:</span>
-                  <span>{formatPrice(currentPrice)}</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-secondary">Price:</span>
+                  <span className="text-text-primary font-medium">
+                    {formatPrice(currentPrice)}
+                  </span>
                 </div>
-                <div className="summary-row total">
-                  <span>Total:</span>
-                  <span>
+                <div className="flex justify-between text-base font-semibold pt-2 border-t border-bg-hover">
+                  <span className="text-text-primary">Total:</span>
+                  <span className="text-text-primary">
                     {formatPrice(Number(formik.values.amount) * currentPrice)}
                   </span>
                 </div>
@@ -338,7 +395,11 @@ const AssetDetail = () => {
 
             <button
               type="submit"
-              className={`btn btn-primary ${formik.values.orderType === "BUY" ? "btn-buy" : "btn-sell"}`}
+              className={`w-full px-6 py-3 border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 text-white disabled:opacity-50 disabled:cursor-not-allowed ${
+                formik.values.orderType === "BUY"
+                  ? "bg-green hover:enabled:bg-green/90"
+                  : "bg-red hover:enabled:bg-red/90"
+              }`}
               disabled={
                 orderLoading || !formik.isValid || !formik.values.amount
               }

@@ -125,19 +125,19 @@ const Portfolio = () => {
 
   if (isLoading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading portfolio...</p>
+      <div className="flex flex-col items-center justify-center p-14 text-center">
+        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+        <p className="text-text-secondary">Loading portfolio...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <p>{error}</p>
+      <div className="flex flex-col items-center justify-center p-14 text-center gap-4">
+        <p className="text-red text-base">{error}</p>
         <button
-          className="btn btn-primary"
+          className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => dispatch(fetchPortfolio())}
         >
           Retry
@@ -151,53 +151,55 @@ const Portfolio = () => {
   }
 
   return (
-    <div className="portfolio-page">
-      <div className="portfolio-header">
-        <h1>{t("myPortfolio")}</h1>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-text-primary text-2xl font-bold m-0">
+          {t("myPortfolio")}
+        </h1>
         <button
-          className="btn btn-primary"
+          className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => navigate("/markets")}
         >
           {t("tradeAssets")}
         </button>
       </div>
 
-      <div className="portfolio-stats">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
         <div className="stat-card">
-          <h3>{t("totalValue")}</h3>
+          <h3 className="stat-title">{t("totalValue")}</h3>
           <div className="stat-value">{formatPrice(totalValue)}</div>
-          <p>{t("cashAndHoldings")}</p>
+          <p className="stat-subtitle">{t("cashAndHoldings")}</p>
         </div>
 
         <div className="stat-card">
-          <h3>{t("availableBalance")}</h3>
+          <h3 className="stat-title">{t("availableBalance")}</h3>
           <div className="stat-value">{formatPrice(totalBalance)}</div>
-          <p>{t("readyToTrade")}</p>
+          <p className="stat-subtitle">{t("available")}</p>
         </div>
 
         <div className="stat-card">
-          <h3>{t("holdingsValue")}</h3>
+          <h3 className="stat-title">{t("holdingsValue")}</h3>
           <div className="stat-value">{formatPrice(portfolioValue)}</div>
-          <p>
+          <p className="stat-subtitle">
             {enrichedAssets.length} {t("assets")}
           </p>
         </div>
 
         <div className="stat-card">
-          <h3>{t("totalAssets")}</h3>
+          <h3 className="stat-title">{t("totalAssets")}</h3>
           <div className="stat-value">{enrichedAssets.length}</div>
-          <p>{t("inPortfolio")}</p>
+          <p className="stat-subtitle">{t("inPortfolio")}</p>
         </div>
       </div>
 
-      <div className="portfolio-section">
-        <h2>{t("yourAssets")}</h2>
+      <div className="mb-8">
+        <h2 className="text-xl mb-4 text-text-primary">{t("yourAssets")}</h2>
 
         {enrichedAssets.length === 0 ? (
-          <div className="empty-state">
-            <p>{t("noAssetsYet")}</p>
+          <div className="flex flex-col items-center justify-center p-14 text-center">
+            <p className="text-text-secondary mb-4">{t("noAssetsYet")}</p>
             <button
-              className="btn btn-primary"
+              className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => navigate("/markets")}
             >
               {t("browseMarkets")}
@@ -205,25 +207,31 @@ const Portfolio = () => {
           </div>
         ) : (
           <>
-            <div className="filters-card">
-              <div className="filters-grid">
-                <div className="filter-group">
-                  <label>{t("search")}</label>
+            <div className="card-padded mb-6">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                    {t("search")}
+                  </label>
                   <input
                     type="text"
                     placeholder={t("search")}
                     value={searchAsset}
                     onChange={(e) => setSearchAsset(e.target.value)}
+                    className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 focus:outline-none focus:border-blue focus:bg-bg-dark/102 placeholder:text-text-secondary"
                   />
                 </div>
 
-                <div className="filter-group">
-                  <label>{t("sortBy")}</label>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                    {t("sortBy")}
+                  </label>
                   <select
                     value={sortBy}
                     onChange={(e) =>
                       setSortBy(e.target.value as "symbol" | "amount" | "value")
                     }
+                    className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102 hover:border-blue/50"
                   >
                     <option value="value">{t("totalValue")}</option>
                     <option value="symbol">{t("symbol")}</option>
@@ -231,13 +239,16 @@ const Portfolio = () => {
                   </select>
                 </div>
 
-                <div className="filter-group">
-                  <label>{t("sortOrder")}</label>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                    {t("sortOrder")}
+                  </label>
                   <select
                     value={sortOrder}
                     onChange={(e) =>
                       setSortOrder(e.target.value as "asc" | "desc")
                     }
+                    className="select"
                   >
                     <option value="desc">{t("highToLow")}</option>
                     <option value="asc">{t("lowToHigh")}</option>
@@ -245,22 +256,35 @@ const Portfolio = () => {
                 </div>
               </div>
 
-              <div className="filter-actions">
-                <button className="btn" onClick={handleResetFilters}>
+              <div className="flex gap-2 justify-end">
+                <button
+                  className="px-6 py-3 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleResetFilters}
+                >
                   {t("reset")}
                 </button>
               </div>
             </div>
 
-            <div className="portfolio-table-container">
-              <table className="portfolio-table">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr>
-                    <th>{t("asset")}</th>
-                    <th>{t("amount")}</th>
-                    <th>{t("currentPrice")}</th>
-                    <th>{t("totalValue")}</th>
-                    <th>{t("actions")}</th>
+                  <tr className="border-b border-bg-hover">
+                    <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                      {t("asset")}
+                    </th>
+                    <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                      {t("amount")}
+                    </th>
+                    <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                      {t("currentPrice")}
+                    </th>
+                    <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                      {t("totalValue")}
+                    </th>
+                    <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                      {t("actions")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -271,40 +295,48 @@ const Portfolio = () => {
                     const totalValue = asset.amount * currentPrice;
 
                     return (
-                      <tr key={asset.asset_symbol}>
-                        <td>
-                          <div className="asset-info">
+                      <tr
+                        key={asset.asset_symbol}
+                        className="border-b border-bg-hover transition-colors duration-200 hover:bg-bg-hover"
+                      >
+                        <td className="p-4 text-text-primary text-sm">
+                          <div className="flex items-center gap-3">
                             <img
                               src={asset.image_url || defaultIcon}
                               alt={shortName}
+                              className="w-8 h-8 rounded-full"
                               onError={(e) => {
                                 e.currentTarget.src = defaultIcon;
                               }}
                             />
                             <div>
-                              <div className="asset-name">{shortName}</div>
-                              <div className="asset-symbol">
+                              <div className="font-semibold text-text-primary">
+                                {shortName}
+                              </div>
+                              <div className="text-xs text-text-secondary">
                                 {asset.name || asset.asset_symbol}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td>
-                          <div className="amount">
+                        <td className="p-4 text-text-primary text-sm">
+                          <div className="font-medium">
                             {asset.amount.toFixed(6)}
                           </div>
                         </td>
-                        <td>
-                          <div className="price">
+                        <td className="p-4 text-text-primary text-sm">
+                          <div className="font-medium">
                             {formatPrice(currentPrice)}
                           </div>
                         </td>
-                        <td>
-                          <div className="value">{formatPrice(totalValue)}</div>
+                        <td className="p-4 text-text-primary text-sm">
+                          <div className="font-semibold">
+                            {formatPrice(totalValue)}
+                          </div>
                         </td>
-                        <td>
+                        <td className="p-4 text-text-primary text-sm">
                           <button
-                            className="btn btn-sm"
+                            className="px-4 py-2 bg-bg-hover text-text-primary border-0 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() =>
                               navigate(`/markets/${asset.asset_symbol}`)
                             }
@@ -320,19 +352,19 @@ const Portfolio = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="pagination">
+              <div className="flex justify-center items-center gap-4 mt-8 pt-6">
                 <button
-                  className="btn"
+                  className="min-w-120 px-5 py-2.5 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handlePageChange(effectiveCurrentPage - 1)}
                   disabled={effectiveCurrentPage === 1}
                 >
                   {t("previous")}
                 </button>
-                <span className="page-info">
+                <span className="text-text-secondary text-sm font-medium px-4">
                   {t("page")} {effectiveCurrentPage} {t("of")} {totalPages}
                 </span>
                 <button
-                  className="btn"
+                  className="min-w-120 px-5 py-2.5 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handlePageChange(effectiveCurrentPage + 1)}
                   disabled={effectiveCurrentPage === totalPages}
                 >

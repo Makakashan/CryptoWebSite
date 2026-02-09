@@ -50,63 +50,68 @@ const Dashboard = () => {
 
   if (isLoading && assets.length === 0) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>{t("loading")}</p>
+      <div className="flex flex-col items-center justify-center p-14 text-center">
+        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+        <p className="text-text-secondary">{t("loading")}</p>
       </div>
     );
   }
 
   return (
-    <div className="dashboard">
+    <div>
       {!isAuthenticated && (
-        <div className="info-banner">
-          <h3>{t("welcomeToMakakaTrade")}</h3>
-          <p>{t("loginToViewPortfolio")}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate("/login")}
-          >
+        <div className="card-padded text-center mb-8">
+          <h3 className="text-2xl mb-3 text-text-primary">
+            {t("welcomeToMakakaTrade")}
+          </h3>
+          <p className="text-text-secondary mb-5">
+            {t("loginToViewPortfolio")}
+          </p>
+          <button className="btn-primary" onClick={() => navigate("/login")}>
             {t("login")}
           </button>
         </div>
       )}
 
       {isAuthenticated && portfolio && (
-        <div className="dashboard-grid">
-          <div className="dashboard-card">
-            <h3>{t("totalBalance")}</h3>
-            <div className="big-number">{formatPrice(totalAssets)}</div>
-            <p>{t("cashAndHoldings")}</p>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
+          <div className="stat-card-hover">
+            <h3 className="stat-title">{t("totalBalance")}</h3>
+            <div className="stat-value">{formatPrice(totalAssets)}</div>
+            <p className="stat-subtitle">{t("cashAndHoldings")}</p>
           </div>
 
-          <div className="dashboard-card">
-            <h3>{t("cashBalance")}</h3>
-            <div className="big-number">{formatPrice(totalBalance)}</div>
-            <p>{t("available")}</p>
+          <div className="stat-card-hover">
+            <h3 className="stat-title">{t("cashBalance")}</h3>
+            <div className="stat-value">{formatPrice(totalBalance)}</div>
+            <p className="stat-subtitle">{t("available")}</p>
           </div>
 
-          <div className="dashboard-card">
-            <h3>{t("portfolioValue")}</h3>
-            <div className="big-number">{formatPrice(portfolioValue)}</div>
-            <p>
+          <div className="stat-card-hover">
+            <h3 className="stat-title">{t("portfolioValue")}</h3>
+            <div className="stat-value">{formatPrice(portfolioValue)}</div>
+            <p className="stat-subtitle">
               {portfolio.assets.length} {t("assets")}
             </p>
           </div>
 
-          <div className="dashboard-card">
-            <h3>{t("totalAssets")}</h3>
-            <div className="big-number">{portfolio.assets.length}</div>
-            <p>{t("inPortfolio")}</p>
+          <div className="stat-card-hover">
+            <h3 className="stat-title">{t("totalAssets")}</h3>
+            <div className="stat-value">{portfolio.assets.length}</div>
+            <p className="text-text-secondary text-xs m-0">
+              {t("inPortfolio")}
+            </p>
           </div>
         </div>
       )}
 
-      <div className="dashboard-section">
-        <h2>{t("topCryptocurrencies")}</h2>
+      <div className="mb-8">
+        <h2 className="text-xl mb-4 text-text-primary">
+          {t("topCryptocurrencies")}
+        </h2>
         {topAssets.length > 0 ? (
-          <div className="top-coins">
-            {topAssets.map((asset) => {
+          <div className="card p-0 overflow-hidden">
+            {topAssets.map((asset, index) => {
               const shortName = asset.symbol.replace("USDT", "");
               const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=32`;
               const price = asset.price || asset.current_price || 0;
@@ -114,42 +119,57 @@ const Dashboard = () => {
               return (
                 <div
                   key={asset.symbol}
-                  className="coin-row"
+                  className={`flex justify-between items-center px-6 py-4 transition-colors duration-200 cursor-pointer hover:bg-bg-hover ${
+                    index !== topAssets.length - 1
+                      ? "border-b border-bg-hover"
+                      : ""
+                  }`}
                   onClick={() => navigate("/markets")}
                 >
-                  <div className="coin-info">
+                  <div className="flex items-center gap-3">
                     <img
                       src={asset.image_url || defaultIcon}
                       alt={shortName}
+                      className="w-8 h-8 rounded-full"
                       onError={(e) => {
                         e.currentTarget.src = defaultIcon;
                       }}
                     />
-                    <span>{shortName}</span>
+                    <span className="font-semibold text-text-primary">
+                      {shortName}
+                    </span>
                   </div>
-                  <span className="coin-price">{formatPrice(price)}</span>
+                  <span className="font-semibold text-text-primary">
+                    {formatPrice(price)}
+                  </span>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p>{t("noAssetsAvailable")}</p>
+          <p className="text-text-secondary">{t("noAssetsAvailable")}</p>
         )}
       </div>
 
-      <div className="dashboard-section">
-        <h2>{t("quickActions")}</h2>
-        <div className="quick-actions">
+      <div className="mb-8">
+        <h2 className="text-xl mb-4 text-text-primary">{t("quickActions")}</h2>
+        <div className="flex gap-4 flex-wrap">
           <button
-            className="btn btn-primary"
+            className="btn-primary flex-1 min-w-150"
             onClick={() => navigate("/markets")}
           >
             {t("viewMarkets")}
           </button>
-          <button className="btn" onClick={() => navigate("/portfolio")}>
+          <button
+            className="btn-secondary flex-1 min-w-150 hover:-translate-y-px"
+            onClick={() => navigate("/portfolio")}
+          >
             {t("myPortfolio")}
           </button>
-          <button className="btn" onClick={() => navigate("/orders")}>
+          <button
+            className="btn-secondary flex-1 min-w-150 hover:-translate-y-px"
+            onClick={() => navigate("/orders")}
+          >
             {t("orderHistory")}
           </button>
         </div>

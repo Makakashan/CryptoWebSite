@@ -105,24 +105,32 @@ const AssetForm = () => {
   ];
 
   return (
-    <div className="asset-form-page">
-      <button className="btn back-btn" onClick={() => navigate("/markets")}>
+    <div>
+      <button
+        className="btn-secondary btn-small mb-6"
+        onClick={() => navigate("/markets")}
+      >
         ← {t("back")}
       </button>
 
-      <div className="form-container">
-        <h1>{isEditMode ? t("editAsset") : t("addNewAsset")}</h1>
+      <div className="max-w-2xl mx-auto card p-8">
+        <h1 className="text-2xl font-bold text-text-primary mb-6">
+          {isEditMode ? t("editAsset") : t("addNewAsset")}
+        </h1>
 
         {successMessage && (
-          <div className="success-message">{successMessage}</div>
+          <div className="alert-success">{successMessage}</div>
         )}
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="alert-error">{error}</div>}
 
         <form onSubmit={formik.handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="symbol">
-              {t("assetSymbol")} <span className="required">*</span>
+          <div className="mb-6">
+            <label
+              htmlFor="symbol"
+              className="block mb-2 text-text-primary font-semibold text-sm"
+            >
+              {t("assetSymbol")} <span className="text-red">*</span>
             </label>
             <input
               id="symbol"
@@ -133,15 +141,21 @@ const AssetForm = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               disabled={isEditMode}
+              className="input-disabled"
             />
             {formik.touched.symbol && formik.errors.symbol && (
-              <div className="field-error">{formik.errors.symbol}</div>
+              <div className="text-red text-xs mt-1">
+                {formik.errors.symbol}
+              </div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="name">
-              {t("assetName")} <span className="required">*</span>
+          <div className="mb-6">
+            <label
+              htmlFor="name"
+              className="block mb-2 text-text-primary font-semibold text-sm"
+            >
+              {t("assetName")} <span className="text-red">*</span>
             </label>
             <input
               id="name"
@@ -151,20 +165,27 @@ const AssetForm = () => {
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              className="input"
             />
-            {formik.touched.name && formik.errors.name && (
-              <div className="field-error">{formik.errors.name}</div>
+            {formik.touched.symbol && formik.errors.symbol && (
+              <div className="form-error">{formik.errors.symbol}</div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="category">{t("category")}</label>
+          <div className="mb-6">
+            <label
+              htmlFor="category"
+              className="block mb-2 text-text-primary font-semibold text-sm"
+            >
+              {t("category")}
+            </label>
             <select
               id="category"
               name="category"
               value={formik.values.category}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              className="select"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -173,12 +194,19 @@ const AssetForm = () => {
               ))}
             </select>
             {formik.touched.category && formik.errors.category && (
-              <div className="field-error">{formik.errors.category}</div>
+              <div className="text-red text-xs mt-1">
+                {formik.errors.category}
+              </div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="image_url">{t("imageUrl")}</label>
+          <div className="mb-6">
+            <label
+              htmlFor="image_url"
+              className="block mb-2 text-text-primary font-semibold text-sm"
+            >
+              {t("imageUrl")}
+            </label>
             <input
               id="image_url"
               name="image_url"
@@ -187,14 +215,22 @@ const AssetForm = () => {
               value={formik.values.image_url || ""}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              className="input"
             />
             {formik.touched.image_url && formik.errors.image_url && (
-              <div className="field-error">{formik.errors.image_url}</div>
+              <div className="text-red text-xs mt-1">
+                {formik.errors.image_url}
+              </div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="description">{t("description")}</label>
+          <div className="mb-6">
+            <label
+              htmlFor="description"
+              className="block mb-2 text-text-primary font-semibold text-sm"
+            >
+              {t("description")}
+            </label>
             <textarea
               id="description"
               name="description"
@@ -203,29 +239,35 @@ const AssetForm = () => {
               value={formik.values.description || ""}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              className="textarea"
             />
             {formik.touched.description && formik.errors.description && (
-              <div className="field-error">{formik.errors.description}</div>
+              <div className="text-red text-xs mt-1">
+                {formik.errors.description}
+              </div>
             )}
           </div>
 
-          <div className="form-group checkbox-group">
-            <label>
+          <div className="mb-6">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 id="is_active"
                 name="is_active"
                 type="checkbox"
                 checked={formik.values.is_active}
                 onChange={formik.handleChange}
+                className="w-5 h-5 rounded border-bg-hover bg-bg-dark text-blue focus:ring-2 focus:ring-blue focus:ring-offset-0 cursor-pointer"
               />
-              <span>{t("isActive")}</span>
+              <span className="text-text-primary font-medium text-sm">
+                {t("isActive")}
+              </span>
             </label>
           </div>
 
-          <div className="form-actions">
+          <div className="flex gap-3 justify-end">
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn-outline"
               onClick={() => navigate("/markets")}
               disabled={isLoading}
             >
@@ -233,7 +275,7 @@ const AssetForm = () => {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn-primary"
               disabled={isLoading || !formik.isValid || !formik.dirty}
             >
               {isLoading

@@ -19,9 +19,9 @@ const ProtectedRoutes = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading) {
     return (
-      <div className="loading-container" style={{ height: "100vh" }}>
-        <div className="spinner"></div>
-        <p>Loading...</p>
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+        <p className="text-text-secondary">Loading...</p>
       </div>
     );
   }
@@ -59,9 +59,9 @@ function App() {
           path="/*"
           element={
             <ProtectedRoutes>
-              <div className="app">
+              <div className="flex min-h-screen bg-bg-dark">
                 <Sidebar />
-                <div className="main-content">
+                <div className="ml-sidebar flex-1 p-6 min-h-screen w-full">
                   <Header />
                   <Routes>
                     <Route path="/" element={<Dashboard />} />

@@ -20,23 +20,26 @@ const Header = () => {
   const balance = portfolio?.balance || user?.balance || 0;
 
   return (
-    <div className="header">
-      <h2>MakakaTrade</h2>
-      <div className="header-actions">
+    <div className="flex justify-end items-center card px-6 py-4 mb-6">
+      <div className="flex items-center gap-4">
         <LanguageSwitcher />
         {isAuthenticated && user ? (
           <>
-            <div className="user-info">
-              <span className="username">{user.username}</span>
-              <span className="balance">{formatPrice(balance)}</span>
+            <div className="flex flex-col items-end gap-1">
+              <span className="font-semibold text-text-primary text-sm">
+                {user.username}
+              </span>
+              <span className="text-base text-green font-bold">
+                {formatPrice(balance)}
+              </span>
             </div>
-            <button className="btn btn-secondary" onClick={handleLogout}>
+            <button className="btn-outline btn-small" onClick={handleLogout}>
               {t("logout")}
             </button>
           </>
         ) : (
           <button
-            className="btn btn-primary"
+            className="btn-primary btn-small"
             onClick={() => navigate("/login")}
           >
             {t("login")}

@@ -43,16 +43,22 @@ const Register = () => {
   });
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1>MakakaTrade</h1>
-        <h2>{t("register")}</h2>
+    <div className="min-h-screen flex items-center justify-center bg-bg-dark p-5">
+      <div className="bg-bg-card p-10 rounded-xl w-full max-w-md shadow-2xl">
+        <h1 className="text-center text-3xl mb-2 text-text-primary">
+          MakakaTrade
+        </h1>
+        <h2 className="text-center text-text-secondary mb-8 text-lg font-normal">
+          {t("register")}
+        </h2>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="alert-error">{error}</div>}
 
         <form onSubmit={formik.handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="username">{t("username")}</label>
+          <div className="mb-6">
+            <label htmlFor="username" className="form-label font-semibold">
+              {t("username")}
+            </label>
             <input
               id="username"
               name="username"
@@ -61,14 +67,17 @@ const Register = () => {
               value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              className="input"
             />
             {formik.touched.username && formik.errors.username && (
-              <div className="field-error">{formik.errors.username}</div>
+              <div className="form-error">{formik.errors.username}</div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">{t("password")}</label>
+          <div className="mb-6">
+            <label htmlFor="password" className="form-label font-semibold">
+              {t("password")}
+            </label>
             <input
               id="password"
               name="password"
@@ -77,14 +86,20 @@ const Register = () => {
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              className="input"
             />
             {formik.touched.password && formik.errors.password && (
-              <div className="field-error">{formik.errors.password}</div>
+              <div className="form-error">{formik.errors.password}</div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">{t("confirmPassword")}</label>
+          <div className="mb-6">
+            <label
+              htmlFor="confirmPassword"
+              className="form-label font-semibold"
+            >
+              {t("confirmPassword")}
+            </label>
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -93,10 +108,11 @@ const Register = () => {
               value={formik.values.confirmPassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              className="input"
             />
             {formik.touched.confirmPassword &&
               formik.errors.confirmPassword && (
-                <div className="field-error">
+                <div className="form-error">
                   {formik.errors.confirmPassword}
                 </div>
               )}
@@ -104,15 +120,21 @@ const Register = () => {
 
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn-primary w-full mt-2 hover:enabled:-translate-y-0.5"
             disabled={isLoading || !formik.isValid}
           >
             {isLoading ? t("loading") : t("register")}
           </button>
         </form>
 
-        <p className="auth-link">
-          {t("alreadyHaveAccount")} <a href="/login">{t("login")}</a>
+        <p className="text-center mt-5 text-text-secondary text-sm">
+          {t("alreadyHaveAccount")}{" "}
+          <a
+            href="/login"
+            className="text-blue no-underline font-semibold ml-1 hover:underline"
+          >
+            {t("login")}
+          </a>
         </p>
       </div>
     </div>

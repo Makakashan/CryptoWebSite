@@ -103,21 +103,18 @@ const Orders = () => {
 
   if (isLoading && orders.length === 0) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading orders...</p>
+      <div className="flex flex-col items-center justify-center p-14 text-center">
+        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+        <p className="text-text-secondary">Loading orders...</p>
       </div>
     );
   }
 
   if (error && orders.length === 0) {
     return (
-      <div className="error-container">
-        <p>{error}</p>
-        <button
-          className="btn btn-primary"
-          onClick={() => dispatch(fetchOrders())}
-        >
+      <div className="flex flex-col items-center justify-center p-14 text-center gap-4">
+        <p className="text-red text-base">{error}</p>
+        <button className="btn-primary" onClick={() => dispatch(fetchOrders())}>
           Retry
         </button>
       </div>
@@ -128,25 +125,27 @@ const Orders = () => {
   const totalPages = pagination?.totalPages || 1;
 
   return (
-    <div className="orders-page">
-      <div className="orders-header">
-        <h1>{t("orderHistory")}</h1>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/markets")}
-        >
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-text-primary text-2xl font-bold m-0">
+          {t("orderHistory")}
+        </h1>
+        <button className="btn-primary" onClick={() => navigate("/markets")}>
           {t("placeNewOrder")}
         </button>
       </div>
 
-      <div className="filters-card">
-        <h3>{t("filter")}</h3>
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label>{t("asset")}</label>
+      <div className="card-padded mb-6">
+        <h3 className="m-0 mb-4 text-lg text-text-primary">{t("filter")}</h3>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              {t("asset")}
+            </label>
             <select
               value={assetSymbol}
               onChange={(e) => setAssetSymbol(e.target.value)}
+              className="select"
             >
               <option value="">{t("allAssets")}</option>
               {uniqueAssetSymbols.map((symbol) => (
@@ -157,13 +156,16 @@ const Orders = () => {
             </select>
           </div>
 
-          <div className="filter-group">
-            <label>{t("orderType")}</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              {t("orderType")}
+            </label>
             <select
               value={orderType}
               onChange={(e) =>
                 setOrderType(e.target.value as "" | "BUY" | "SELL")
               }
+              className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102 hover:border-blue/50"
             >
               <option value="">{t("allAssets")}</option>
               <option value="BUY">{t("buy")}</option>
@@ -171,27 +173,39 @@ const Orders = () => {
             </select>
           </div>
 
-          <div className="filter-group">
-            <label>{t("dateFrom")}</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              {t("dateFrom")}
+            </label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
+              className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102"
             />
           </div>
 
-          <div className="filter-group">
-            <label>{t("dateTo")}</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              {t("dateTo")}
+            </label>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
+              className="py-2.5 px-3 bg-bg-dark border border-bg-hover rounded-lg text-text-primary text-sm transition-all duration-200 cursor-pointer focus:outline-none focus:border-blue focus:bg-bg-dark/102"
             />
           </div>
 
-          <div className="filter-group">
-            <label>{t("sortBy")}</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              {t("sortBy")}
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="select"
+            >
               <option value="timestamp">{t("date")}</option>
               <option value="amount">{t("amount")}</option>
               <option value="asset_symbol">{t("asset")}</option>
@@ -199,11 +213,14 @@ const Orders = () => {
             </select>
           </div>
 
-          <div className="filter-group">
-            <label>{t("sortOrder")}</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              {t("sortOrder")}
+            </label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+              className="select"
             >
               <option value="desc">{t("descending")}</option>
               <option value="asc">{t("ascending")}</option>
@@ -211,75 +228,109 @@ const Orders = () => {
           </div>
         </div>
 
-        <div className="filter-actions">
-          <button className="btn btn-primary" onClick={handleApplyFilters}>
+        <div className="flex gap-2 justify-end">
+          <button
+            className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleApplyFilters}
+          >
             {t("apply")}
           </button>
-          <button className="btn" onClick={handleResetFilters}>
+          <button
+            className="px-6 py-3 bg-bg-hover text-text-primary border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-bg-hover/80 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleResetFilters}
+          >
             {t("reset")}
           </button>
         </div>
       </div>
 
-      <div className="orders-stats">
-        <div className="stat-card">
-          <h3>{t("totalOrders")}</h3>
-          <div className="stat-value">{pagination?.total || orders.length}</div>
-          <p>{t("allTime")}</p>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
+        <div className="bg-bg-card rounded-xl p-6 border border-bg-hover text-center">
+          <h3 className="text-text-secondary text-sm font-medium mb-2 uppercase tracking-wider">
+            {t("totalOrders")}
+          </h3>
+          <div className="text-[32px] font-bold text-text-primary my-4">
+            {pagination?.total || orders.length}
+          </div>
+          <p className="text-text-secondary text-xs m-0">{t("allTime")}</p>
         </div>
 
-        <div className="stat-card">
-          <h3>{t("buyOrders")}</h3>
-          <div className="stat-value">{buyOrders.length}</div>
-          <p>
+        <div className="bg-bg-card rounded-xl p-6 border border-bg-hover text-center">
+          <h3 className="text-text-secondary text-sm font-medium mb-2 uppercase tracking-wider">
+            {t("buyOrders")}
+          </h3>
+          <div className="text-[32px] font-bold text-text-primary my-4">
+            {buyOrders.length}
+          </div>
+          <p className="text-text-secondary text-xs m-0">
             {formatPrice(totalBuyAmount)} {t("spent")}
           </p>
         </div>
 
-        <div className="stat-card">
-          <h3>{t("sellOrders")}</h3>
-          <div className="stat-value">{sellOrders.length}</div>
-          <p>
+        <div className="bg-bg-card rounded-xl p-6 border border-bg-hover text-center">
+          <h3 className="text-text-secondary text-sm font-medium mb-2 uppercase tracking-wider">
+            {t("sellOrders")}
+          </h3>
+          <div className="text-[32px] font-bold text-text-primary my-4">
+            {sellOrders.length}
+          </div>
+          <p className="text-text-secondary text-xs m-0">
             {formatPrice(totalSellAmount)} {t("earned")}
           </p>
         </div>
 
-        <div className="stat-card">
-          <h3>{t("netProfit")}</h3>
+        <div className="bg-bg-card rounded-xl p-6 border border-bg-hover text-center">
+          <h3 className="text-text-secondary text-sm font-medium mb-2 uppercase tracking-wider">
+            {t("netProfit")}
+          </h3>
           <div
-            className="stat-value"
-            style={{ color: netProfit >= 0 ? "#10b981" : "#ef4444" }}
+            className="text-[32px] font-bold my-4"
+            style={{ color: netProfit >= 0 ? "#0ecb81" : "#f6465d" }}
           >
             {formatPrice(netProfit)}
           </div>
-          <p>{t("totalGainLoss")}</p>
+          <p className="text-text-secondary text-xs m-0">
+            {t("totalGainLoss")}
+          </p>
         </div>
       </div>
 
-      <div className="orders-section">
-        <h2>{t("recentOrders")}</h2>
+      <div className="mb-8">
+        <h2 className="text-xl mb-4 text-text-primary">{t("recentOrders")}</h2>
 
         {orders.length === 0 ? (
-          <div className="empty-state">
-            <p>{t("noOrdersYet")}</p>
+          <div className="flex flex-col items-center justify-center p-14 text-center">
+            <p className="text-text-secondary mb-4">{t("noOrdersYet")}</p>
             <button
-              className="btn btn-primary"
+              className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => navigate("/markets")}
             >
               {t("startTrading")}
             </button>
           </div>
         ) : (
-          <div className="orders-table-container">
-            <table className="orders-table">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
               <thead>
-                <tr>
-                  <th>{t("date")}</th>
-                  <th>{t("asset")}</th>
-                  <th>{t("type")}</th>
-                  <th>{t("amount")}</th>
-                  <th>{t("price")}</th>
-                  <th>{t("total")}</th>
+                <tr className="border-b border-bg-hover">
+                  <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                    {t("date")}
+                  </th>
+                  <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                    {t("asset")}
+                  </th>
+                  <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                    {t("type")}
+                  </th>
+                  <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                    {t("amount")}
+                  </th>
+                  <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                    {t("price")}
+                  </th>
+                  <th className="p-4 text-left text-text-secondary text-xs font-semibold uppercase tracking-wider">
+                    {t("total")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -289,30 +340,37 @@ const Orders = () => {
                   const date = new Date(order.timestamp).toLocaleString();
 
                   return (
-                    <tr key={order.id}>
-                      <td>
-                        <div className="order-date">{date}</div>
+                    <tr
+                      key={order.id}
+                      className="border-b border-bg-hover transition-colors duration-200 hover:bg-bg-hover"
+                    >
+                      <td className="p-4 text-text-primary text-sm">
+                        <div className="text-xs">{date}</div>
                       </td>
-                      <td>
-                        <div className="asset-name">{shortName}</div>
+                      <td className="p-4 text-text-primary text-sm">
+                        <div className="font-semibold">{shortName}</div>
                       </td>
-                      <td>
+                      <td className="p-4 text-text-primary text-sm">
                         <span
-                          className={`order-type ${order.order_type === "BUY" ? "buy" : "sell"}`}
+                          className={`inline-block px-3 py-1 rounded-xl text-xs font-semibold ${order.order_type === "BUY" ? "bg-green/20 text-green" : "bg-red/20 text-red"}`}
                         >
                           {order.order_type}
                         </span>
                       </td>
-                      <td>
-                        <div className="amount">{order.amount.toFixed(6)}</div>
+                      <td className="p-4 text-text-primary text-sm">
+                        <div className="font-medium">
+                          {order.amount.toFixed(6)}
+                        </div>
                       </td>
-                      <td>
-                        <div className="price">
+                      <td className="p-4 text-text-primary text-sm">
+                        <div className="font-medium">
                           {formatPrice(order.price_at_transaction)}
                         </div>
                       </td>
-                      <td>
-                        <div className="total">{formatPrice(total)}</div>
+                      <td className="p-4 text-text-primary text-sm">
+                        <div className="font-semibold">
+                          {formatPrice(total)}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -324,19 +382,19 @@ const Orders = () => {
       </div>
 
       {totalPages > 1 && (
-        <div className="pagination">
+        <div className="flex justify-center items-center gap-4 mt-8">
           <button
-            className="btn"
+            className="btn-secondary btn-small min-w-120"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
             {t("previous")}
           </button>
-          <span className="page-info">
+          <span className="text-text-secondary text-sm">
             {t("page")} {currentPage} {t("of")} {totalPages}
           </span>
           <button
-            className="btn"
+            className="btn-secondary btn-small min-w-120"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >

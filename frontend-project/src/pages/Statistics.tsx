@@ -180,9 +180,9 @@ const Statistics = () => {
 
   if (ordersLoading || portfolioLoading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>{t("loading")}</p>
+      <div className="flex flex-col items-center justify-center p-14 text-center">
+        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
+        <p className="text-text-secondary">{t("loading")}</p>
       </div>
     );
   }
@@ -190,38 +190,40 @@ const Statistics = () => {
   const hasNoData = orders.length === 0 && enrichedAssets.length === 0;
 
   return (
-    <div className="statistics-page">
-      <div className="statistics-header">
-        <h1>{t("tradingStatistics")}</h1>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-text-primary text-2xl font-bold m-0">
+          {t("tradingStatistics")}
+        </h1>
       </div>
 
-      <div className="statistics-summary">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
         <div className="stat-card">
-          <h3>{t("totalOrders")}</h3>
+          <h3 className="stat-title">{t("totalOrders")}</h3>
           <div className="stat-value">{orders.length}</div>
-          <p>{t("allTime")}</p>
+          <p className="stat-subtitle">{t("allTime")}</p>
         </div>
 
         <div className="stat-card">
-          <h3>{t("holdingsValue")}</h3>
+          <h3 className="stat-title">{t("holdingsValue")}</h3>
           <div className="stat-value">{formatPrice(currentHoldingsValue)}</div>
-          <p>
+          <p className="stat-subtitle">
             {enrichedAssets.length} {t("assets")}
           </p>
         </div>
 
         <div className="stat-card">
-          <h3>{t("totalValue")}</h3>
+          <h3 className="stat-title">{t("totalValue")}</h3>
           <div className="stat-value">{formatPrice(totalAccountValue)}</div>
-          <p>{t("cashAndHoldings")}</p>
+          <p className="stat-subtitle">{t("cashAndHoldings")}</p>
         </div>
       </div>
 
       {hasNoData ? (
-        <div className="empty-state">
-          <p>{t("noOrdersYet")}</p>
+        <div className="flex flex-col items-center justify-center p-14 text-center">
+          <p className="text-text-secondary mb-4">{t("noOrdersYet")}</p>
           <button
-            className="btn btn-primary"
+            className="px-6 py-3 bg-blue text-white border-0 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => navigate("/markets")}
           >
             {t("startTrading")}
@@ -229,10 +231,10 @@ const Statistics = () => {
         </div>
       ) : (
         <>
-          <div className="charts-grid">
+          <div className="grid grid-cols-2 gap-6 mb-8">
             {assetDistributionData.length > 0 && (
-              <div className="chart-card">
-                <h2>{t("assetDistribution")}</h2>
+              <div className="card-padded">
+                <h2 className="section-header">{t("assetDistribution")}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -267,8 +269,8 @@ const Statistics = () => {
             )}
 
             {orders.length > 0 && (
-              <div className="chart-card">
-                <h2>{t("ordersByType")}</h2>
+              <div className="card-padded">
+                <h2 className="section-header">{t("ordersByType")}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={ordersByTypeData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2b3139" />
@@ -292,8 +294,8 @@ const Statistics = () => {
             )}
 
             {profitOverTime.length > 0 && (
-              <div className="chart-card full-width">
-                <h2>{t("profitLossOverTime")}</h2>
+              <div className="card-padded col-span-2">
+                <h2 className="section-header">{t("profitLossOverTime")}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={profitOverTime}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2b3139" />
@@ -323,20 +325,25 @@ const Statistics = () => {
           </div>
 
           {enrichedAssets.length > 0 && (
-            <div className="top-performers">
-              <h2>{t("topPerformers")}</h2>
-              <div className="performers-list">
+            <div className="card-padded">
+              <h2 className="section-header">{t("topPerformers")}</h2>
+              <div className="space-y-3">
                 {enrichedAssets
                   .filter((asset) => asset.value > 0)
                   .sort((a, b) => b.value - a.value)
                   .slice(0, 5)
                   .map((asset) => (
-                    <div key={asset.asset_symbol} className="performer-item">
-                      <div className="performer-name">{asset.name}</div>
-                      <div className="performer-amount">
+                    <div
+                      key={asset.asset_symbol}
+                      className="flex justify-between items-center p-4 bg-bg-dark rounded-lg"
+                    >
+                      <div className="font-semibold text-text-primary">
+                        {asset.name}
+                      </div>
+                      <div className="text-text-secondary text-sm">
                         {asset.amount.toFixed(6)}
                       </div>
-                      <div className="performer-value">
+                      <div className="font-bold text-text-primary">
                         {formatPrice(asset.value)}
                       </div>
                     </div>
