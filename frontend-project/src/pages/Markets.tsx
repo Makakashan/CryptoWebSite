@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -7,7 +7,7 @@ import {
   setFilters,
   fetchChartData,
 } from "../store/slices/assetsSlice";
-import { useWebSocket } from "../hooks/useWebSocket";
+import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
 import AssetCard from "../components/AssetCard";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
@@ -20,11 +20,13 @@ import AssetCardSkeleton from "../components/skeletons/AssetCardSkeleton";
 const Markets = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  useWebSocket();
   const dispatch = useAppDispatch();
-  const { assets, isLoading, error, filters, pagination } = useAppSelector(
-    (state) => state.assets,
-  );
+  const { assets, isLoading, error, filters, pagination, chartData } =
+    useAppSelector((state) => state.assets);
+
+  // Use Binance WebSocket for real-time price updates
+  const symbols = useMemo(() => assets.map((asset) => asset.symbol), [assets]);
+  useBinanceWebSocket({ symbols, enabled: assets.length > 0 });
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -43,22 +45,27 @@ const Markets = () => {
   ];
 
   useEffect(() => {
-    dispatch(fetchAssets(filters));
-  }, [dispatch, filters]);
+    if (assets.length === 0 || filters.page !== pagination?.page) {
+      dispatch(fetchAssets(filters));
+    }
+  }, [dispatch, filters, assets.length, pagination?.page]);
 
-  // Load chart data for assets on current page
   useEffect(() => {
     if (assets.length > 0) {
       const symbols = assets.map((asset) => asset.symbol);
-      dispatch(fetchChartData(symbols));
-    }
-  }, [assets, dispatch]);
+      const hasChartData = symbols.some(
+        (symbol) => chartData[symbol]?.length > 0,
+      );
 
+      if (!hasChartData) {
+        dispatch(fetchChartData(symbols));
+      }
+    }
+  }, [assets, chartData, dispatch]);
   // Auto-update metadata for assets with missing images or descriptions
   useEffect(() => {
     const updateMetadata = async () => {
       if (assets.length > 0) {
-        // Find assets that need metadata updates and haven't been processed yet
         const assetsNeedingUpdate = assets.filter(
           (asset) =>
             (!asset.image_url ||
@@ -84,7 +91,6 @@ const Markets = () => {
             dispatch(fetchAssets(filters));
           } catch (error) {
             console.error("Failed to update metadata:", error);
-            // Remove from processed set on error so it can be retried
             symbols.forEach((symbol) =>
               metadataUpdateProcessed.current.delete(symbol),
             );
@@ -97,38 +103,22 @@ const Markets = () => {
     updateMetadata();
   }, [assets, dispatch, filters]);
 
-  // Auto-refresh prices and charts every second (only when tab is visible)
+  // Refresh chart data periodically (prices come from WebSocket)
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        // Refresh immediately when tab becomes visible
-        dispatch(fetchAssets(filters));
-        if (assets.length > 0) {
-          const symbols = assets.map((asset) => asset.symbol);
-          dispatch(fetchChartData(symbols));
-        }
-      }
-    };
+    if (assets.length === 0) return;
 
+    // Refresh chart data every 30 seconds (less frequent since prices are real-time)
     const intervalId = setInterval(() => {
-      if (!document.hidden) {
-        // Only refresh when tab is visible
-        dispatch(fetchAssets(filters));
-        if (assets.length > 0) {
-          const symbols = assets.map((asset) => asset.symbol);
-          dispatch(fetchChartData(symbols));
-        }
+      if (!document.hidden && assets.length > 0) {
+        const symbols = assets.map((asset) => asset.symbol);
+        dispatch(fetchChartData(symbols));
       }
-    }, 1000); // Update every 1 second
-
-    // Listen for visibility changes
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    }, 30000); // Update charts every 30 seconds
 
     return () => {
       clearInterval(intervalId);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [dispatch, filters, assets]);
+  }, [dispatch, assets]);
 
   const handleApplyFilters = () => {
     dispatch(

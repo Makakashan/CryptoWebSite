@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { memo } from "react";
 import type { AssetCardProps } from "../store/types/components.types";
 import { formatPrice } from "../utils/formatPrice";
 import Card from "./ui/card";
@@ -7,7 +8,7 @@ import MiniChart from "./MiniChart";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { useAppSelector } from "../store/hooks";
 
-const AssetCard = ({ asset }: AssetCardProps) => {
+const AssetCard = memo(({ asset }: AssetCardProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const chartData = useAppSelector(
@@ -113,6 +114,8 @@ const AssetCard = ({ asset }: AssetCardProps) => {
       </div>
     </Card>
   );
-};
+});
+
+AssetCard.displayName = "AssetCard";
 
 export default AssetCard;

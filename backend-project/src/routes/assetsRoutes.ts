@@ -32,7 +32,7 @@ interface ChartCacheEntry {
 }
 
 const chartCache = new Map<string, ChartCacheEntry>();
-const CHART_CACHE_TTL = 5000; // Cache for 5 seconds (since we're polling every second)
+const CHART_CACHE_TTL = 60000; // Cache for 60 seconds
 
 // GET /assets - Get Assets with Pagination, Sorting, and Filtering
 router.get("/", async (req: Request, res: Response): Promise<void> => {

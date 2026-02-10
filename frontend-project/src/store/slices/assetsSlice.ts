@@ -131,6 +131,17 @@ const assetsSlice = createSlice({
     clearChartData: (state) => {
       state.chartData = {};
     },
+    updateAssetPrice: (
+      state,
+      action: PayloadAction<{ symbol: string; price: number }>,
+    ) => {
+      const asset = state.assets.find(
+        (a) => a.symbol === action.payload.symbol,
+      );
+      if (asset) {
+        asset.price = action.payload.price;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -197,5 +208,6 @@ const assetsSlice = createSlice({
   },
 });
 
-export const { setFilters, clearFilters, clearChartData } = assetsSlice.actions;
+export const { setFilters, clearFilters, clearChartData, updateAssetPrice } =
+  assetsSlice.actions;
 export default assetsSlice.reducer;
