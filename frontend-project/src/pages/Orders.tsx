@@ -5,6 +5,8 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchOrders, setOrdersFilters } from "../store/slices/ordersSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { formatPrice } from "../utils/formatPrice";
+import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
+import TableSkeleton from "../components/skeletons/TableSkeleton";
 
 const Orders = () => {
   const { t } = useTranslation();
@@ -101,11 +103,27 @@ const Orders = () => {
     return Array.from(symbols).sort();
   }, [orders]);
 
-  if (isLoading && orders.length === 0) {
+  const showSkeletons = isLoading && orders.length === 0;
+
+  if (showSkeletons) {
     return (
-      <div className="flex flex-col items-center justify-center p-14 text-center">
-        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
-        <p className="text-text-secondary">Loading orders...</p>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-text-primary text-2xl font-bold m-0">
+            {t("orderHistory")}
+          </h1>
+        </div>
+
+        {/* Skeleton for stats */}
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+
+        {/* Skeleton for table */}
+        <TableSkeleton rows={10} columns={5} />
       </div>
     );
   }

@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { formatPrice } from "../utils/formatPrice";
+import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
+import TableSkeleton from "../components/skeletons/TableSkeleton";
 
 const Portfolio = () => {
   const { t } = useTranslation();
@@ -125,9 +127,23 @@ const Portfolio = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-14 text-center">
-        <div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
-        <p className="text-text-secondary">Loading portfolio...</p>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-text-primary text-3xl font-bold m-0 mb-1">
+            {t("portfolio")}
+          </h1>
+          <p className="text-text-secondary text-sm">{t("yourAssets")}</p>
+        </div>
+
+        {/* Skeleton for stats */}
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+
+        {/* Skeleton for table */}
+        <TableSkeleton rows={10} columns={5} />
       </div>
     );
   }

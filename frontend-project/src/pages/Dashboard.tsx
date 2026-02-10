@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets } from "../store/slices/assetsSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { formatPrice } from "../utils/formatPrice";
+import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -47,15 +48,7 @@ const Dashboard = () => {
   }, [portfolio, assets]);
 
   const totalAssets = totalBalance + portfolioValue;
-
-  if (isLoading && assets.length === 0) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner mb-4"></div>
-        <p className="text-text-secondary">{t("loading")}</p>
-      </div>
-    );
-  }
+  const showSkeletons = isLoading && assets.length === 0;
 
   return (
     <div>
@@ -73,7 +66,15 @@ const Dashboard = () => {
         </div>
       )}
 
-      {isAuthenticated && portfolio && (
+      {isAuthenticated && showSkeletons && (
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+      )}
+
+      {isAuthenticated && portfolio && !showSkeletons && (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
           <div className="stat-card-hover">
             <h3 className="stat-title">{t("totalBalance")}</h3>
@@ -109,7 +110,24 @@ const Dashboard = () => {
         <h2 className="text-xl mb-4 text-text-primary">
           {t("topCryptocurrencies")}
         </h2>
-        {topAssets.length > 0 ? (
+        {showSkeletons ? (
+          <div className="card p-0 overflow-hidden">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className={`flex justify-between items-center px-6 py-4 ${
+                  index !== 4 ? "border-b border-bg-hover" : ""
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-bg-hover/50 animate-pulse" />
+                  <div className="h-4 w-16 bg-bg-hover/50 animate-pulse rounded" />
+                </div>
+                <div className="h-5 w-20 bg-bg-hover/50 animate-pulse rounded" />
+              </div>
+            ))}
+          </div>
+        ) : topAssets.length > 0 ? (
           <div className="card p-0 overflow-hidden">
             {topAssets.map((asset, index) => {
               const shortName = asset.symbol.replace("USDT", "");

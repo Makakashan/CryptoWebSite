@@ -15,6 +15,7 @@ import Select from "@/components/ui/select";
 import Card, { CardContent } from "@/components/ui/card";
 import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
 import { assetsApi } from "../api/assetsApi";
+import AssetCardSkeleton from "../components/skeletons/AssetCardSkeleton";
 
 const Markets = () => {
   const { t } = useTranslation();
@@ -162,14 +163,7 @@ const Markets = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (isLoading && assets.length === 0) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner mb-4"></div>
-        <p className="text-text-secondary">{t("loading")}</p>
-      </div>
-    );
-  }
+  const showSkeletons = isLoading && assets.length === 0;
 
   const currentPage = pagination?.page || 1;
   const totalPages = pagination?.totalPages || 1;
@@ -311,16 +305,22 @@ const Markets = () => {
       )}
 
       {/* Assets Grid - Responsive 3-4 columns */}
-      {!error && assets.length > 0 && (
+      {!error && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {assets.map((asset) => (
-            <AssetCard key={asset.symbol} asset={asset} />
-          ))}
+          {showSkeletons
+            ? // Show skeleton cards while loading
+              Array.from({ length: 12 }).map((_, index) => (
+                <AssetCardSkeleton key={`skeleton-${index}`} />
+              ))
+            : // Show actual asset cards
+              assets.map((asset) => (
+                <AssetCard key={asset.symbol} asset={asset} />
+              ))}
         </div>
       )}
 
       {/* Empty State */}
-      {!error && !isLoading && assets.length === 0 && (
+      {!error && !showSkeletons && assets.length === 0 && (
         <Card>
           <CardContent className="p-14 text-center">
             <div className="flex flex-col items-center gap-3">
