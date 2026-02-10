@@ -847,6 +847,116 @@ router.post("/chart", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// POST /assets/update-metadata - Update missing images and descriptions for specific assets
+router.post(
+  "/update-metadata",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const db = getDB();
+      const { symbols } = req.body;
+
+      if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
+        res.status(400).json({ message: "Symbols array is required." });
+        return;
+      }
+
+      // Get only the requested assets that need updating
+      const placeholders = symbols.map(() => "?").join(",");
+      const assetsToUpdate = await db.all(
+        `SELECT * FROM assets WHERE symbol IN (${placeholders}) AND (image_url IS NULL OR description IS NULL OR description = '')`,
+        symbols,
+      );
+
+      if (assetsToUpdate.length === 0) {
+        res.json({
+          message: "All requested assets already have images and descriptions",
+          updated: 0,
+        });
+        return;
+      }
+
+      let updatedCount = 0;
+      let failedCount = 0;
+
+      // Process all assets in parallel with Promise.allSettled
+      const updatePromises = assetsToUpdate.map(async (asset) => {
+        try {
+          const baseAsset = asset.symbol.replace(/USDT$/, "");
+
+          let image_url = asset.image_url;
+          let description = asset.description;
+          let category = asset.category || "other";
+
+          // Use CryptoCompare for faster image fetching (no rate limit on images)
+          if (!asset.image_url) {
+            // Try multiple sources for images
+            const imageUrls = [
+              `https://cryptoicons.org/api/icon/${baseAsset.toLowerCase()}/200`,
+              `https://assets.coincap.io/assets/icons/${baseAsset.toLowerCase()}@2x.png`,
+            ];
+
+            // Use the first available image
+            image_url = imageUrls[0];
+          }
+
+          // For description, try CryptoCompare API (faster and more reliable)
+          if (!asset.description || asset.description === "") {
+            try {
+              const ccResponse = await fetch(
+                `https://min-api.cryptocompare.com/data/coin/generalinfo?fsyms=${baseAsset}&tsym=USD`,
+              );
+
+              if (ccResponse.ok) {
+                const ccData = (await ccResponse.json()) as any;
+                if (ccData.Data && ccData.Data.length > 0) {
+                  const coinData = ccData.Data[0].CoinInfo;
+                  description = coinData.Description || null;
+
+                  // Also try to get category
+                  if (category === "other" && coinData.Type) {
+                    category = coinData.Type;
+                  }
+                }
+              }
+            } catch (e) {
+              console.log(
+                `CryptoCompare failed for ${asset.symbol}, using fallback`,
+              );
+            }
+          }
+
+          // Update the asset in database
+          await db.run(
+            `UPDATE assets SET image_url = ?, description = ?, category = ? WHERE symbol = ?`,
+            [image_url, description, category, asset.symbol],
+          );
+
+          updatedCount++;
+          console.log(`Updated metadata for ${asset.symbol}`);
+          return { success: true, symbol: asset.symbol };
+        } catch (error) {
+          failedCount++;
+          console.error(`Error updating ${asset.symbol}:`, error);
+          return { success: false, symbol: asset.symbol };
+        }
+      });
+
+      // Wait for all updates to complete
+      await Promise.allSettled(updatePromises);
+
+      res.json({
+        message: "Metadata update completed",
+        updated: updatedCount,
+        failed: failedCount,
+        total: assetsToUpdate.length,
+      });
+    } catch (error) {
+      console.error("Error updating metadata:", error);
+      res.status(500).json({ message: "Internal server error." });
+    }
+  },
+);
+
 // Cleanup old cache entries every minute
 setInterval(() => {
   const now = Date.now();

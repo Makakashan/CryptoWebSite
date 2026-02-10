@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -14,6 +14,7 @@ import Input from "@/components/ui/input";
 import Select from "@/components/ui/select";
 import Card, { CardContent } from "@/components/ui/card";
 import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
+import { assetsApi } from "../api/assetsApi";
 
 const Markets = () => {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ const Markets = () => {
   const [sortBy, setSortBy] = useState("price");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [showFilters, setShowFilters] = useState(false);
+  const metadataUpdateProcessed = useRef<Set<string>>(new Set());
 
   const categories = [
     "Layer 1",
@@ -50,6 +52,49 @@ const Markets = () => {
       dispatch(fetchChartData(symbols));
     }
   }, [assets, dispatch]);
+
+  // Auto-update metadata for assets with missing images or descriptions
+  useEffect(() => {
+    const updateMetadata = async () => {
+      if (assets.length > 0) {
+        // Find assets that need metadata updates and haven't been processed yet
+        const assetsNeedingUpdate = assets.filter(
+          (asset) =>
+            (!asset.image_url ||
+              !asset.description ||
+              asset.description === "") &&
+            !metadataUpdateProcessed.current.has(asset.symbol),
+        );
+
+        if (assetsNeedingUpdate.length > 0) {
+          const symbols = assetsNeedingUpdate.map((asset) => asset.symbol);
+
+          // Mark these assets as processed to avoid duplicate updates
+          symbols.forEach((symbol) =>
+            metadataUpdateProcessed.current.add(symbol),
+          );
+
+          try {
+            console.log(`Updating metadata for ${symbols.length} assets...`);
+            const result = await assetsApi.updateMetadata(symbols);
+            console.log(`Updated ${result.updated} assets successfully`);
+
+            // Refresh assets immediately after metadata update
+            dispatch(fetchAssets(filters));
+          } catch (error) {
+            console.error("Failed to update metadata:", error);
+            // Remove from processed set on error so it can be retried
+            symbols.forEach((symbol) =>
+              metadataUpdateProcessed.current.delete(symbol),
+            );
+          }
+        }
+      }
+    };
+
+    // Run when assets are loaded
+    updateMetadata();
+  }, [assets, dispatch, filters]);
 
   // Auto-refresh prices and charts every second (only when tab is visible)
   useEffect(() => {

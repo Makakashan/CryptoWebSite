@@ -59,4 +59,16 @@ export const assetsApi = {
     });
     return response.data;
   },
+
+  updateMetadata: async (
+    symbols: string[],
+  ): Promise<{
+    message: string;
+    updated: number;
+    failed?: number;
+    total?: number;
+  }> => {
+    const response = await api.post("/assets/update-metadata", { symbols });
+    return response.data;
+  },
 };
