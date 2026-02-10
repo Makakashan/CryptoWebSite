@@ -7,6 +7,7 @@ import {
   BinanceTicker,
   CoinGeckoListItem,
   CoinGeckoDetail,
+  BinanceKline,
 } from "../types/types.js";
 import {
   parsePagination,
@@ -89,7 +90,40 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
           [...params, limit, offset],
         );
 
-    let assetsWithPrice = assets.map(assetToAssetWithPrice);
+    // Fetch 24h price change data from Binance for all assets at once
+    let priceChangeMap: Record<string, number> = {};
+    try {
+      const binanceResponse = await fetch(
+        "https://api.binance.com/api/v3/ticker/24hr",
+      );
+      if (binanceResponse.ok) {
+        const tickers = (await binanceResponse.json()) as Array<{
+          symbol: string;
+          priceChangePercent: string;
+        }>;
+        tickers.forEach((ticker) => {
+          if (ticker.symbol && ticker.priceChangePercent) {
+            priceChangeMap[ticker.symbol] = parseFloat(
+              ticker.priceChangePercent,
+            );
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching 24h price changes:", error);
+    }
+
+    // Map assets with price and price_change_24h
+    let assetsWithPrice = assets.map((asset) => {
+      const assetWithPrice = assetToAssetWithPrice(asset);
+      const binanceSymbol = asset.symbol.endsWith("USDT")
+        ? asset.symbol
+        : `${asset.symbol}USDT`;
+      return {
+        ...assetWithPrice,
+        price_change_24h: priceChangeMap[binanceSymbol] || 0,
+      };
+    });
 
     // Apply Sorting by Price if needed
     if (isSortingByPrice) {
@@ -721,5 +755,71 @@ router.delete(
     }
   },
 );
+
+// POST /assets/chart - Get historical chart data for multiple assets
+router.post("/chart", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { symbols, interval = "1h", limit = 24 } = req.body;
+
+    if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
+      res.status(400).json({ message: "Symbols array is required." });
+      return;
+    }
+
+    if (symbols.length > 50) {
+      res
+        .status(400)
+        .json({ message: "Maximum 50 symbols allowed per request." });
+      return;
+    }
+
+    // Validate interval
+    const validIntervals = ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"];
+    if (!validIntervals.includes(interval)) {
+      res.status(400).json({ message: "Invalid interval." });
+      return;
+    }
+
+    const chartDataMap: Record<string, number[]> = {};
+
+    // Request data for each symbol
+    await Promise.all(
+      symbols.map(async (symbol: string) => {
+        try {
+          const binanceSymbol = symbol.endsWith("USDT")
+            ? symbol
+            : `${symbol}USDT`;
+          const response = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=${interval}&limit=${limit}`,
+          );
+
+          if (response.ok) {
+            const data = (await response.json()) as BinanceKline[];
+            // Extract closing prices (index 4 in klines array)
+            const prices = data.map((candle: BinanceKline) =>
+              parseFloat(candle[4]),
+            );
+            chartDataMap[symbol] = prices;
+          } else {
+            console.error(`Failed to fetch chart data for ${symbol}`);
+            chartDataMap[symbol] = [];
+          }
+        } catch (error) {
+          console.error(`Error fetching chart for ${symbol}:`, error);
+          chartDataMap[symbol] = [];
+        }
+      }),
+    );
+
+    res.json({
+      data: chartDataMap,
+      interval,
+      limit,
+    });
+  } catch (error) {
+    console.error("Error fetching chart data:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
 
 export default router;

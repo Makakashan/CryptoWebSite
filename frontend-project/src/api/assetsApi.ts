@@ -4,19 +4,9 @@ import type {
   Asset,
   CreateAssetDto,
   UpdateAssetDto,
+  AssetsResponse,
+  ChartDataResponse,
 } from "../store/types";
-
-interface AssetsResponse {
-  data: Asset[];
-  pagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-  sortBy?: string;
-  sortOrder?: string;
-}
 
 export const assetsApi = {
   getAssets: async (filters?: AssetsFilters): Promise<AssetsResponse> => {
@@ -55,5 +45,18 @@ export const assetsApi = {
 
   deleteAsset: async (symbol: string): Promise<void> => {
     await api.delete(`/assets/${symbol}`);
+  },
+
+  getChartData: async (
+    symbols: string[],
+    interval: string = "1h",
+    limit: number = 24,
+  ): Promise<ChartDataResponse> => {
+    const response = await api.post<ChartDataResponse>("/assets/chart", {
+      symbols,
+      interval,
+      limit,
+    });
+    return response.data;
   },
 };

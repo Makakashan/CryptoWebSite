@@ -12,3 +12,8 @@ export interface AvatarUploadProps {
 export interface AssetCardProps {
   asset: Asset;
 }
+
+export interface MiniChartProps {
+  data: number[];
+  color: string;
+}

@@ -44,6 +44,7 @@ export interface Asset {
 
 export interface AssetWithPrice extends Asset {
   price: number;
+  price_change_24h?: number;
 }
 
 export interface PaginationParams {
@@ -103,6 +104,21 @@ export interface BinancePriceResponse {
   symbol: string;
   price: string;
 }
+
+export type BinanceKline = [
+  number, // Open time
+  string, // Open
+  string, // High
+  string, // Low
+  string, // Close
+  string, // Volume
+  number, // Close time
+  string, // Quote asset volume
+  number, // Number of trades
+  string, // Taker buy base asset volume
+  string, // Taker buy quote asset volume
+  string, // Ignore
+];
 
 export interface CoinGeckoListItem {
   id: string;

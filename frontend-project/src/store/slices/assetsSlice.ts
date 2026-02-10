@@ -9,17 +9,10 @@ import type {
   AssetsFilters,
   AssetsState,
   Asset,
-  PaginationInfo,
   CreateAssetDto,
   UpdateAssetDto,
-} from "../types";
-
-interface AssetsResponse {
-  data: Asset[];
-  pagination?: PaginationInfo;
-  sortBy?: string;
-  sortOrder?: string;
-}
+  AssetsResponse,
+} from "../types/assets.types";
 
 const initialState: AssetsState = {
   assets: [],
@@ -32,6 +25,7 @@ const initialState: AssetsState = {
     sortOrder: "desc",
   },
   pagination: null,
+  chartData: {},
 };
 
 export const fetchAssets = createAsyncThunk<
@@ -49,6 +43,24 @@ export const fetchAssets = createAsyncThunk<
       );
     }
     return rejectWithValue("Failed to fetch assets");
+  }
+});
+
+export const fetchChartData = createAsyncThunk<
+  Record<string, number[]>,
+  string[],
+  { rejectValue: string }
+>("assets/fetchChartData", async (symbols, { rejectWithValue }) => {
+  try {
+    const response = await assetsApi.getChartData(symbols, "15m", 96);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch chart data",
+      );
+    }
+    return rejectWithValue("Failed to fetch chart data");
   }
 });
 
@@ -116,6 +128,9 @@ const assetsSlice = createSlice({
     clearFilters: (state) => {
       state.filters = initialState.filters;
     },
+    clearChartData: (state) => {
+      state.chartData = {};
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -131,6 +146,12 @@ const assetsSlice = createSlice({
       .addCase(fetchAssets.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload || "Failed to fetch assets";
+      })
+      .addCase(fetchChartData.fulfilled, (state, action) => {
+        state.chartData = { ...state.chartData, ...action.payload };
+      })
+      .addCase(fetchChartData.rejected, (_, action) => {
+        console.error("Failed to fetch chart data:", action.payload);
       })
       .addCase(createAsset.pending, (state) => {
         state.isLoading = true;
@@ -176,5 +197,5 @@ const assetsSlice = createSlice({
   },
 });
 
-export const { setFilters, clearFilters } = assetsSlice.actions;
+export const { setFilters, clearFilters, clearChartData } = assetsSlice.actions;
 export default assetsSlice.reducer;

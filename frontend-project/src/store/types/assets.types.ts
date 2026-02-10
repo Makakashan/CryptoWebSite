@@ -49,4 +49,18 @@ export interface AssetsState {
   error: string | null;
   filters: AssetsFilters;
   pagination: PaginationInfo | null;
+  chartData: Record<string, number[]>;
+}
+
+export interface AssetsResponse {
+  data: Asset[];
+  pagination?: PaginationInfo;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+export interface ChartDataResponse {
+  data: Record<string, number[]>;
+  interval: string;
+  limit: number;
 }

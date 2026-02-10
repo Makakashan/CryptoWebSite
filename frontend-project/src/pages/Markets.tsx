@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { fetchAssets, setFilters } from "../store/slices/assetsSlice";
+import {
+  fetchAssets,
+  setFilters,
+  fetchChartData,
+} from "../store/slices/assetsSlice";
 import { useWebSocket } from "../hooks/useWebSocket";
 import AssetCard from "../components/AssetCard";
 import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
+import Select from "@/components/ui/select";
+import Card, { CardContent } from "@/components/ui/card";
+import { Search, SlidersHorizontal, X, RefreshCw, Plus } from "lucide-react";
 
 const Markets = () => {
   const { t } = useTranslation();
@@ -20,6 +28,7 @@ const Markets = () => {
   const [category, setCategory] = useState("");
   const [sortBy, setSortBy] = useState("price");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [showFilters, setShowFilters] = useState(false);
 
   const categories = [
     "Layer 1",
@@ -34,6 +43,14 @@ const Markets = () => {
     dispatch(fetchAssets(filters));
   }, [dispatch, filters]);
 
+  // Load chart data for assets on current page
+  useEffect(() => {
+    if (assets.length > 0) {
+      const symbols = assets.map((asset) => asset.symbol);
+      dispatch(fetchChartData(symbols));
+    }
+  }, [assets, dispatch]);
+
   const handleApplyFilters = () => {
     dispatch(
       setFilters({
@@ -44,6 +61,7 @@ const Markets = () => {
         page: 1,
       }),
     );
+    setShowFilters(false);
   };
 
   const handleReset = () => {
@@ -77,120 +95,191 @@ const Markets = () => {
 
   const currentPage = pagination?.page || 1;
   const totalPages = pagination?.totalPages || 1;
+  const hasActiveFilters =
+    search || category || sortBy !== "price" || sortOrder !== "desc";
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-text-primary text-2xl font-bold m-0">
-          {t("markets")}
-        </h1>
-        <div className="flex gap-4">
-          <Button onClick={() => navigate("/markets/add")}>
-            {t("addNewAsset")}
-          </Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-text-primary text-3xl font-bold m-0 mb-1">
+            {t("markets")}
+          </h1>
+          <p className="text-text-secondary text-sm">
+            Discover and track your favorite assets
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
           <Button
             variant="outline"
             size="sm"
             onClick={() => dispatch(fetchAssets(filters))}
             disabled={isLoading}
+            className="gap-2"
           >
-            {isLoading ? t("loading") : t("refresh")}
-          </Button>
-        </div>
-      </div>
-
-      <div className="card-padded mb-6">
-        <h3 className="m-0 mb-4 text-lg text-text-primary">{t("filters")}</h3>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-4">
-          <div className="flex flex-col gap-2">
-            <label className="filter-label">{t("search")}</label>
-            <input
-              type="text"
-              placeholder={t("searchAssets")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="input"
+            <RefreshCw
+              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
             />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="filter-label">{t("category")}</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="select"
-            >
-              <option value="">{t("all")}</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="filter-label">{t("sortBy")}</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="select"
-            >
-              <option value="price">{t("price")}</option>
-              <option value="symbol">{t("symbol")}</option>
-              <option value="name">{t("name")}</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="filter-label">{t("order")}</label>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-              className="select"
-            >
-              <option value="desc">{t("highToLow")}</option>
-              <option value="asc">{t("lowToHigh")}</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="flex gap-2 justify-end">
-          <Button onClick={handleApplyFilters}>{t("apply")}</Button>
-          <Button variant="secondary" onClick={handleReset}>
-            {t("reset")}
+            {t("refresh")}
+          </Button>
+          <Button onClick={() => navigate("/markets/add")} className="gap-2">
+            <Plus className="w-4 h-4" />
+            {t("addNewAsset")}
           </Button>
         </div>
       </div>
 
+      {/* Compact Filters Bar */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-4">
+            {/* Quick Filter Row */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                <Input
+                  type="text"
+                  placeholder={t("searchAssets")}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleApplyFilters()}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Filter Toggle & Apply */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`gap-2 ${hasActiveFilters ? "border-blue text-blue" : ""}`}
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  {t("filters")}
+                  {hasActiveFilters && (
+                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue text-white rounded">
+                      •
+                    </span>
+                  )}
+                </Button>
+                <Button size="sm" onClick={handleApplyFilters}>
+                  {t("apply")}
+                </Button>
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleReset}
+                    className="gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Expandable Advanced Filters */}
+            {showFilters && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-bg-hover animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">
+                    {t("category")}
+                  </label>
+                  <Select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    <option value="">{t("all")}</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">
+                    {t("sortBy")}
+                  </label>
+                  <Select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="price">{t("price")}</option>
+                    <option value="symbol">{t("symbol")}</option>
+                    <option value="name">{t("name")}</option>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">
+                    {t("order")}
+                  </label>
+                  <Select
+                    value={sortOrder}
+                    onChange={(e) =>
+                      setSortOrder(e.target.value as "asc" | "desc")
+                    }
+                  >
+                    <option value="desc">{t("highToLow")}</option>
+                    <option value="asc">{t("lowToHigh")}</option>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Error State */}
       {error && (
-        <div className="flex flex-col items-center justify-center p-14 text-center gap-4">
-          <p className="text-red text-base">{error}</p>
-        </div>
+        <Card className="border-red/50 bg-red/5">
+          <CardContent className="p-6 text-center">
+            <p className="text-red text-base">{error}</p>
+          </CardContent>
+        </Card>
       )}
 
+      {/* Assets Grid - Responsive 3-4 columns */}
       {!error && assets.length > 0 && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {assets.map((asset) => (
             <AssetCard key={asset.symbol} asset={asset} />
           ))}
         </div>
       )}
 
+      {/* Empty State */}
       {!error && !isLoading && assets.length === 0 && (
-        <div className="flex flex-col items-center justify-center p-14 text-center">
-          <p className="text-text-secondary">{t("noAssetsAvailable")}</p>
-        </div>
+        <Card>
+          <CardContent className="p-14 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 rounded-full bg-bg-hover flex items-center justify-center">
+                <Search className="w-8 h-8 text-text-secondary" />
+              </div>
+              <p className="text-text-secondary text-lg">
+                {t("noAssetsAvailable")}
+              </p>
+              <Button variant="outline" size="sm" onClick={handleReset}>
+                {t("resetFilters")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-8 pt-6">
+        <div className="flex justify-center items-center gap-4 pt-6">
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="min-w-30"
           >
             {t("previous")}
           </Button>
@@ -198,11 +287,10 @@ const Markets = () => {
             {t("page")} {currentPage} {t("of")} {totalPages}
           </span>
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="min-w-30"
           >
             {t("next")}
           </Button>
