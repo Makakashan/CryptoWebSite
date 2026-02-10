@@ -88,6 +88,7 @@ export const en = {
   maxPrice: "Max Price",
   currentPrice: "Current Price",
   change24h: "24h Change",
+  last24h: "Last 24h",
 
   // Asset Detail
   about: "About",

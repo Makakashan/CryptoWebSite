@@ -13,7 +13,7 @@ import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import Select from "@/components/ui/select";
 import Card, { CardContent } from "@/components/ui/card";
-import { Search, SlidersHorizontal, X, RefreshCw, Plus } from "lucide-react";
+import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
 
 const Markets = () => {
   const { t } = useTranslation();
@@ -50,6 +50,39 @@ const Markets = () => {
       dispatch(fetchChartData(symbols));
     }
   }, [assets, dispatch]);
+
+  // Auto-refresh prices and charts every second (only when tab is visible)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Refresh immediately when tab becomes visible
+        dispatch(fetchAssets(filters));
+        if (assets.length > 0) {
+          const symbols = assets.map((asset) => asset.symbol);
+          dispatch(fetchChartData(symbols));
+        }
+      }
+    };
+
+    const intervalId = setInterval(() => {
+      if (!document.hidden) {
+        // Only refresh when tab is visible
+        dispatch(fetchAssets(filters));
+        if (assets.length > 0) {
+          const symbols = assets.map((asset) => asset.symbol);
+          dispatch(fetchChartData(symbols));
+        }
+      }
+    }, 1000); // Update every 1 second
+
+    // Listen for visibility changes
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [dispatch, filters, assets]);
 
   const handleApplyFilters = () => {
     dispatch(
@@ -111,18 +144,6 @@ const Markets = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => dispatch(fetchAssets(filters))}
-            disabled={isLoading}
-            className="gap-2"
-          >
-            <RefreshCw
-              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
-            />
-            {t("refresh")}
-          </Button>
           <Button onClick={() => navigate("/markets/add")} className="gap-2">
             <Plus className="w-4 h-4" />
             {t("addNewAsset")}

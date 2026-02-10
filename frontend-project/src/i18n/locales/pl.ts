@@ -89,6 +89,7 @@ export const pl = {
   maxPrice: "Cena max",
   currentPrice: "Aktualna cena",
   change24h: "Zmiana 24h",
+  last24h: "Ostatnie 24h",
 
   // Szczegóły aktywa
   about: "O aktywach",

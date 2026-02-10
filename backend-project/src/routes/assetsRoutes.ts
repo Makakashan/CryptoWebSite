@@ -25,6 +25,15 @@ import {
 
 const router: Router = express.Router();
 
+// In-memory cache for chart data
+interface ChartCacheEntry {
+  data: number[];
+  timestamp: number;
+}
+
+const chartCache = new Map<string, ChartCacheEntry>();
+const CHART_CACHE_TTL = 5000; // Cache for 5 seconds (since we're polling every second)
+
 // GET /assets - Get Assets with Pagination, Sorting, and Filtering
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const db = getDB();
@@ -781,11 +790,21 @@ router.post("/chart", async (req: Request, res: Response): Promise<void> => {
     }
 
     const chartDataMap: Record<string, number[]> = {};
+    const now = Date.now();
 
     // Request data for each symbol
     await Promise.all(
       symbols.map(async (symbol: string) => {
         try {
+          const cacheKey = `${symbol}_${interval}_${limit}`;
+          const cached = chartCache.get(cacheKey);
+
+          // Check if we have valid cached data
+          if (cached && now - cached.timestamp < CHART_CACHE_TTL) {
+            chartDataMap[symbol] = cached.data;
+            return;
+          }
+
           const binanceSymbol = symbol.endsWith("USDT")
             ? symbol
             : `${symbol}USDT`;
@@ -800,6 +819,12 @@ router.post("/chart", async (req: Request, res: Response): Promise<void> => {
               parseFloat(candle[4]),
             );
             chartDataMap[symbol] = prices;
+
+            // Store in cache
+            chartCache.set(cacheKey, {
+              data: prices,
+              timestamp: now,
+            });
           } else {
             console.error(`Failed to fetch chart data for ${symbol}`);
             chartDataMap[symbol] = [];
@@ -821,5 +846,15 @@ router.post("/chart", async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: "Internal server error." });
   }
 });
+
+// Cleanup old cache entries every minute
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of chartCache.entries()) {
+    if (now - entry.timestamp > CHART_CACHE_TTL * 2) {
+      chartCache.delete(key);
+    }
+  }
+}, 60000);
 
 export default router;

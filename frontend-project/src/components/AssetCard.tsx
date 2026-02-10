@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { AssetCardProps } from "../store/types/components.types";
 import { formatPrice } from "../utils/formatPrice";
 import Card from "./ui/card";
@@ -7,6 +8,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { useAppSelector } from "../store/hooks";
 
 const AssetCard = ({ asset }: AssetCardProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const chartData = useAppSelector(
     (state) => state.assets.chartData[asset.symbol] || [],
@@ -61,22 +63,29 @@ const AssetCard = ({ asset }: AssetCardProps) => {
 
             {/* Price change badge */}
             {priceChange !== 0 && (
-              <div className="flex items-center gap-1">
-                <div
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${
-                    isPositive ? "bg-green/10 text-green" : "bg-red/10 text-red"
-                  }`}
-                >
-                  {isPositive ? (
-                    <TrendingUp className="w-3 h-3" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3" />
-                  )}
-                  <span className="text-xs font-semibold">
-                    {isPositive ? "+" : ""}
-                    {priceChange.toFixed(2)}%
-                  </span>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1">
+                  <div
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${
+                      isPositive
+                        ? "bg-green/10 text-green"
+                        : "bg-red/10 text-red"
+                    }`}
+                  >
+                    {isPositive ? (
+                      <TrendingUp className="w-3 h-3" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3" />
+                    )}
+                    <span className="text-xs font-semibold">
+                      {isPositive ? "+" : ""}
+                      {priceChange.toFixed(2)}%
+                    </span>
+                  </div>
                 </div>
+                <span className="text-[10px] text-text-secondary/70 ml-0.5">
+                  {t("last24h")}
+                </span>
               </div>
             )}
           </div>
