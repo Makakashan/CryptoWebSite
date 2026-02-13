@@ -16,6 +16,7 @@ import Card, { CardContent } from "@/components/ui/card";
 import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
 import { assetsApi } from "../api/assetsApi";
 import AssetCardSkeleton from "../components/skeletons/AssetCardSkeleton";
+import { iconLoaderService } from "../services/iconLoader";
 
 const Markets = () => {
   const { t } = useTranslation();
@@ -50,17 +51,38 @@ const Markets = () => {
     }
   }, [dispatch, filters, assets.length, pagination?.page]);
 
+  // Load chart data in smaller batches to improve performance
   useEffect(() => {
-    if (assets.length > 0) {
-      const symbols = assets.map((asset) => asset.symbol);
-      const hasChartData = symbols.some(
-        (symbol) => chartData[symbol]?.length > 0,
-      );
+    if (assets.length === 0) return;
 
-      if (!hasChartData) {
-        dispatch(fetchChartData(symbols));
+    // Load charts in batches of 4 to avoid overwhelming slow connections
+    const BATCH_SIZE = 4;
+    const symbolsNeedingData = assets
+      .filter(
+        (asset) =>
+          !chartData[asset.symbol] || chartData[asset.symbol].length === 0,
+      )
+      .map((asset) => asset.symbol);
+
+    if (symbolsNeedingData.length === 0) return;
+
+    // Load first batch immediately, then subsequent batches with delay
+    const loadBatch = (startIndex: number) => {
+      if (startIndex >= symbolsNeedingData.length) return;
+
+      const batch = symbolsNeedingData.slice(
+        startIndex,
+        startIndex + BATCH_SIZE,
+      );
+      dispatch(fetchChartData(batch));
+
+      // Load next batch after a short delay
+      if (startIndex + BATCH_SIZE < symbolsNeedingData.length) {
+        setTimeout(() => loadBatch(startIndex + BATCH_SIZE), 500);
       }
-    }
+    };
+
+    loadBatch(0);
   }, [assets, chartData, dispatch]);
   // Auto-update metadata for assets with missing images or descriptions
   useEffect(() => {
@@ -83,9 +105,7 @@ const Markets = () => {
           );
 
           try {
-            console.log(`Updating metadata for ${symbols.length} assets...`);
-            const result = await assetsApi.updateMetadata(symbols);
-            console.log(`Updated ${result.updated} assets successfully`);
+            await assetsApi.updateMetadata(symbols);
 
             // Refresh assets immediately after metadata update
             dispatch(fetchAssets(filters));
@@ -103,17 +123,41 @@ const Markets = () => {
     updateMetadata();
   }, [assets, dispatch, filters]);
 
+  // Preload icons for assets without images
+  useEffect(() => {
+    if (assets.length === 0) return;
+
+    const assetsNeedingIcons = assets
+      .filter((asset) => !asset.image_url)
+      .map((asset) => asset.symbol);
+
+    if (assetsNeedingIcons.length > 0) {
+      // Preload icons in background
+      iconLoaderService.preloadIcons(assetsNeedingIcons);
+    }
+  }, [assets]);
+
   // Refresh chart data periodically (prices come from WebSocket)
   useEffect(() => {
     if (assets.length === 0) return;
 
-    // Refresh chart data every 30 seconds (less frequent since prices are real-time)
+    // Refresh chart data every 60 seconds in batches (less frequent since prices are real-time)
     const intervalId = setInterval(() => {
       if (!document.hidden && assets.length > 0) {
         const symbols = assets.map((asset) => asset.symbol);
-        dispatch(fetchChartData(symbols));
+        // Refresh in batches to reduce load
+        const BATCH_SIZE = 6;
+        for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
+          const batch = symbols.slice(i, i + BATCH_SIZE);
+          setTimeout(
+            () => {
+              dispatch(fetchChartData(batch));
+            },
+            (i / BATCH_SIZE) * 1000,
+          ); // Stagger batches by 1 second
+        }
       }
-    }, 30000); // Update charts every 30 seconds
+    }, 60000); // Update charts every 60 seconds
 
     return () => {
       clearInterval(intervalId);

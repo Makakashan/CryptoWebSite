@@ -878,6 +878,29 @@ router.post(
       let updatedCount = 0;
       let failedCount = 0;
 
+      // Fetch CoinGecko list once for all assets
+      let coinsListMap: Map<string, string> = new Map();
+      try {
+        const coinsListResponse = await fetch(
+          "https://api.coingecko.com/api/v3/coins/list",
+        );
+        if (coinsListResponse.ok) {
+          const coinsList =
+            (await coinsListResponse.json()) as CoinGeckoListItem[];
+          coinsList.forEach((coin) => {
+            coinsListMap.set(coin.symbol.toLowerCase(), coin.id);
+          });
+          console.log(
+            `Loaded ${coinsListMap.size} coins from CoinGecko for metadata update`,
+          );
+        }
+      } catch (error) {
+        console.log(
+          "Could not fetch CoinGecko list for metadata update, continuing without it:",
+          error,
+        );
+      }
+
       // Process all assets in parallel with Promise.allSettled
       const updatePromises = assetsToUpdate.map(async (asset) => {
         try {
@@ -887,20 +910,57 @@ router.post(
           let description = asset.description;
           let category = asset.category || "other";
 
-          // Use CryptoCompare for faster image fetching (no rate limit on images)
+          // Try to get CoinGecko data if image is missing
           if (!asset.image_url) {
-            // Try multiple sources for images
-            const imageUrls = [
-              `https://cryptoicons.org/api/icon/${baseAsset.toLowerCase()}/200`,
-              `https://assets.coincap.io/assets/icons/${baseAsset.toLowerCase()}@2x.png`,
-            ];
+            try {
+              const baseAssetLower = baseAsset.toLowerCase();
+              const coinId = coinsListMap.get(baseAssetLower);
 
-            // Use the first available image
-            image_url = imageUrls[0];
+              if (coinId) {
+                const coinDetailResponse = await fetch(
+                  `https://api.coingecko.com/api/v3/coins/${coinId}`,
+                );
+
+                if (coinDetailResponse.ok) {
+                  const coinDetail =
+                    (await coinDetailResponse.json()) as CoinGeckoDetail;
+                  image_url =
+                    coinDetail.image?.large || coinDetail.image?.small || null;
+
+                  // Get description if also missing
+                  if (
+                    (!asset.description || asset.description === "") &&
+                    coinDetail.description?.en
+                  ) {
+                    description = coinDetail.description.en
+                      .replace(/<[^>]*>/g, "")
+                      .substring(0, 500);
+                  }
+
+                  // Map CoinGecko categories
+                  if (category === "other" && coinDetail.categories) {
+                    category = mapCoinGeckoCategory(coinDetail.categories);
+                  }
+
+                  console.log(
+                    `Got CoinGecko data for ${asset.symbol}: ${image_url ? "✓ image" : "✗ no image"}`,
+                  );
+                }
+
+                // Small delay to avoid rate limiting
+                await new Promise((resolve) => setTimeout(resolve, 1200));
+              } else {
+                console.log(
+                  `No CoinGecko ID found for ${asset.symbol} (${baseAsset})`,
+                );
+              }
+            } catch (error) {
+              console.log(`CoinGecko failed for ${asset.symbol}:`, error);
+            }
           }
 
-          // For description, try CryptoCompare API (faster and more reliable)
-          if (!asset.description || asset.description === "") {
+          // For description, try CryptoCompare API if still missing
+          if (!description || description === "") {
             try {
               const ccResponse = await fetch(
                 `https://min-api.cryptocompare.com/data/coin/generalinfo?fsyms=${baseAsset}&tsym=USD`,

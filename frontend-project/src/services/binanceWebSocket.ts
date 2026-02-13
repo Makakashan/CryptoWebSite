@@ -8,10 +8,11 @@ class BinanceWebSocketService {
   private reconnectDelay = 3000;
   private subscribedSymbols: Set<string> = new Set();
   private prices: Map<string, number> = new Map();
+  private throttleTimers: Map<string, NodeJS.Timeout> = new Map();
+  private readonly throttleDelay = 1000; // Update UI at most once per second
 
   connect(symbols: string[]) {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      console.log("WebSocket already connected");
       return;
     }
 
@@ -26,7 +27,6 @@ class BinanceWebSocketService {
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log("Binance WebSocket connected");
         this.reconnectAttempts = 0;
         symbols.forEach((s) => this.subscribedSymbols.add(s));
       };
@@ -40,33 +40,26 @@ class BinanceWebSocketService {
             const symbol = ticker.s; // Symbol in uppercase (e.g., "BTCUSDT")
             const price = parseFloat(ticker.c); // Current price
 
-            // Update internal price map
+            // Always update internal price map immediately
             this.prices.set(symbol, price);
 
-            // Notify all subscribers
-            this.subscribers.forEach((callback) => {
-              callback(symbol, price);
-            });
+            // Throttle UI updates to prevent excessive re-renders
+            this.throttledNotify(symbol, price);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
         }
       };
 
-      this.ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+      this.ws.onerror = () => {
+        // WebSocket error occurred
       };
 
       this.ws.onclose = () => {
-        console.log("WebSocket disconnected");
         this.ws = null;
 
-        // Attempt to reconnect
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
-          console.log(
-            `Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`
-          );
           setTimeout(() => {
             this.connect(Array.from(this.subscribedSymbols));
           }, this.reconnectDelay * this.reconnectAttempts);
@@ -83,7 +76,28 @@ class BinanceWebSocketService {
       this.ws = null;
       this.subscribedSymbols.clear();
       this.prices.clear();
+      // Clear all throttle timers
+      this.throttleTimers.forEach((timer) => clearTimeout(timer));
+      this.throttleTimers.clear();
     }
+  }
+
+  private throttledNotify(symbol: string, price: number) {
+    // Clear existing timer for this symbol if any
+    const existingTimer = this.throttleTimers.get(symbol);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    // Set new timer to notify subscribers after throttle delay
+    const timer = setTimeout(() => {
+      this.subscribers.forEach((callback) => {
+        callback(symbol, price);
+      });
+      this.throttleTimers.delete(symbol);
+    }, this.throttleDelay);
+
+    this.throttleTimers.set(symbol, timer);
   }
 
   subscribe(callback: PriceUpdateCallback) {

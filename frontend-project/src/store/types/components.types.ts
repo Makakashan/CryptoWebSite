@@ -2,6 +2,8 @@ import type { Asset } from "../types";
 
 export type AvatarSize = "sm" | "md" | "lg";
 
+export type PriceFlash = "up" | "down" | null;
+
 export interface AvatarUploadProps {
   currentAvatar?: string | null;
   username: string;

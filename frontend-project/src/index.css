@@ -32,6 +32,11 @@
 }
 
 @layer base {
+    html {
+        overscroll-behavior: none;
+        background-color: #0b0e11;
+    }
+
     body {
         margin: 0;
         padding: 0;
@@ -43,10 +48,17 @@
             sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overscroll-behavior-y: none;
     }
 
     * {
         box-sizing: border-box;
+    }
+
+    #root {
+        min-height: 100vh;
+        background-color: #0b0e11;
+        overscroll-behavior: none;
     }
 
     /* Page transition animation */
