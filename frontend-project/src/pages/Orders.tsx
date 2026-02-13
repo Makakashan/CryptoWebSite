@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchOrders, setOrdersFilters } from "../store/slices/ordersSlice";
+import type { OrdersFilters } from "../store/types/orders.types";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { formatPrice } from "../utils/formatPrice";
 import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
@@ -25,6 +26,7 @@ const Orders = () => {
   const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useState("timestamp");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const fetchInProgress = useRef(false);
 
   // Calculate current holdings value (must be before early returns)
   const currentHoldingsValue = useMemo(() => {
@@ -60,42 +62,61 @@ const Orders = () => {
 
     dispatch(fetchOrders(filters));
     dispatch(fetchPortfolio());
-  }, [dispatch, isAuthenticated, navigate, filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, isAuthenticated, navigate]);
 
   const handleApplyFilters = () => {
-    dispatch(
-      setOrdersFilters({
-        asset_symbol: assetSymbol || undefined,
-        order_type: orderType || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-        sortBy,
-        sortOrder,
-        page: 1,
-      }),
-    );
+    if (fetchInProgress.current) return;
+    fetchInProgress.current = true;
+
+    const newFilters = {
+      asset_symbol: assetSymbol || undefined,
+      order_type: orderType || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      sortBy,
+      sortOrder,
+      page: 1,
+      limit: filters.limit,
+    };
+    dispatch(setOrdersFilters(newFilters));
+    dispatch(fetchOrders(newFilters)).finally(() => {
+      fetchInProgress.current = false;
+    });
   };
 
   const handleResetFilters = () => {
+    if (fetchInProgress.current) return;
+    fetchInProgress.current = true;
+
     setAssetSymbol("");
     setOrderType("");
     setDateFrom("");
     setDateTo("");
     setSortBy("timestamp");
     setSortOrder("desc");
-    dispatch(
-      setOrdersFilters({
-        page: 1,
-        limit: 20,
-        sortBy: "timestamp",
-        sortOrder: "desc",
-      }),
-    );
+    const newFilters: OrdersFilters = {
+      page: 1,
+      limit: 20,
+      sortBy: "timestamp",
+      sortOrder: "desc" as "asc" | "desc",
+    };
+    dispatch(setOrdersFilters(newFilters));
+    dispatch(fetchOrders(newFilters)).finally(() => {
+      fetchInProgress.current = false;
+    });
   };
 
   const handlePageChange = (page: number) => {
-    dispatch(setOrdersFilters({ ...filters, page }));
+    if (fetchInProgress.current) return;
+    fetchInProgress.current = true;
+
     window.scrollTo({ top: 0, behavior: "smooth" });
+    const newFilters = { ...filters, page };
+    dispatch(setOrdersFilters(newFilters));
+    dispatch(fetchOrders(newFilters)).finally(() => {
+      fetchInProgress.current = false;
+    });
   };
 
   const uniqueAssetSymbols = useMemo(() => {
@@ -103,7 +124,7 @@ const Orders = () => {
     return Array.from(symbols).sort();
   }, [orders]);
 
-  const showSkeletons = isLoading && orders.length === 0;
+  const showSkeletons = isLoading;
 
   if (showSkeletons) {
     return (
@@ -114,7 +135,6 @@ const Orders = () => {
           </h1>
         </div>
 
-        {/* Skeleton for stats */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
           <StatCardSkeleton />
           <StatCardSkeleton />
@@ -122,7 +142,6 @@ const Orders = () => {
           <StatCardSkeleton />
         </div>
 
-        {/* Skeleton for table */}
         <TableSkeleton rows={10} columns={5} />
       </div>
     );

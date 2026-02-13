@@ -1,6 +1,6 @@
 # Makakatrade
 
-Modern trading platform with real-time market data and portfolio management.
+Modern trading platform with real-time market data, portfolio management, and instant navigation.
 
 ## Stack
 
@@ -35,12 +35,16 @@ npm run dev        # Development server (port 5173)
 
 ## Features
 
-- Real-time price updates via WebSocket
-- User authentication & authorization
-- Portfolio management
+- **Real-time price updates** via WebSocket (Binance API)
+- **Instant page navigation** with optimistic UI updates
+- **Skeleton loading states** for better UX
+- User authentication & authorization (JWT)
+- Portfolio management with live asset tracking
 - Order execution (buy/sell)
-- Trading statistics
+- Trading statistics & charts
 - Multi-language support (i18n)
+- Automatic icon loading & caching
+- Responsive design for all devices
 
 ## Project Structure
 
@@ -91,6 +95,25 @@ npm run lint       # Code linting
 - Frontend runs on `http://localhost:5173`
 - WebSocket server on `ws://localhost:3000`
 
+## Performance Optimizations
+
+### Instant Navigation
+- **Zero-delay page transitions** - skeleton states appear immediately on user interaction
+- **Optimistic UI updates** - interface responds instantly before data loads
+- **Debounced requests** - prevents duplicate API calls during rapid navigation
+- **Smart caching** - reduces unnecessary data fetching
+
+### Real-time Updates
+- WebSocket integration with Binance for live price updates
+- Throttled UI updates (max 1 per second) to prevent performance issues
+- Batch chart data loading to reduce network overhead
+
+### Image Loading
+- Automatic icon fetching from CryptoCompare API
+- LocalStorage caching (30 days TTL)
+- Fallback to generated avatars for missing icons
+- Lazy loading for images and charts
+
 ---
 
-⚡ Built with Vite & Express
+⚡ Built with Vite & Express | 🚀 Optimized for speed

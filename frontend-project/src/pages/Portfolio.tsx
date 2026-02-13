@@ -121,10 +121,11 @@ const Portfolio = () => {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    setCurrentPage(page);
   };
 
+  // Всегда показываем скелетоны при загрузке - моментальная реакция
   if (isLoading) {
     return (
       <div className="space-y-6">

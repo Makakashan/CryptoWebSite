@@ -7,6 +7,7 @@ import {
   setFilters,
   fetchChartData,
 } from "../store/slices/assetsSlice";
+import type { AssetsFilters } from "../store/types/assets.types";
 import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
 import AssetCard from "../components/AssetCard";
 import Button from "@/components/ui/button";
@@ -14,7 +15,6 @@ import Input from "@/components/ui/input";
 import Select from "@/components/ui/select";
 import Card, { CardContent } from "@/components/ui/card";
 import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
-import { assetsApi } from "../api/assetsApi";
 import AssetCardSkeleton from "../components/skeletons/AssetCardSkeleton";
 import { iconLoaderService } from "../services/iconLoader";
 
@@ -34,7 +34,7 @@ const Markets = () => {
   const [sortBy, setSortBy] = useState("price");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [showFilters, setShowFilters] = useState(false);
-  const metadataUpdateProcessed = useRef<Set<string>>(new Set());
+  const fetchInProgress = useRef(false);
 
   const categories = [
     "Layer 1",
@@ -46,16 +46,15 @@ const Markets = () => {
   ];
 
   useEffect(() => {
-    if (assets.length === 0 || filters.page !== pagination?.page) {
+    if (assets.length === 0) {
       dispatch(fetchAssets(filters));
     }
-  }, [dispatch, filters, assets.length, pagination?.page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
-  // Load chart data in smaller batches to improve performance
   useEffect(() => {
     if (assets.length === 0) return;
 
-    // Load charts in batches of 4 to avoid overwhelming slow connections
     const BATCH_SIZE = 4;
     const symbolsNeedingData = assets
       .filter(
@@ -66,7 +65,6 @@ const Markets = () => {
 
     if (symbolsNeedingData.length === 0) return;
 
-    // Load first batch immediately, then subsequent batches with delay
     const loadBatch = (startIndex: number) => {
       if (startIndex >= symbolsNeedingData.length) return;
 
@@ -76,7 +74,6 @@ const Markets = () => {
       );
       dispatch(fetchChartData(batch));
 
-      // Load next batch after a short delay
       if (startIndex + BATCH_SIZE < symbolsNeedingData.length) {
         setTimeout(() => loadBatch(startIndex + BATCH_SIZE), 500);
       }
@@ -84,46 +81,7 @@ const Markets = () => {
 
     loadBatch(0);
   }, [assets, chartData, dispatch]);
-  // Auto-update metadata for assets with missing images or descriptions
-  useEffect(() => {
-    const updateMetadata = async () => {
-      if (assets.length > 0) {
-        const assetsNeedingUpdate = assets.filter(
-          (asset) =>
-            (!asset.image_url ||
-              !asset.description ||
-              asset.description === "") &&
-            !metadataUpdateProcessed.current.has(asset.symbol),
-        );
 
-        if (assetsNeedingUpdate.length > 0) {
-          const symbols = assetsNeedingUpdate.map((asset) => asset.symbol);
-
-          // Mark these assets as processed to avoid duplicate updates
-          symbols.forEach((symbol) =>
-            metadataUpdateProcessed.current.add(symbol),
-          );
-
-          try {
-            await assetsApi.updateMetadata(symbols);
-
-            // Refresh assets immediately after metadata update
-            dispatch(fetchAssets(filters));
-          } catch (error) {
-            console.error("Failed to update metadata:", error);
-            symbols.forEach((symbol) =>
-              metadataUpdateProcessed.current.delete(symbol),
-            );
-          }
-        }
-      }
-    };
-
-    // Run when assets are loaded
-    updateMetadata();
-  }, [assets, dispatch, filters]);
-
-  // Preload icons for assets without images
   useEffect(() => {
     if (assets.length === 0) return;
 
@@ -132,20 +90,16 @@ const Markets = () => {
       .map((asset) => asset.symbol);
 
     if (assetsNeedingIcons.length > 0) {
-      // Preload icons in background
       iconLoaderService.preloadIcons(assetsNeedingIcons);
     }
   }, [assets]);
 
-  // Refresh chart data periodically (prices come from WebSocket)
   useEffect(() => {
     if (assets.length === 0) return;
 
-    // Refresh chart data every 60 seconds in batches (less frequent since prices are real-time)
     const intervalId = setInterval(() => {
       if (!document.hidden && assets.length > 0) {
         const symbols = assets.map((asset) => asset.symbol);
-        // Refresh in batches to reduce load
         const BATCH_SIZE = 6;
         for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
           const batch = symbols.slice(i, i + BATCH_SIZE);
@@ -154,10 +108,10 @@ const Markets = () => {
               dispatch(fetchChartData(batch));
             },
             (i / BATCH_SIZE) * 1000,
-          ); // Stagger batches by 1 second
+          );
         }
       }
-    }, 60000); // Update charts every 60 seconds
+    }, 60000);
 
     return () => {
       clearInterval(intervalId);
@@ -165,39 +119,57 @@ const Markets = () => {
   }, [dispatch, assets]);
 
   const handleApplyFilters = () => {
-    dispatch(
-      setFilters({
-        search: search || undefined,
-        category: category || undefined,
-        sortBy,
-        sortOrder,
-        page: 1,
-      }),
-    );
+    if (fetchInProgress.current) return;
+    fetchInProgress.current = true;
+
+    const newFilters = {
+      search: search || undefined,
+      category: category || undefined,
+      sortBy,
+      sortOrder,
+      page: 1,
+      limit: filters.limit,
+    };
+    dispatch(setFilters(newFilters));
+    dispatch(fetchAssets(newFilters)).finally(() => {
+      fetchInProgress.current = false;
+    });
     setShowFilters(false);
   };
 
   const handleReset = () => {
+    if (fetchInProgress.current) return;
+    fetchInProgress.current = true;
+
     setSearch("");
     setCategory("");
     setSortBy("price");
     setSortOrder("desc");
-    dispatch(
-      setFilters({
-        page: 1,
-        limit: 12,
-        sortBy: "price",
-        sortOrder: "desc",
-      }),
-    );
+    const newFilters: AssetsFilters = {
+      page: 1,
+      limit: 12,
+      sortBy: "price",
+      sortOrder: "desc" as "asc" | "desc",
+    };
+    dispatch(setFilters(newFilters));
+    dispatch(fetchAssets(newFilters)).finally(() => {
+      fetchInProgress.current = false;
+    });
   };
 
   const handlePageChange = (page: number) => {
-    dispatch(setFilters({ ...filters, page }));
+    if (fetchInProgress.current) return;
+    fetchInProgress.current = true;
+
     window.scrollTo({ top: 0, behavior: "smooth" });
+    const newFilters = { ...filters, page };
+    dispatch(setFilters(newFilters));
+    dispatch(fetchAssets(newFilters)).finally(() => {
+      fetchInProgress.current = false;
+    });
   };
 
-  const showSkeletons = isLoading && assets.length === 0;
+  const showSkeletons = isLoading;
 
   const currentPage = pagination?.page || 1;
   const totalPages = pagination?.totalPages || 1;
@@ -338,16 +310,14 @@ const Markets = () => {
         </Card>
       )}
 
-      {/* Assets Grid - Responsive 3-4 columns */}
+      {/* Assets Grid */}
       {!error && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {showSkeletons
-            ? // Show skeleton cards while loading
-              Array.from({ length: 12 }).map((_, index) => (
+            ? Array.from({ length: 12 }).map((_, index) => (
                 <AssetCardSkeleton key={`skeleton-${index}`} />
               ))
-            : // Show actual asset cards
-              assets.map((asset) => (
+            : assets.map((asset) => (
                 <AssetCard key={asset.symbol} asset={asset} />
               ))}
         </div>
