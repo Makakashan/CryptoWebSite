@@ -16,7 +16,6 @@ client.on("message", (topic: string, message: Buffer) => {
 
     if (symbol && data.price) {
       curretPrices[symbol] = data.price;
-      console.log(`Price updated: ${symbol} = $${data.price}`);
 
       if (onPriceUpdateCallback) {
         onPriceUpdateCallback(symbol, data.price);

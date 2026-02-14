@@ -1,0 +1,15 @@
+{
+  "name": "makakatrade",
+  "version": "1.0.0",
+  "description": "Modern trading platform - Dev startup script",
+  "scripts": {
+    "dev": "concurrently --names \"BACKEND,MARKET,FRONTEND\" --prefix-colors \"blue,yellow,green\" \"npm run dev:backend\" \"npm run dev:market\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend-project && npm run dev",
+    "dev:market": "cd backend-project && npm run market",
+    "dev:frontend": "cd frontend-project && npm run dev",
+    "install:all": "npm install && cd backend-project && npm install && cd ../frontend-project && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
