@@ -47,7 +47,11 @@ const Markets = () => {
 
   useEffect(() => {
     if (assets.length === 0) {
-      dispatch(fetchAssets(filters));
+      const initialFilters = {
+        ...filters,
+        limit: filters.limit || 12,
+      };
+      dispatch(fetchAssets(initialFilters));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);

@@ -2,7 +2,7 @@ import { Asset, AssetWithPrice } from "../types/types.js";
 import { getCurrentPrice } from "../services/priceService.js";
 
 export const DEFAULT_PAGE = 1;
-export const DEFAULT_LIMIT = 10;
+export const DEFAULT_LIMIT = 12;
 export const MAX_LIMIT = 100;
 
 // Helper function to parse pagination parameters
