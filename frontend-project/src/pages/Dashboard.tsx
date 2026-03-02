@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -20,15 +20,22 @@ const Dashboard = () => {
     (state) => state.portfolio,
   );
 
-  useEffect(() => {
-    if (assets.length === 0) {
-      dispatch(fetchAssets({ limit: 5, sortBy: "price", sortOrder: "desc" }));
-    }
+  const initialFetchDone = useRef(false);
 
-    if (isAuthenticated && !portfolio) {
-      dispatch(fetchPortfolio());
+  useEffect(() => {
+    if (!initialFetchDone.current) {
+      initialFetchDone.current = true;
+
+      if (assets.length === 0) {
+        dispatch(fetchAssets({ limit: 5, sortBy: "price", sortOrder: "desc" }));
+      }
+
+      if (isAuthenticated && !portfolio) {
+        dispatch(fetchPortfolio());
+      }
     }
-  }, [dispatch, isAuthenticated, assets.length, portfolio]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, isAuthenticated]);
 
   const isLoading = assetsLoading || portfolioLoading;
   const topAssets = assets.slice(0, 5);

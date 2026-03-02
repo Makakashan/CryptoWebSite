@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -21,6 +21,7 @@ import { iconLoaderService } from "../services/iconLoader";
 const Markets = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const { assets, isLoading, error, filters, pagination, chartData } =
     useAppSelector((state) => state.assets);
@@ -46,15 +47,23 @@ const Markets = () => {
   ];
 
   useEffect(() => {
-    if (assets.length === 0) {
+    // Always fetch assets on mount to ensure we have the correct limit (12)
+    // This handles the case when coming from Dashboard which only loads 5 assets
+    // Using location.key ensures this runs on every navigation
+    const shouldFetch =
+      assets.length === 0 || (pagination?.limit ?? filters.limit) !== 12;
+
+    if (shouldFetch) {
       const initialFilters = {
         ...filters,
-        limit: filters.limit || 12,
+        limit: 12,
+        page: 1,
       };
+      dispatch(setFilters(initialFilters));
       dispatch(fetchAssets(initialFilters));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]);
+  }, [location.key, filters.limit, pagination?.limit]);
 
   useEffect(() => {
     if (assets.length === 0) return;
