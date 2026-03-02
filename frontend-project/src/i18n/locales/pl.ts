@@ -57,6 +57,8 @@ export const pl = {
   // Profil
   accountInformation: "Informacje o koncie",
   balance: "Saldo",
+  cash: "Gotówka",
+  holdings: "Aktywa",
   userId: "ID użytkownika",
   removeAvatar: "Usuń awatar",
   saving: "Zapisywanie...",
@@ -80,6 +82,9 @@ export const pl = {
   loginToViewPortfolio:
     "Zaloguj się, aby zobaczyć portfolio i rozpocząć handel",
   noAssetsAvailable: "Brak dostępnych aktywów",
+  topMovers: "Największe ruchy",
+  strongest24hMove: "Aktywa z najsilniejszym ruchem 24h",
+  noMarketDataYet: "Brak danych rynkowych.",
 
   // Rynki
   allAssets: "Wszystkie aktywa",

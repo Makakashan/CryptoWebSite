@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/slices/authSlice";
@@ -12,13 +13,24 @@ const Header = () => {
   const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const { portfolio } = useAppSelector((state) => state.portfolio);
+  const { assets } = useAppSelector((state) => state.assets);
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
   };
 
-  const balance = portfolio?.balance || user?.balance || 0;
+  const cashBalance = portfolio?.balance || user?.balance || 0;
+  const holdingsValue = useMemo(() => {
+    if (!portfolio) return 0;
+
+    return portfolio.assets.reduce((sum, portfolioAsset) => {
+      const assetData = assets.find((asset) => asset.symbol === portfolioAsset.asset_symbol);
+      const price = assetData?.price || assetData?.current_price || 0;
+      return sum + portfolioAsset.amount * price;
+    }, 0);
+  }, [portfolio, assets]);
+  const totalBalance = cashBalance + holdingsValue;
   const userInitials = user?.username ? getInitials(user.username) : "U";
 
   return (
@@ -43,8 +55,12 @@ const Header = () => {
               <span className="font-semibold text-text-primary text-sm">
                 {user.username}
               </span>
-              <span className="text-base text-green font-bold">
-                {formatPrice(balance)}
+              <span className="text-base text-emerald-400 font-bold">
+                {formatPrice(totalBalance)}
+              </span>
+              <span className="text-[11px] text-text-secondary leading-none">
+                {t("cash")}: {formatPrice(cashBalance)} · {t("holdings")}:{" "}
+                {formatPrice(holdingsValue)}
               </span>
             </div>
             <button className="btn-outline btn-small" onClick={handleLogout}>

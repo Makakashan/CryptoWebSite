@@ -57,6 +57,8 @@ export const en = {
   // Profile
   accountInformation: "Account Information",
   balance: "Balance",
+  cash: "Cash",
+  holdings: "Holdings",
   userId: "User ID",
   removeAvatar: "Remove Avatar",
   saving: "Saving...",
@@ -79,6 +81,9 @@ export const en = {
   welcomeToMakakaTrade: "Welcome to MakakaTrade",
   loginToViewPortfolio: "Login to view your portfolio and start trading",
   noAssetsAvailable: "No assets available",
+  topMovers: "Top movers",
+  strongest24hMove: "Assets with the strongest 24h move",
+  noMarketDataYet: "No market data yet.",
 
   // Markets
   allAssets: "All Assets",

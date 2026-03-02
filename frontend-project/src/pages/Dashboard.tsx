@@ -413,12 +413,12 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Top movers</CardTitle>
-            <CardDescription>Assets with the strongest 24h move</CardDescription>
+            <CardTitle className="text-xl">{t("topMovers")}</CardTitle>
+            <CardDescription>{t("strongest24hMove")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {topMovers.length === 0 ? (
-              <p className="text-sm text-text-secondary">No market data yet.</p>
+              <p className="text-sm text-text-secondary">{t("noMarketDataYet")}</p>
             ) : (
               topMovers.map((asset) => {
                 const shortName = asset.symbol.replace("USDT", "");
