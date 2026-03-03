@@ -14,14 +14,13 @@ export const useBinanceWebSocket = ({
 }: UseBinanceWebSocketProps) => {
   const dispatch = useAppDispatch();
   const prevSymbolsRef = useRef<string>("");
+  const symbolsKey = [...symbols].sort().join(",");
 
   useEffect(() => {
-    if (!enabled || symbols.length === 0) {
+    if (!enabled || symbolsKey.length === 0) {
       return;
     }
-
-    // Create stable string representation of symbols for comparison
-    const symbolsKey = symbols.sort().join(",");
+    const normalizedSymbols = symbolsKey.split(",");
 
     // Only update WebSocket if symbols actually changed
     if (prevSymbolsRef.current === symbolsKey) {
@@ -38,12 +37,12 @@ export const useBinanceWebSocket = ({
     binanceWebSocketService.subscribe(handlePriceUpdate);
 
     // Connect to WebSocket with current symbols
-    binanceWebSocketService.updateSymbols(symbols);
+    binanceWebSocketService.updateSymbols(normalizedSymbols);
 
     return () => {
       binanceWebSocketService.unsubscribe(handlePriceUpdate);
     };
-  }, [symbols, enabled, dispatch]);
+  }, [symbolsKey, enabled, dispatch]);
 
   return {
     disconnect: () => binanceWebSocketService.disconnect(),

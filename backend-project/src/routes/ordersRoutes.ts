@@ -25,6 +25,16 @@ import {
 } from "../utils/constants.js";
 
 const router: Router = express.Router();
+const ORDER_EPSILON = 1e-8;
+const ORDER_AMOUNT_DECIMALS = 6;
+
+const floorToDecimals = (
+  value: number,
+  decimals = ORDER_AMOUNT_DECIMALS,
+): number => {
+  const factor = 10 ** decimals;
+  return Math.floor((value + Number.EPSILON) * factor) / factor;
+};
 
 async function ensureAssetExists(asset_symbol: string): Promise<void> {
   const db = getDB();
@@ -111,6 +121,8 @@ router.post(
     const db = getDB();
     const userId = req.user!.id;
     let { asset_symbol, amount, order_type } = req.body;
+    const useMax =
+      req.body.use_max === true || String(req.body.use_max) === "true";
 
     if (!asset_symbol || !amount || !order_type) {
       res.status(400).json({
@@ -121,6 +133,14 @@ router.post(
 
     // Normalize symbol
     asset_symbol = asset_symbol.toUpperCase();
+    order_type = String(order_type).toUpperCase();
+    amount = Number(amount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      res.status(400).json({ message: "Amount must be a positive number." });
+      return;
+    }
+
     if (!asset_symbol.endsWith("USDT")) {
       asset_symbol = `${asset_symbol}USDT`;
     }
@@ -167,7 +187,8 @@ router.post(
       }
     }
 
-    const totalCost = amount * price;
+    let finalAmount = amount;
+    let totalCost = finalAmount * price;
 
     // Start a transaction
     try {
@@ -176,13 +197,26 @@ router.post(
           "SELECT balance FROM users WHERE id = ?",
           [userId],
         );
-        if (!user || user.balance < totalCost) {
+        if (!user) {
+          res.status(400).json({ message: "User not found." });
+          return;
+        }
+
+        if (useMax) {
+          finalAmount = floorToDecimals(user.balance / price);
+          if (finalAmount <= ORDER_EPSILON) {
+            res.status(400).json({ message: "Insufficient balance (USD)." });
+            return;
+          }
+          totalCost = finalAmount * price;
+        } else if (user.balance + ORDER_EPSILON < totalCost) {
           res.status(400).json({ message: "Insufficient balance (USD)." });
           return;
         }
 
-        await db.run("UPDATE users SET balance = balance - ? WHERE id = ?", [
-          totalCost,
+        const nextBalance = Math.max(0, user.balance - totalCost);
+        await db.run("UPDATE users SET balance = ? WHERE id = ?", [
+          nextBalance,
           userId,
         ]);
         const existingAsset = await db.get<PortfolioAsset>(
@@ -193,12 +227,12 @@ router.post(
         if (existingAsset) {
           await db.run(
             "UPDATE portfolio SET amount = amount + ? WHERE user_id = ? AND asset_symbol = ?",
-            [amount, userId, asset_symbol],
+            [finalAmount, userId, asset_symbol],
           );
         } else {
           await db.run(
             "INSERT INTO portfolio (user_id, asset_symbol, amount) VALUES (?, ?, ?)",
-            [userId, asset_symbol, amount],
+            [userId, asset_symbol, finalAmount],
           );
         }
       } else if (order_type === "SELL") {
@@ -206,7 +240,7 @@ router.post(
           "SELECT * FROM portfolio WHERE user_id = ? AND asset_symbol = ?",
           [userId, asset_symbol],
         );
-        if (!existingAsset || existingAsset.amount < amount) {
+        if (!existingAsset || existingAsset.amount + ORDER_EPSILON < finalAmount) {
           res
             .status(400)
             .json({ message: "Insufficient asset amount to sell." });
@@ -219,10 +253,10 @@ router.post(
         ]);
         await db.run(
           "UPDATE portfolio SET amount = amount - ? WHERE user_id = ? AND asset_symbol = ?",
-          [amount, userId, asset_symbol],
+          [finalAmount, userId, asset_symbol],
         );
 
-        if (existingAsset.amount - amount <= 0) {
+        if (existingAsset.amount - finalAmount <= ORDER_EPSILON) {
           await db.run(
             "DELETE FROM portfolio WHERE user_id = ? AND asset_symbol = ?",
             [userId, asset_symbol],
@@ -237,13 +271,14 @@ router.post(
 
       await db.run(
         "INSERT INTO orders (user_id, asset_symbol, order_type, amount, price_at_transaction) VALUES (?, ?, ?, ?, ?)",
-        [userId, asset_symbol, order_type, amount, price],
+        [userId, asset_symbol, order_type, finalAmount, price],
       );
 
       res.json({
         message: "Order placed successfully.",
         asset: asset_symbol,
         price: price,
+        amount: finalAmount,
         total: totalCost,
       });
     } catch (error) {

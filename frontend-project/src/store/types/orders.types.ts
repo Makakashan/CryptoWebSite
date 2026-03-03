@@ -16,6 +16,7 @@ export interface PlaceOrderRequest {
   asset_symbol: string;
   order_type: "BUY" | "SELL";
   amount: number;
+  use_max?: boolean;
 }
 
 export interface OrdersFilters {

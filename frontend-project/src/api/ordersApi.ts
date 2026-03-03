@@ -67,6 +67,7 @@ export const ordersApi = {
       message: string;
       asset: string;
       price: number;
+      amount: number;
       total: number;
     }>("/orders/place", orderData);
 
@@ -76,7 +77,7 @@ export const ordersApi = {
       user_id: 0, // Will be filled by backend
       asset_symbol: response.data.asset,
       order_type: orderData.order_type,
-      amount: orderData.amount,
+      amount: response.data.amount,
       price_at_transaction: response.data.price,
       timestamp: new Date().toISOString(),
     };
