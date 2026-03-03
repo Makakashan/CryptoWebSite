@@ -17,6 +17,7 @@ import { placeOrder } from "../store/slices/ordersSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { deleteAsset, fetchChartData } from "../store/slices/assetsSlice";
 import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
+import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
 
 const AMOUNT_DECIMALS = 6;
@@ -36,6 +37,7 @@ const AssetDetail = () => {
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const [isAllAmountPinned, setIsAllAmountPinned] = useState(false);
 	const [priceFlash, setPriceFlash] = useState<"up" | "down" | null>(null);
+	const [livePrice, setLivePrice] = useState<number | null>(null);
 	const previousPriceRef = useRef(0);
 
 	const { isAuthenticated, user } = useAppSelector((state) => state.auth);
@@ -56,7 +58,7 @@ const AssetDetail = () => {
 	);
 
 	// Calculate values for validation
-	const currentPrice = asset?.price || asset?.current_price || 0;
+	const currentPrice = livePrice || asset?.price || asset?.current_price || 0;
 	const ownedAmount = portfolioAsset?.amount || 0;
 	const balance = portfolio?.balance || user?.balance || 0;
 	const rawMaxBuyAmount = currentPrice > 0 ? balance / currentPrice : 0;
@@ -104,13 +106,36 @@ const AssetDetail = () => {
 	}, [dispatch, symbol, symbolChartData.length]);
 
 	useEffect(() => {
+		if (!symbol) return;
+
+		const cachedPrice = binanceWebSocketService.getPrice(symbol);
+		if (typeof cachedPrice === "number" && cachedPrice > 0) {
+			setLivePrice(cachedPrice);
+		}
+
+		const handleLivePrice = (updatedSymbol: string, updatedPrice: number) => {
+			if (updatedSymbol === symbol) {
+				setLivePrice(updatedPrice);
+			}
+		};
+
+		binanceWebSocketService.subscribe(handleLivePrice);
+		return () => {
+			binanceWebSocketService.unsubscribe(handleLivePrice);
+		};
+	}, [symbol]);
+
+	useEffect(() => {
 		const previousPrice = previousPriceRef.current;
 		if (
 			previousPrice > 0 &&
 			currentPrice > 0 &&
 			previousPrice !== currentPrice
 		) {
-			setPriceFlash(currentPrice > previousPrice ? "up" : "down");
+			const flash = currentPrice > previousPrice ? "up" : "down";
+			requestAnimationFrame(() => {
+				setPriceFlash(flash);
+			});
 			const timeoutId = window.setTimeout(() => setPriceFlash(null), 600);
 			previousPriceRef.current = currentPrice;
 			return () => window.clearTimeout(timeoutId);
@@ -235,6 +260,13 @@ const AssetDetail = () => {
 		firstChartPrice > 0
 			? ((lastChartPrice - firstChartPrice) / firstChartPrice) * 100
 			: 0;
+	const isChartPositive = chartChange >= 0;
+	const chartStrokeColor = isChartPositive ? "#0ecb81" : "#f6465d";
+	const chartFillId = `detailPriceFill-${isChartPositive ? "up" : "down"}`;
+	const dayHigh =
+		symbolChartData.length > 0 ? Math.max(...symbolChartData) : currentPrice;
+	const dayLow =
+		symbolChartData.length > 0 ? Math.min(...symbolChartData) : currentPrice;
 
 	return (
 		<div>
@@ -319,28 +351,29 @@ const AssetDetail = () => {
 
 				<div className="text-right">
 					<div
-						className={`text-3xl font-bold transition-colors duration-300 ${
+						className={`text-3xl font-bold transition-all duration-300 ${
 							priceFlash === "up"
-								? "text-green"
+								? "text-green scale-105"
 								: priceFlash === "down"
-									? "text-red"
-									: "text-text-primary"
+									? "text-red scale-105"
+									: "text-text-primary scale-100"
 						}`}
 					>
 						{formatPrice(currentPrice)}
 					</div>
 					<div className="mt-2 flex items-center justify-end gap-2 text-xs">
-						<span className="px-2 py-0.5 rounded-full border border-green/50 text-green">
+						<span className="px-2 py-0.5 rounded-full border border-green/50 text-green inline-flex items-center gap-1">
+							<span className="w-1.5 h-1.5 rounded-full bg-green animate-pulse"></span>
 							LIVE
 						</span>
 						<span
 							className={
-								chartChange >= 0
+								isChartPositive
 									? "text-green font-semibold"
 									: "text-red font-semibold"
 							}
 						>
-							{chartChange >= 0 ? "+" : ""}
+							{isChartPositive ? "+" : ""}
 							{chartChange.toFixed(2)}%
 						</span>
 					</div>
@@ -359,28 +392,30 @@ const AssetDetail = () => {
 			<div className="card-padded mb-6">
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="section-header m-0">Price Chart (24h)</h2>
-					<span className="text-xs text-text-secondary">15m candles</span>
+					<div className="flex items-center gap-2 text-xs">
+						<span className="px-2 py-1 rounded-md bg-bg-dark text-text-secondary">
+							High: {formatPrice(dayHigh)}
+						</span>
+						<span className="px-2 py-1 rounded-md bg-bg-dark text-text-secondary">
+							Low: {formatPrice(dayLow)}
+						</span>
+						<span className="text-text-secondary">15m candles</span>
+					</div>
 				</div>
 				<div className="h-64">
 					{chartPoints.length > 1 ? (
 						<ResponsiveContainer width="100%" height="100%">
 							<AreaChart data={chartPoints}>
 								<defs>
-									<linearGradient
-										id="detailPriceFill"
-										x1="0"
-										y1="0"
-										x2="0"
-										y2="1"
-									>
+									<linearGradient id={chartFillId} x1="0" y1="0" x2="0" y2="1">
 										<stop
 											offset="5%"
-											stopColor="#0ecb81"
+											stopColor={chartStrokeColor}
 											stopOpacity={0.4}
 										/>
 										<stop
 											offset="95%"
-											stopColor="#0ecb81"
+											stopColor={chartStrokeColor}
 											stopOpacity={0.02}
 										/>
 									</linearGradient>
@@ -410,9 +445,9 @@ const AssetDetail = () => {
 								<Area
 									type="monotone"
 									dataKey="price"
-									stroke="#0ecb81"
+									stroke={chartStrokeColor}
 									strokeWidth={2}
-									fill="url(#detailPriceFill)"
+									fill={`url(#${chartFillId})`}
 								/>
 							</AreaChart>
 						</ResponsiveContainer>
