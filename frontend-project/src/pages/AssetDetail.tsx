@@ -71,13 +71,26 @@ const AssetDetail = () => {
 		() => (symbol ? chartData[symbol] || [] : []),
 		[symbol, chartData],
 	);
+	const displayChartData = useMemo(() => {
+		if (symbolChartData.length === 0) {
+			return symbolChartData;
+		}
+		if (!livePrice || livePrice <= 0) {
+			return symbolChartData;
+		}
+
+		// Keep the last 15m candle "live" until close by overriding its current value.
+		const nextData = [...symbolChartData];
+		nextData[nextData.length - 1] = livePrice;
+		return nextData;
+	}, [symbolChartData, livePrice]);
 	const chartPoints = useMemo(
 		() =>
-			symbolChartData.map((price, index) => ({
+			displayChartData.map((price, index) => ({
 				index,
 				price,
 			})),
-		[symbolChartData],
+		[displayChartData],
 	);
 
 	useEffect(() => {
@@ -253,9 +266,9 @@ const AssetDetail = () => {
 	const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=80`;
 	const ownedValue = ownedAmount * currentPrice;
 	const canSell = ownedAmount > 0;
-	const firstChartPrice = symbolChartData[0] || currentPrice;
+	const firstChartPrice = displayChartData[0] || currentPrice;
 	const lastChartPrice =
-		symbolChartData[symbolChartData.length - 1] || currentPrice;
+		displayChartData[displayChartData.length - 1] || currentPrice;
 	const chartChange =
 		firstChartPrice > 0
 			? ((lastChartPrice - firstChartPrice) / firstChartPrice) * 100
@@ -264,9 +277,9 @@ const AssetDetail = () => {
 	const chartStrokeColor = isChartPositive ? "#0ecb81" : "#f6465d";
 	const chartFillId = `detailPriceFill-${isChartPositive ? "up" : "down"}`;
 	const dayHigh =
-		symbolChartData.length > 0 ? Math.max(...symbolChartData) : currentPrice;
+		displayChartData.length > 0 ? Math.max(...displayChartData) : currentPrice;
 	const dayLow =
-		symbolChartData.length > 0 ? Math.min(...symbolChartData) : currentPrice;
+		displayChartData.length > 0 ? Math.min(...displayChartData) : currentPrice;
 
 	return (
 		<div>
