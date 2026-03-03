@@ -4,49 +4,49 @@ import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { updateAssetPrice } from "../store/slices/assetsSlice";
 
 interface UseBinanceWebSocketProps {
-  symbols: string[];
-  enabled?: boolean;
+	symbols: string[];
+	enabled?: boolean;
 }
 
 export const useBinanceWebSocket = ({
-  symbols,
-  enabled = true,
+	symbols,
+	enabled = true,
 }: UseBinanceWebSocketProps) => {
-  const dispatch = useAppDispatch();
-  const prevSymbolsRef = useRef<string>("");
-  const symbolsKey = [...symbols].sort().join(",");
+	const dispatch = useAppDispatch();
+	const prevSymbolsRef = useRef<string>("");
+	const symbolsKey = [...symbols].sort().join(",");
 
-  useEffect(() => {
-    if (!enabled || symbolsKey.length === 0) {
-      return;
-    }
-    const normalizedSymbols = symbolsKey.split(",");
+	useEffect(() => {
+		if (!enabled || symbolsKey.length === 0) {
+			return;
+		}
+		const normalizedSymbols = symbolsKey.split(",");
 
-    // Only update WebSocket if symbols actually changed
-    if (prevSymbolsRef.current === symbolsKey) {
-      return;
-    }
+		// Only update WebSocket if symbols actually changed
+		if (prevSymbolsRef.current === symbolsKey) {
+			return;
+		}
 
-    prevSymbolsRef.current = symbolsKey;
+		prevSymbolsRef.current = symbolsKey;
 
-    // Subscribe to price updates
-    const handlePriceUpdate = (symbol: string, price: number) => {
-      dispatch(updateAssetPrice({ symbol, price }));
-    };
+		// Subscribe to price updates
+		const handlePriceUpdate = (symbol: string, price: number) => {
+			dispatch(updateAssetPrice({ symbol, price }));
+		};
 
-    binanceWebSocketService.subscribe(handlePriceUpdate);
+		binanceWebSocketService.subscribe(handlePriceUpdate);
 
-    // Connect to WebSocket with current symbols
-    binanceWebSocketService.updateSymbols(normalizedSymbols);
+		// Connect to WebSocket with current symbols
+		binanceWebSocketService.updateSymbols(normalizedSymbols);
 
-    return () => {
-      binanceWebSocketService.unsubscribe(handlePriceUpdate);
-    };
-  }, [symbolsKey, enabled, dispatch]);
+		return () => {
+			binanceWebSocketService.unsubscribe(handlePriceUpdate);
+		};
+	}, [symbolsKey, enabled, dispatch]);
 
-  return {
-    disconnect: () => binanceWebSocketService.disconnect(),
-    getPrice: (symbol: string) => binanceWebSocketService.getPrice(symbol),
-    getAllPrices: () => binanceWebSocketService.getAllPrices(),
-  };
+	return {
+		disconnect: () => binanceWebSocketService.disconnect(),
+		getPrice: (symbol: string) => binanceWebSocketService.getPrice(symbol),
+		getAllPrices: () => binanceWebSocketService.getAllPrices(),
+	};
 };

@@ -36,29 +36,29 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 const broadcastPrice = (symbol: string, price: number) => {
-  const message = JSON.stringify({ type: "PRICE_UPDATE", symbol, price });
+	const message = JSON.stringify({ type: "PRICE_UPDATE", symbol, price });
 
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
+	wss.clients.forEach((client) => {
+		if (client.readyState === WebSocket.OPEN) {
+			client.send(message);
+		}
+	});
 };
 
 wss.on("connection", (ws: WebSocket) => {
-  console.log("New WebSocket connection established.");
-  ws.send(JSON.stringify({ message: "Welcome to MakakaTrade" }));
+	console.log("New WebSocket connection established.");
+	ws.send(JSON.stringify({ message: "Welcome to MakakaTrade" }));
 });
 
 connectToMarket((symbol: string, price: number) => {
-  broadcastPrice(symbol, price);
+	broadcastPrice(symbol, price);
 });
 
 // Start the server after initializing the database
 initializeDB()
-  .then(() => {
-    server.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => console.error("DB Error:", err));
+	.then(() => {
+		server.listen(PORT, () => {
+			console.log(`Server is running on http://localhost:${PORT}`);
+		});
+	})
+	.catch((err) => console.error("DB Error:", err));

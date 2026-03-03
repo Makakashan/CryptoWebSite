@@ -4,19 +4,19 @@ import { websocketService } from "../services/websocket";
 import { fetchAssets } from "../store/slices/assetsSlice";
 
 export const useWebSocket = () => {
-  const dispatch = useAppDispatch();
+	const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    websocketService.connect("ws://localhost:3000");
+	useEffect(() => {
+		websocketService.connect("ws://localhost:3000");
 
-    const handlePriceUpdate = () => {
-      dispatch(fetchAssets());
-    };
+		const handlePriceUpdate = () => {
+			dispatch(fetchAssets());
+		};
 
-    websocketService.subscribe(handlePriceUpdate);
+		websocketService.subscribe(handlePriceUpdate);
 
-    return () => {
-      websocketService.unsubscribe(handlePriceUpdate);
-    };
-  }, [dispatch]);
+		return () => {
+			websocketService.unsubscribe(handlePriceUpdate);
+		};
+	}, [dispatch]);
 };

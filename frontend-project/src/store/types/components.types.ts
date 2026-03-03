@@ -5,17 +5,17 @@ export type AvatarSize = "sm" | "md" | "lg";
 export type PriceFlash = "up" | "down" | null;
 
 export interface AvatarUploadProps {
-  currentAvatar?: string | null;
-  username: string;
-  onAvatarChange: (avatar: string | null) => void;
-  size?: AvatarSize;
+	currentAvatar?: string | null;
+	username: string;
+	onAvatarChange: (avatar: string | null) => void;
+	size?: AvatarSize;
 }
 
 export interface AssetCardProps {
-  asset: Asset;
+	asset: Asset;
 }
 
 export interface MiniChartProps {
-  data: number[];
-  color: string;
+	data: number[];
+	color: string;
 }

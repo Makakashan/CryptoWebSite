@@ -5,20 +5,20 @@ import portfolioReducer from "./slices/portfolioSlice";
 import ordersReducer from "./slices/ordersSlice";
 
 export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    assets: assetsReducer,
-    portfolio: portfolioReducer,
-    orders: ordersReducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore these action types
-        ignoredActions: ["auth/login/fulfilled", "auth/register/fulfilled"],
-      },
-    }),
-  devTools: process.env.NODE_ENV !== "production",
+	reducer: {
+		auth: authReducer,
+		assets: assetsReducer,
+		portfolio: portfolioReducer,
+		orders: ordersReducer,
+	},
+	middleware: (getDefaultMiddleware) =>
+		getDefaultMiddleware({
+			serializableCheck: {
+				// Ignore these action types
+				ignoredActions: ["auth/login/fulfilled", "auth/register/fulfilled"],
+			},
+		}),
+	devTools: process.env.NODE_ENV !== "production",
 });
 
 export type RootState = ReturnType<typeof store.getState>;

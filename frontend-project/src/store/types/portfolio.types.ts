@@ -1,23 +1,23 @@
 // Portfolio Domain Types
 
 export interface PortfolioAsset {
-  asset_symbol: string;
-  amount: number;
-  name?: string;
-  currentPrice?: number;
-  image_url?: string;
+	asset_symbol: string;
+	amount: number;
+	name?: string;
+	currentPrice?: number;
+	image_url?: string;
 }
 
 export interface Portfolio {
-  id: number;
-  username: string;
-  balance: number;
-  avatar?: string | null;
-  assets: PortfolioAsset[];
+	id: number;
+	username: string;
+	balance: number;
+	avatar?: string | null;
+	assets: PortfolioAsset[];
 }
 
 export interface PortfolioState {
-  portfolio: Portfolio | null;
-  isLoading: boolean;
-  error: string | null;
+	portfolio: Portfolio | null;
+	isLoading: boolean;
+	error: string | null;
 }

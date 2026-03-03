@@ -127,14 +127,14 @@ const AssetDetail = () => {
 				amount: Yup.number()
 					.positive("Amount must be positive")
 					.required("Amount is required")
-						.test("max-amount", "Insufficient balance", function (value) {
-							const { orderType } = this.parent;
-							if (!value) return false;
-							if (orderType === "BUY") {
-								return value <= maxBuyAmount + AMOUNT_EPSILON;
-							}
-							return value <= maxSellAmount;
-						}),
+					.test("max-amount", "Insufficient balance", function (value) {
+						const { orderType } = this.parent;
+						if (!value) return false;
+						if (orderType === "BUY") {
+							return value <= maxBuyAmount + AMOUNT_EPSILON;
+						}
+						return value <= maxSellAmount;
+					}),
 			}),
 		[maxBuyAmount, maxSellAmount],
 	);
@@ -172,7 +172,8 @@ const AssetDetail = () => {
 	useEffect(() => {
 		if (!isAllAmountPinned) return;
 
-		const maxAmount = selectedOrderType === "BUY" ? maxBuyAmount : maxSellAmount;
+		const maxAmount =
+			selectedOrderType === "BUY" ? maxBuyAmount : maxSellAmount;
 		setFieldValue("amount", maxAmount > 0 ? maxAmount.toFixed(6) : "0");
 	}, [
 		isAllAmountPinned,
@@ -394,11 +395,13 @@ const AssetDetail = () => {
 									width={80}
 									domain={["dataMin", "dataMax"]}
 								/>
-                <Tooltip
-                  formatter={(value) => formatPrice(Number(value || 0))}
-                  contentStyle={{
-                    background: "#151922",
-                    border: "1px solid #2b3139",
+								<Tooltip
+									formatter={(value) =>
+										formatPrice(Number(value || 0))
+									}
+									contentStyle={{
+										background: "#151922",
+										border: "1px solid #2b3139",
 										borderRadius: 10,
 										color: "#ffffff",
 									}}
