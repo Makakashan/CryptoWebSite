@@ -102,11 +102,19 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    user-select: none;
 }
 
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.btn:focus {
+    outline: none;
 }
 
 .btn-primary {
@@ -217,6 +225,13 @@
     transform: translateY(-1px);
 }
 
+.btn-success:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px rgba(14, 203, 129, 0.45),
+        0 6px 20px 0 rgba(14, 203, 129, 0.3);
+}
+
 .btn-success:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -247,6 +262,17 @@
 
 .input::placeholder {
     color: var(--color-text-secondary);
+}
+
+.input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.input[type="number"]::-webkit-outer-spin-button,
+.input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .input-disabled {
