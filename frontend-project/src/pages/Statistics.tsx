@@ -23,7 +23,6 @@ import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { fetchAssets } from "../store/slices/assetsSlice";
 import { formatPrice } from "../utils/formatPrice";
 import type { Order } from "../store/types/orders.types";
-import type { Asset } from "../store/types/assets.types";
 
 const CHART_COLORS = ["#3861fb", "#0ecb81", "#f6465d", "#ffa500", "#9c27b0"];
 const STARTING_BALANCE = 10000;
@@ -36,66 +35,77 @@ interface EnrichedAsset {
 	name: string;
 }
 
-// Calculate holdings value at a given point
+interface ProfitPoint {
+	ts: number;
+	profit: number;
+}
+
+interface Performer {
+	asset_symbol: string;
+	name: string;
+	trades: number;
+	holding: number;
+	pnl: number;
+}
+
 const calculateHoldingsValue = (
-	ordersUpToNow: Order[],
-	assets: Asset[],
+	holdings: Map<string, number>,
+	valuationPrices: Record<string, number>,
 ): number => {
-	const holdingsMap = new Map<string, number>();
-
-	ordersUpToNow.forEach((order) => {
-		const current = holdingsMap.get(order.asset_symbol) || 0;
-		const newAmount =
-			order.order_type === "BUY"
-				? current + order.amount
-				: current - order.amount;
-		holdingsMap.set(order.asset_symbol, newAmount);
-	});
-
 	let totalValue = 0;
-	holdingsMap.forEach((amount, symbol) => {
-		if (amount > 0) {
-			const asset = assets.find((a) => a.symbol === symbol);
-			const price = asset?.price || asset?.current_price || 0;
-			totalValue += amount * price;
-		}
+	holdings.forEach((amount, symbol) => {
+		if (amount <= 0) return;
+		totalValue += amount * (valuationPrices[symbol] || 0);
 	});
-
 	return totalValue;
 };
 
-// Calculate profit/loss history from orders
-const calculateProfitHistory = (orders: Order[], assets: Asset[]) => {
-	const sortedOrders = [...orders].sort(
+const formatAxisValue = (value: number): string => {
+	const abs = Math.abs(value);
+	if (abs >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+	if (abs >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+	if (abs >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+	return `$${value.toFixed(0)}`;
+};
+
+const buildProfitHistory = (
+	orders: Order[],
+	currentPrices: Record<string, number>,
+): ProfitPoint[] => {
+	if (orders.length === 0) return [];
+
+	const sortedOrdersAsc = [...orders].sort(
 		(a, b) =>
 			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 	);
+	let cash = STARTING_BALANCE;
+	const holdings = new Map<string, number>();
+	const valuationPrices: Record<string, number> = { ...currentPrices };
 
-	const last10Orders = sortedOrders.slice(-10);
+	const points = sortedOrdersAsc.map((order) => {
+		const value = order.amount * order.price_at_transaction;
+		const currentAmount = holdings.get(order.asset_symbol) || 0;
 
-	return last10Orders.map((order) => {
-		const date = new Date(order.timestamp);
-		const timeStr = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
-		const formattedDate = `${date.getDate()}/${date.getMonth() + 1} ${timeStr}`;
+		if (order.order_type === "BUY") {
+			holdings.set(order.asset_symbol, currentAmount + order.amount);
+			cash -= value;
+		} else {
+			holdings.set(order.asset_symbol, Math.max(0, currentAmount - order.amount));
+			cash += value;
+		}
 
-		const orderIndex = sortedOrders.findIndex((o) => o.id === order.id);
-		const ordersUpToNow = sortedOrders.slice(0, orderIndex + 1);
+		valuationPrices[order.asset_symbol] = order.price_at_transaction;
 
-		const totalSpent = ordersUpToNow
-			.filter((o) => o.order_type === "BUY")
-			.reduce((sum, o) => sum + o.amount * o.price_at_transaction, 0);
+		const totalAccountValue =
+			cash + calculateHoldingsValue(holdings, valuationPrices);
 
-		const totalEarned = ordersUpToNow
-			.filter((o) => o.order_type === "SELL")
-			.reduce((sum, o) => sum + o.amount * o.price_at_transaction, 0);
-
-		const holdingsValue = calculateHoldingsValue(ordersUpToNow, assets);
-		const currentBalance = STARTING_BALANCE - totalSpent + totalEarned;
-		const totalAccountValue = currentBalance + holdingsValue;
-		const profit = totalAccountValue - STARTING_BALANCE;
-
-		return { date: formattedDate, profit };
+		return {
+			ts: new Date(order.timestamp).getTime(),
+			profit: totalAccountValue - STARTING_BALANCE,
+		};
 	});
+
+	return points.slice(-40);
 };
 
 const Statistics = () => {
@@ -118,7 +128,14 @@ const Statistics = () => {
 			return;
 		}
 
-		dispatch(fetchOrders());
+		dispatch(
+			fetchOrders({
+				page: 1,
+				limit: 2000,
+				sortBy: "timestamp",
+				sortOrder: "asc",
+			}),
+		);
 		dispatch(fetchPortfolio());
 
 		if (assets.length === 0) {
@@ -145,13 +162,23 @@ const Statistics = () => {
 	}, [portfolio, assets]);
 
 	const assetDistributionData = useMemo(() => {
+		const total = enrichedAssets.reduce((sum, asset) => sum + asset.value, 0);
+
 		return enrichedAssets
 			.filter((asset) => asset.value > 0)
 			.map((asset) => ({
 				name: asset.name,
 				value: asset.value,
+				share: total > 0 ? (asset.value / total) * 100 : 0,
 			}));
 	}, [enrichedAssets]);
+
+	const priceMap = useMemo(() => {
+		return assets.reduce<Record<string, number>>((acc, asset) => {
+			acc[asset.symbol] = asset.price || asset.current_price || 0;
+			return acc;
+		}, {});
+	}, [assets]);
 
 	const ordersByTypeData = useMemo(() => {
 		const buyCount = orders.filter(
@@ -168,8 +195,77 @@ const Statistics = () => {
 	}, [orders, t]);
 
 	const profitOverTime = useMemo(() => {
-		return calculateProfitHistory(orders, assets);
-	}, [orders, assets]);
+		return buildProfitHistory(orders, priceMap);
+	}, [orders, priceMap]);
+
+	const profitYAxisDomain = useMemo<[number, number]>(() => {
+		if (profitOverTime.length === 0) return [-100, 100];
+
+		const values = profitOverTime.map((point) => point.profit);
+		const min = Math.min(...values);
+		const max = Math.max(...values);
+
+		if (min === max) {
+			const padding = Math.max(10, Math.abs(min) * 0.1);
+			return [min - padding, max + padding];
+		}
+
+		const padding = (max - min) * 0.12;
+		return [min - padding, max + padding];
+	}, [profitOverTime]);
+
+	const topPerformers = useMemo<Performer[]>(() => {
+		const grouped = new Map<
+			string,
+			{
+				trades: number;
+				boughtAmount: number;
+				soldAmount: number;
+				totalSpent: number;
+				totalEarned: number;
+			}
+		>();
+
+		orders.forEach((order) => {
+			const current = grouped.get(order.asset_symbol) || {
+				trades: 0,
+				boughtAmount: 0,
+				soldAmount: 0,
+				totalSpent: 0,
+				totalEarned: 0,
+			};
+			const value = order.amount * order.price_at_transaction;
+
+			current.trades += 1;
+			if (order.order_type === "BUY") {
+				current.boughtAmount += order.amount;
+				current.totalSpent += value;
+			} else {
+				current.soldAmount += order.amount;
+				current.totalEarned += value;
+			}
+
+			grouped.set(order.asset_symbol, current);
+		});
+
+		return Array.from(grouped.entries())
+			.map(([symbol, stats]) => {
+				const holding = Math.max(0, stats.boughtAmount - stats.soldAmount);
+				const pnl =
+					stats.totalEarned +
+					holding * (priceMap[symbol] || 0) -
+					stats.totalSpent;
+
+				return {
+					asset_symbol: symbol,
+					name: symbol.replace("USDT", ""),
+					trades: stats.trades,
+					holding,
+					pnl,
+				};
+			})
+			.sort((a, b) => b.pnl - a.pnl);
+	}, [orders, priceMap]);
 
 	const currentHoldingsValue = useMemo(() => {
 		return enrichedAssets.reduce((sum, asset) => sum + asset.value, 0);
@@ -232,11 +328,11 @@ const Statistics = () => {
 						onClick={() => navigate("/markets")}
 					>
 						{t("startTrading")}
-					</button>
-				</div>
-			) : (
+						</button>
+					</div>
+				) : (
 				<>
-					<div className="grid grid-cols-2 gap-6 mb-8">
+					<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
 						{assetDistributionData.length > 0 && (
 							<div className="card-padded">
 								<h2 className="section-header">
@@ -249,11 +345,10 @@ const Statistics = () => {
 											cx="50%"
 											cy="50%"
 											labelLine={false}
-											label={({ name, percent }) =>
-												`${name}: ${((percent || 0) * 100).toFixed(0)}%`
-											}
+											label={false}
 											outerRadius={80}
 											dataKey="value"
+											nameKey="name"
 										>
 											{assetDistributionData.map((_entry, index) => (
 												<Cell
@@ -270,10 +365,20 @@ const Statistics = () => {
 											formatter={(value) =>
 												formatPrice(value as number)
 											}
+											itemStyle={{ color: "#eaecef" }}
+											labelStyle={{ color: "#eaecef" }}
 											contentStyle={{
 												backgroundColor: "#1a1d23",
 												border: "1px solid #2b3139",
-												borderRadius: "8px",
+												borderRadius: "10px",
+												color: "#eaecef",
+											}}
+										/>
+										<Legend
+											formatter={(value, _entry, index) => {
+												const item = assetDistributionData[index];
+												if (!item) return value;
+												return `${item.name}: ${item.share.toFixed(1)}%`;
 											}}
 										/>
 									</PieChart>
@@ -284,24 +389,47 @@ const Statistics = () => {
 						{orders.length > 0 && (
 							<div className="card-padded">
 								<h2 className="section-header">{t("ordersByType")}</h2>
-								<ResponsiveContainer width="100%" height={300}>
-									<BarChart data={ordersByTypeData}>
-										<CartesianGrid
-											strokeDasharray="3 3"
-											stroke="#2b3139"
-										/>
-										<XAxis dataKey="name" stroke="#848e9c" />
-										<YAxis stroke="#848e9c" />
-										<Tooltip
-											contentStyle={{
-												backgroundColor: "#1a1d23",
-												border: "1px solid #2b3139",
-												borderRadius: "8px",
-											}}
-										/>
-										<Bar dataKey="value">
-											{ordersByTypeData.map((entry, index) => (
-												<Cell
+									<ResponsiveContainer width="100%" height={300}>
+										<BarChart
+											data={ordersByTypeData}
+											margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+										>
+											<CartesianGrid
+												strokeDasharray="3 3"
+												stroke="#2b3139"
+											/>
+											<XAxis
+												dataKey="name"
+												stroke="#848e9c"
+												tickLine={false}
+												axisLine={false}
+											/>
+											<YAxis
+												stroke="#848e9c"
+												allowDecimals={false}
+												tickLine={false}
+												axisLine={false}
+											/>
+											<Tooltip
+												cursor={{
+													fill: "rgba(132, 142, 156, 0.14)",
+												}}
+												itemStyle={{ color: "#eaecef" }}
+												labelStyle={{ color: "#eaecef" }}
+												contentStyle={{
+													backgroundColor: "#1a1d23",
+													border: "1px solid #2b3139",
+													borderRadius: "10px",
+													color: "#eaecef",
+												}}
+											/>
+											<Bar
+												dataKey="value"
+												radius={[6, 6, 0, 0]}
+												activeBar={false}
+											>
+												{ordersByTypeData.map((entry, index) => (
+													<Cell
 													key={`cell-${index}`}
 													fill={entry.fill}
 												/>
@@ -313,26 +441,64 @@ const Statistics = () => {
 						)}
 
 						{profitOverTime.length > 0 && (
-							<div className="card-padded col-span-2">
+							<div className="card-padded xl:col-span-2">
 								<h2 className="section-header">
 									{t("profitLossOverTime")}
 								</h2>
 								<ResponsiveContainer width="100%" height={300}>
-									<LineChart data={profitOverTime}>
+									<LineChart
+										data={profitOverTime}
+										margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+									>
 										<CartesianGrid
 											strokeDasharray="3 3"
 											stroke="#2b3139"
 										/>
-										<XAxis dataKey="date" stroke="#848e9c" />
-										<YAxis stroke="#848e9c" />
+										<XAxis
+											dataKey="ts"
+											type="number"
+											domain={["dataMin", "dataMax"]}
+											stroke="#848e9c"
+											tickLine={false}
+											axisLine={false}
+											tickFormatter={(value) =>
+												new Date(Number(value)).toLocaleDateString(
+													[],
+													{
+														day: "2-digit",
+														month: "2-digit",
+													},
+												)
+											}
+										/>
+										<YAxis
+											domain={profitYAxisDomain}
+											stroke="#848e9c"
+											tickLine={false}
+											axisLine={false}
+											tickFormatter={(value) =>
+												formatAxisValue(Number(value))
+											}
+										/>
 										<Tooltip
+											labelFormatter={(value) =>
+												new Date(Number(value)).toLocaleString([], {
+													day: "2-digit",
+													month: "2-digit",
+													hour: "2-digit",
+													minute: "2-digit",
+												})
+											}
 											formatter={(value) =>
 												formatPrice(value as number)
 											}
+											itemStyle={{ color: "#eaecef" }}
+											labelStyle={{ color: "#eaecef" }}
 											contentStyle={{
 												backgroundColor: "#1a1d23",
 												border: "1px solid #2b3139",
-												borderRadius: "8px",
+												borderRadius: "10px",
+												color: "#eaecef",
 											}}
 										/>
 										<Legend />
@@ -340,8 +506,14 @@ const Statistics = () => {
 											type="monotone"
 											dataKey="profit"
 											stroke="#3861fb"
-											strokeWidth={2}
-											dot={{ fill: "#3861fb" }}
+											strokeWidth={2.5}
+											dot={{ fill: "#3861fb", strokeWidth: 0, r: 4 }}
+											activeDot={{
+												fill: "#3861fb",
+												stroke: "#ffffff",
+												strokeWidth: 2,
+												r: 5,
+											}}
 											name={t("netProfit")}
 										/>
 									</LineChart>
@@ -350,27 +522,29 @@ const Statistics = () => {
 						)}
 					</div>
 
-					{enrichedAssets.length > 0 && (
+					{topPerformers.length > 0 && (
 						<div className="card-padded">
 							<h2 className="section-header">{t("topPerformers")}</h2>
 							<div className="space-y-3">
-								{enrichedAssets
-									.filter((asset) => asset.value > 0)
-									.sort((a, b) => b.value - a.value)
-									.slice(0, 5)
-									.map((asset) => (
+								{topPerformers.map((asset) => (
 										<div
 											key={asset.asset_symbol}
-											className="flex justify-between items-center p-4 bg-bg-dark rounded-lg"
+											className="flex flex-wrap gap-2 justify-between items-center p-4 bg-bg-dark rounded-lg"
 										>
 											<div className="font-semibold text-text-primary">
 												{asset.name}
 											</div>
 											<div className="text-text-secondary text-sm">
-												{asset.amount.toFixed(6)}
+												{asset.trades} trades
 											</div>
-											<div className="font-bold text-text-primary">
-												{formatPrice(asset.value)}
+											<div className="text-text-secondary text-sm">
+												hold: {asset.holding.toFixed(6)}
+											</div>
+											<div
+												className={`font-bold ${asset.pnl >= 0 ? "text-green" : "text-red"}`}
+											>
+												{asset.pnl >= 0 ? "+" : ""}
+												{formatPrice(asset.pnl)}
 											</div>
 										</div>
 									))}
