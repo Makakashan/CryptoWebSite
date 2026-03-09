@@ -1,10 +1,85 @@
 import express, { Router, Response } from "express";
+import axios from "axios";
 import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { getCurrentPrice } from "../services/priceService.js";
 import { AuthRequest } from "../types/types.js";
 
 const router: Router = express.Router();
+const FEAR_GREED_URL = "https://api.alternative.me/fng/?limit=1";
+const FEAR_GREED_CACHE_TTL_MS = 10 * 60 * 1000;
+
+type FearGreedData = {
+	value: number;
+	classification: string;
+	timestamp: number;
+};
+
+let fearGreedCache: {
+	data: FearGreedData | null;
+	expiresAt: number;
+} = {
+	data: null,
+	expiresAt: 0,
+};
+
+// GET /api/stats/fear-greed - Get Fear & Greed index (public)
+router.get("/fear-greed", async (_req, res: Response): Promise<void> => {
+	const now = Date.now();
+
+	if (fearGreedCache.data && fearGreedCache.expiresAt > now) {
+		res.json({
+			source: "cache",
+			data: fearGreedCache.data,
+		});
+		return;
+	}
+
+	try {
+		const response = await axios.get(FEAR_GREED_URL, {
+			timeout: 5000,
+		});
+
+		const item = response?.data?.data?.[0];
+		const value = Number(item?.value);
+		const classification = item?.value_classification;
+		const timestamp = Number(item?.timestamp);
+
+		if (Number.isNaN(value) || !classification || Number.isNaN(timestamp)) {
+			throw new Error("Invalid fear-greed payload");
+		}
+
+		const data: FearGreedData = {
+			value,
+			classification,
+			timestamp,
+		};
+
+		fearGreedCache = {
+			data,
+			expiresAt: now + FEAR_GREED_CACHE_TTL_MS,
+		};
+
+		res.json({
+			source: "live",
+			data,
+		});
+	} catch (error) {
+		console.error("Error fetching fear & greed index:", error);
+
+		if (fearGreedCache.data) {
+			res.json({
+				source: "stale-cache",
+				data: fearGreedCache.data,
+			});
+			return;
+		}
+
+		res.status(502).json({
+			message: "Unable to fetch fear & greed index.",
+		});
+	}
+});
 
 // GET /api/stats - Get Global Statistics
 router.get(
