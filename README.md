@@ -66,6 +66,19 @@ npm install
 npm run dev        # Development server (port 5173)
 ```
 
+### Environment
+
+Frontend expects an API base URL. Create `frontend-project/.env` based on the example:
+
+```sh
+cp frontend-project/.env.example frontend-project/.env
+```
+
+Default value:
+```
+VITE_API_URL=http://localhost:3000/api
+```
+
 ## Project Structure
 
 ```
@@ -224,4 +237,4 @@ The SQLite database (`trading.db`) is automatically created with the following t
 - `i18next` + `react-i18next` - Internationalization
 - `lucide-react` + `react-icons` - Icon libraries
 
-⚡ Built with Vite & Express | 🚀 Optimized for speed | 💎 Cross-platform support
+Built with Vite & Express. Optimized for speed. Cross-platform support.
