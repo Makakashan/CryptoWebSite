@@ -395,39 +395,78 @@ const Statistics = () => {
 					</div>
 				) : (
 				<>
-					<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-						{assetDistributionData.length > 0 && (
+					{assetDistributionData.length > 0 && (
+						<div className="card-padded mb-6">
+							<h2 className="section-header">{t("assetDistribution")}</h2>
+							<ResponsiveContainer width="100%" height={300}>
+								<PieChart>
+									<Pie
+										data={assetDistributionData}
+										cx="50%"
+										cy="50%"
+										labelLine={false}
+										label={false}
+										outerRadius={80}
+										dataKey="value"
+										nameKey="name"
+									>
+										{assetDistributionData.map((_entry, index) => (
+											<Cell
+												key={`cell-${index}`}
+												fill={CHART_COLORS[index % CHART_COLORS.length]}
+											/>
+										))}
+									</Pie>
+									<Tooltip
+										formatter={(value) => formatPrice(value as number)}
+										itemStyle={{ color: "#eaecef" }}
+										labelStyle={{ color: "#eaecef" }}
+										contentStyle={{
+											backgroundColor: "#1a1d23",
+											border: "1px solid #2b3139",
+											borderRadius: "10px",
+											color: "#eaecef",
+										}}
+									/>
+									<Legend
+										formatter={(value, _entry, index) => {
+											const item = assetDistributionData[index];
+											if (!item) return value;
+											return `${item.name}: ${item.share.toFixed(1)}%`;
+										}}
+									/>
+								</PieChart>
+							</ResponsiveContainer>
+						</div>
+					)}
+
+					<div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-6 mb-8">
+						{orders.length > 0 && (
 							<div className="card-padded">
-								<h2 className="section-header">
-									{t("assetDistribution")}
-								</h2>
+								<h2 className="section-header">{t("ordersByType")}</h2>
 								<ResponsiveContainer width="100%" height={300}>
-									<PieChart>
-										<Pie
-											data={assetDistributionData}
-											cx="50%"
-											cy="50%"
-											labelLine={false}
-											label={false}
-											outerRadius={80}
-											dataKey="value"
-											nameKey="name"
-										>
-											{assetDistributionData.map((_entry, index) => (
-												<Cell
-													key={`cell-${index}`}
-													fill={
-														CHART_COLORS[
-															index % CHART_COLORS.length
-														]
-													}
-												/>
-											))}
-										</Pie>
+									<BarChart
+										data={ordersByTypeData}
+										margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+									>
+										<CartesianGrid
+											strokeDasharray="3 3"
+											stroke="#2b3139"
+										/>
+										<XAxis
+											dataKey="name"
+											stroke="#848e9c"
+											tickLine={false}
+											axisLine={false}
+										/>
+										<YAxis
+											stroke="#848e9c"
+											allowDecimals={false}
+											tickLine={false}
+											axisLine={false}
+										/>
 										<Tooltip
-											formatter={(value) =>
-												formatPrice(value as number)
-											}
+											cursor={{ fill: "rgba(132, 142, 156, 0.14)" }}
 											itemStyle={{ color: "#eaecef" }}
 											labelStyle={{ color: "#eaecef" }}
 											contentStyle={{
@@ -437,65 +476,13 @@ const Statistics = () => {
 												color: "#eaecef",
 											}}
 										/>
-										<Legend
-											formatter={(value, _entry, index) => {
-												const item = assetDistributionData[index];
-												if (!item) return value;
-												return `${item.name}: ${item.share.toFixed(1)}%`;
-											}}
-										/>
-									</PieChart>
-								</ResponsiveContainer>
-							</div>
-						)}
-
-						{orders.length > 0 && (
-							<div className="card-padded">
-								<h2 className="section-header">{t("ordersByType")}</h2>
-									<ResponsiveContainer width="100%" height={300}>
-										<BarChart
-											data={ordersByTypeData}
-											margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+										<Bar
+											dataKey="value"
+											radius={[6, 6, 0, 0]}
+											activeBar={false}
 										>
-											<CartesianGrid
-												strokeDasharray="3 3"
-												stroke="#2b3139"
-											/>
-											<XAxis
-												dataKey="name"
-												stroke="#848e9c"
-												tickLine={false}
-												axisLine={false}
-											/>
-											<YAxis
-												stroke="#848e9c"
-												allowDecimals={false}
-												tickLine={false}
-												axisLine={false}
-											/>
-											<Tooltip
-												cursor={{
-													fill: "rgba(132, 142, 156, 0.14)",
-												}}
-												itemStyle={{ color: "#eaecef" }}
-												labelStyle={{ color: "#eaecef" }}
-												contentStyle={{
-													backgroundColor: "#1a1d23",
-													border: "1px solid #2b3139",
-													borderRadius: "10px",
-													color: "#eaecef",
-												}}
-											/>
-											<Bar
-												dataKey="value"
-												radius={[6, 6, 0, 0]}
-												activeBar={false}
-											>
-												{ordersByTypeData.map((entry, index) => (
-													<Cell
-													key={`cell-${index}`}
-													fill={entry.fill}
-												/>
+											{ordersByTypeData.map((entry, index) => (
+												<Cell key={`cell-${index}`} fill={entry.fill} />
 											))}
 										</Bar>
 									</BarChart>
@@ -504,7 +491,7 @@ const Statistics = () => {
 						)}
 
 						{profitOverTime.length > 0 && (
-							<div className="card-padded xl:col-span-2">
+							<div className="card-padded">
 								<h2 className="section-header">
 									{t("profitLossOverTime")}
 								</h2>
@@ -527,10 +514,7 @@ const Statistics = () => {
 											tickFormatter={(value) =>
 												new Date(Number(value)).toLocaleDateString(
 													[],
-													{
-														day: "2-digit",
-														month: "2-digit",
-													},
+													{ day: "2-digit", month: "2-digit" },
 												)
 											}
 										/>
@@ -552,9 +536,7 @@ const Statistics = () => {
 													minute: "2-digit",
 												})
 											}
-											formatter={(value) =>
-												formatPrice(value as number)
-											}
+											formatter={(value) => formatPrice(value as number)}
 											itemStyle={{ color: "#eaecef" }}
 											labelStyle={{ color: "#eaecef" }}
 											contentStyle={{
