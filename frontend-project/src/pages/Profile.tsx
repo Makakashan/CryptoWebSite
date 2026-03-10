@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AvatarUpload } from "../components/ui/AvatarUpload";
 import Button from "@/components/ui/button";
-import axios from "axios";
+import api from "@/api/axiosConfig";
 import { fetchProfile } from "../store/slices/authSlice";
 
 const Profile = () => {
@@ -27,11 +27,7 @@ const Profile = () => {
 			setIsUploading(true);
 			setMessage(null);
 
-			const response = await axios.post(
-				"http://localhost:3000/api/upload/avatar",
-				{ avatar },
-				{ withCredentials: true },
-			);
+			const response = await api.post("/upload/avatar", { avatar });
 
 			if (response.status === 200) {
 				setMessage({
@@ -60,10 +56,7 @@ const Profile = () => {
 			setIsUploading(true);
 			setMessage(null);
 
-			const response = await axios.delete(
-				"http://localhost:3000/api/upload/avatar",
-				{ withCredentials: true },
-			);
+			const response = await api.delete("/upload/avatar");
 
 			if (response.status === 200) {
 				setAvatar(null);
