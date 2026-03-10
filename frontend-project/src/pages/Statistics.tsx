@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,6 +23,8 @@ import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { fetchAssets } from "../store/slices/assetsSlice";
 import { formatPrice } from "../utils/formatPrice";
 import type { Order } from "../store/types/orders.types";
+import { useIconLoader } from "../hooks/useIconLoader";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 const CHART_COLORS = ["#3861fb", "#0ecb81", "#f6465d", "#ffa500", "#9c27b0"];
 const STARTING_BALANCE = 10000;
@@ -46,7 +48,35 @@ interface Performer {
 	trades: number;
 	holding: number;
 	pnl: number;
+	image_url: string | null;
 }
+
+interface PerformerSparkPoint {
+	ts: number;
+	pnl: number;
+}
+
+const buildOrdersBySymbol = (orders: Order[]) => {
+	const bySymbol = new Map<string, Order[]>();
+	orders.forEach((order) => {
+		const list = bySymbol.get(order.asset_symbol) || [];
+		list.push(order);
+		bySymbol.set(order.asset_symbol, list);
+	});
+
+	bySymbol.forEach((list, symbol) => {
+		bySymbol.set(
+			symbol,
+			[...list].sort(
+				(a, b) =>
+					new Date(a.timestamp).getTime() -
+					new Date(b.timestamp).getTime(),
+			),
+		);
+	});
+
+	return bySymbol;
+};
 
 const calculateHoldingsValue = (
 	holdings: Map<string, number>,
@@ -215,57 +245,90 @@ const Statistics = () => {
 	}, [profitOverTime]);
 
 	const topPerformers = useMemo<Performer[]>(() => {
-		const grouped = new Map<
-			string,
-			{
-				trades: number;
-				boughtAmount: number;
-				soldAmount: number;
-				totalSpent: number;
-				totalEarned: number;
-			}
-		>();
+		const ordersBySymbol = buildOrdersBySymbol(orders);
 
-		orders.forEach((order) => {
-			const current = grouped.get(order.asset_symbol) || {
-				trades: 0,
-				boughtAmount: 0,
-				soldAmount: 0,
-				totalSpent: 0,
-				totalEarned: 0,
-			};
-			const value = order.amount * order.price_at_transaction;
+		return Array.from(ordersBySymbol.entries())
+			.map(([symbol, list]) => {
+				let trades = 0;
+				let boughtAmount = 0;
+				let soldAmount = 0;
+				let totalAmount = 0;
+				let totalCost = 0;
+				let realizedPnl = 0;
 
-			current.trades += 1;
-			if (order.order_type === "BUY") {
-				current.boughtAmount += order.amount;
-				current.totalSpent += value;
-			} else {
-				current.soldAmount += order.amount;
-				current.totalEarned += value;
-			}
+				list.forEach((order) => {
+					trades += 1;
+					const value = order.amount * order.price_at_transaction;
 
-			grouped.set(order.asset_symbol, current);
-		});
+					if (order.order_type === "BUY") {
+						boughtAmount += order.amount;
+						totalAmount += order.amount;
+						totalCost += value;
+						return;
+					}
 
-		return Array.from(grouped.entries())
-			.map(([symbol, stats]) => {
-				const holding = Math.max(0, stats.boughtAmount - stats.soldAmount);
-				const pnl =
-					stats.totalEarned +
-					holding * (priceMap[symbol] || 0) -
-					stats.totalSpent;
+					soldAmount += order.amount;
+					if (totalAmount <= 0) return;
+
+					const sellAmount = Math.min(order.amount, totalAmount);
+					const avgCost = totalCost / totalAmount;
+					realizedPnl += (order.price_at_transaction - avgCost) * sellAmount;
+					totalAmount -= sellAmount;
+					totalCost -= avgCost * sellAmount;
+				});
+
+				const holding = Math.max(0, boughtAmount - soldAmount);
+				const pnl = realizedPnl;
+
+				const image_url =
+					assets.find((asset) => asset.symbol === symbol)?.image_url ||
+					null;
 
 				return {
 					asset_symbol: symbol,
 					name: symbol.replace("USDT", ""),
-					trades: stats.trades,
+					trades,
 					holding,
 					pnl,
+					image_url,
 				};
 			})
 			.sort((a, b) => b.pnl - a.pnl);
-	}, [orders, priceMap]);
+	}, [orders, assets]);
+
+	const topPerformerSparks = useMemo(() => {
+		const ordersBySymbol = buildOrdersBySymbol(orders);
+		const series = new Map<string, PerformerSparkPoint[]>();
+
+		ordersBySymbol.forEach((list, symbol) => {
+			let totalAmount = 0;
+			let totalCost = 0;
+			let realizedPnl = 0;
+			const points = list.map((order) => {
+				const value = order.amount * order.price_at_transaction;
+
+				if (order.order_type === "BUY") {
+					totalAmount += order.amount;
+					totalCost += value;
+				} else if (totalAmount > 0) {
+					const sellAmount = Math.min(order.amount, totalAmount);
+					const avgCost = totalCost / totalAmount;
+					realizedPnl += (order.price_at_transaction - avgCost) * sellAmount;
+					totalAmount -= sellAmount;
+					totalCost -= avgCost * sellAmount;
+				}
+
+				return {
+					ts: new Date(order.timestamp).getTime(),
+					pnl: realizedPnl,
+				};
+			});
+
+			series.set(symbol, points.slice(-30));
+		});
+
+		return series;
+	}, [orders]);
 
 	const currentHoldingsValue = useMemo(() => {
 		return enrichedAssets.reduce((sum, asset) => sum + asset.value, 0);
@@ -525,34 +588,126 @@ const Statistics = () => {
 					{topPerformers.length > 0 && (
 						<div className="card-padded">
 							<h2 className="section-header">{t("topPerformers")}</h2>
-							<div className="space-y-3">
-								{topPerformers.map((asset) => (
-										<div
-											key={asset.asset_symbol}
-											className="flex flex-wrap gap-2 justify-between items-center p-4 bg-bg-dark rounded-lg"
-										>
-											<div className="font-semibold text-text-primary">
-												{asset.name}
+							<div className="top-performers-grid">
+								{topPerformers.map((asset, index) => {
+									const sparkData =
+										topPerformerSparks.get(asset.asset_symbol) || [];
+									const isPositive = asset.pnl >= 0;
+											return (
+												<div
+													key={asset.asset_symbol}
+													className={`top-performer-card ${
+														isPositive ? "is-positive" : "is-negative"
+													}`}
+												>
+											<div className="top-performer-info">
+												<div className="top-performer-rank">
+													#{index + 1}
+												</div>
+												<TopPerformerIcon
+													symbol={asset.asset_symbol}
+													shortName={asset.name}
+													initialImageUrl={asset.image_url}
+												/>
+												<div className="top-performer-meta">
+													<div className="top-performer-name">
+														{asset.name}
+													</div>
+													<div className="top-performer-symbol">
+														{asset.asset_symbol}
+													</div>
+													<div className="top-performer-badges">
+														<span className="top-performer-pill">
+															{asset.trades} trades
+														</span>
+														<span className="top-performer-pill">
+															hold {asset.holding.toFixed(4)} {asset.name}
+														</span>
+													</div>
+												</div>
 											</div>
-											<div className="text-text-secondary text-sm">
-												{asset.trades} trades
-											</div>
-											<div className="text-text-secondary text-sm">
-												hold: {asset.holding.toFixed(6)}
+											<div className="top-performer-spark">
+												{sparkData.length > 1 ? (
+													<ResponsiveContainer width="100%" height="100%">
+														<LineChart data={sparkData}>
+															<Line
+																type="monotone"
+																dataKey="pnl"
+																stroke={isPositive ? "#0ecb81" : "#f6465d"}
+																strokeWidth={2}
+																dot={false}
+															/>
+														</LineChart>
+													</ResponsiveContainer>
+												) : (
+													<div className="top-performer-spark-empty">
+														No chart yet
+													</div>
+												)}
 											</div>
 											<div
-												className={`font-bold ${asset.pnl >= 0 ? "text-green" : "text-red"}`}
+												className={`top-performer-pnl ${
+													isPositive ? "is-positive" : "is-negative"
+												}`}
 											>
-												{asset.pnl >= 0 ? "+" : ""}
-												{formatPrice(asset.pnl)}
+												<div className="top-performer-pnl-icon">
+													{isPositive ? (
+														<TrendingUp className="w-4 h-4" />
+													) : (
+														<TrendingDown className="w-4 h-4" />
+													)}
+												</div>
+												<div className="top-performer-pnl-value">
+													{isPositive ? "+" : ""}
+													{formatPrice(asset.pnl)}
+												</div>
+												<div className="top-performer-pnl-label">
+													Realized PnL
+												</div>
 											</div>
 										</div>
-									))}
+									);
+								})}
 							</div>
 						</div>
 					)}
 				</>
 			)}
+		</div>
+	);
+};
+
+const TopPerformerIcon = ({
+	symbol,
+	shortName,
+	initialImageUrl,
+}: {
+	symbol: string;
+	shortName: string;
+	initialImageUrl: string | null;
+}) => {
+	const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=64`;
+	const { imageUrl } = useIconLoader({
+		symbol,
+		initialImageUrl,
+		enabled: !initialImageUrl,
+	});
+	const [currentSrc, setCurrentSrc] = useState(
+		imageUrl || initialImageUrl || defaultIcon,
+	);
+
+	useEffect(() => {
+		setCurrentSrc(imageUrl || initialImageUrl || defaultIcon);
+	}, [imageUrl, initialImageUrl, defaultIcon]);
+
+	return (
+		<div className="top-performer-icon">
+			<img
+				src={currentSrc}
+				alt={shortName}
+				loading="lazy"
+				onError={() => setCurrentSrc(defaultIcon)}
+			/>
 		</div>
 	);
 };

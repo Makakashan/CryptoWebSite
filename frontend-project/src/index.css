@@ -502,6 +502,203 @@
     transform: translateY(-0.125rem);
 }
 
+/* Top Performers */
+.top-performers-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+@media (min-width: 720px) {
+    .top-performers-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1100px) {
+    .top-performers-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.top-performer-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 140px auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #13161b;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    transition: transform 0.25s ease, border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-performer-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.top-performer-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.top-performer-card.is-positive::before {
+    background:
+        radial-gradient(circle at 15% 20%, rgba(14, 203, 129, 0.45), transparent 55%),
+        radial-gradient(circle at 80% 80%, rgba(14, 203, 129, 0.2), transparent 60%);
+}
+
+.top-performer-card.is-negative::before {
+    background:
+        radial-gradient(circle at 15% 20%, rgba(246, 70, 93, 0.45), transparent 55%),
+        radial-gradient(circle at 80% 80%, rgba(246, 70, 93, 0.2), transparent 60%);
+}
+
+.top-performer-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.top-performer-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.top-performer-rank {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(234, 236, 239, 0.65);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    padding: 0.25rem 0.5rem;
+}
+
+.top-performer-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.top-performer-icon img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+}
+
+.top-performer-meta {
+    min-width: 0;
+}
+
+.top-performer-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.top-performer-symbol {
+    font-size: 0.75rem;
+    color: rgba(234, 236, 239, 0.65);
+}
+
+.top-performer-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+.top-performer-pill {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(234, 236, 239, 0.7);
+}
+
+.top-performer-spark {
+    height: 52px;
+    border-radius: 0.6rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.4rem;
+}
+
+.top-performer-spark-empty {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: rgba(234, 236, 239, 0.55);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.top-performer-pnl {
+    text-align: right;
+    min-width: 110px;
+}
+
+.top-performer-pnl.is-positive {
+    color: #0ecb81;
+}
+
+.top-performer-pnl.is-negative {
+    color: #f6465d;
+}
+
+.top-performer-pnl-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    margin-bottom: 0.35rem;
+}
+
+.top-performer-pnl-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.top-performer-pnl-label {
+    font-size: 0.7rem;
+    color: rgba(234, 236, 239, 0.55);
+}
+
+@media (max-width: 800px) {
+    .top-performer-card {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .top-performer-spark {
+        order: 3;
+    }
+
+    .top-performer-pnl {
+        text-align: left;
+    }
+}
+
 /* Button Components */
 .btn {
     padding: 0.75rem 1.5rem;
