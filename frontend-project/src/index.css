@@ -1024,6 +1024,115 @@
     margin: 0;
 }
 
+/* Statistics Page Styling */
+.statistics-page .stat-card {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.08)),
+        #14171d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+}
+
+.statistics-page .stat-card::after {
+    content: "";
+    position: absolute;
+    inset: auto 1.25rem 0.85rem 1.25rem;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(56, 97, 251, 0.2), rgba(56, 97, 251, 0.65));
+    opacity: 0.6;
+}
+
+.statistics-page .stat-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+}
+
+.statistics-page .stat-value {
+    font-size: 2rem;
+    margin: 0.65rem 0 0.9rem;
+}
+
+.statistics-page .card-padded:not(.top-performers-card) {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.12)),
+        #14161b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+}
+
+.statistics-page .stats-chart-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.statistics-page .stats-chart-card::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: 0.7rem;
+    background:
+        radial-gradient(circle at 15% 15%, rgba(56, 97, 251, 0.14), transparent 55%),
+        radial-gradient(circle at 85% 85%, rgba(14, 203, 129, 0.08), transparent 60%);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.statistics-page .stats-chart-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.statistics-page .stats-chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.statistics-page .stats-chart-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.statistics-page .stats-chart-subtitle {
+    margin: -0.35rem 0 1rem;
+    color: rgba(234, 236, 239, 0.6);
+    font-size: 0.8rem;
+}
+
+.statistics-page .stats-chart-pill {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(234, 236, 239, 0.85);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.statistics-page .section-header:not(.top-performers-header) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(234, 236, 239, 0.9);
+}
+
+.statistics-page .section-header:not(.top-performers-header)::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, rgba(234, 236, 239, 0.2), rgba(234, 236, 239, 0.05));
+}
+
 /* Form Label */
 .form-label {
     display: block;

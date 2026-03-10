@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
-	PieChart,
-	Pie,
 	Cell,
 	BarChart,
 	Bar,
+	AreaChart,
+	Area,
 	LineChart,
 	Line,
 	XAxis,
@@ -25,8 +25,14 @@ import { formatPrice } from "../utils/formatPrice";
 import type { Order } from "../store/types/orders.types";
 import { useIconLoader } from "../hooks/useIconLoader";
 import { TrendingDown, TrendingUp } from "lucide-react";
+import {
+	ChartContainer,
+	ChartLegend,
+	ChartTooltip,
+} from "@/components/ui/chart";
+import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
+import StatsChartSkeleton from "../components/skeletons/StatsChartSkeleton";
 
-const CHART_COLORS = ["#3861fb", "#0ecb81", "#f6465d", "#ffa500", "#9c27b0"];
 const STARTING_BALANCE = 10000;
 
 interface EnrichedAsset {
@@ -55,6 +61,19 @@ interface PerformerSparkPoint {
 	ts: number;
 	pnl: number;
 }
+
+const collapseProfitPointsByDay = (points: ProfitPoint[]): ProfitPoint[] => {
+	const byDay = new Map<string, ProfitPoint>();
+	points.forEach((point) => {
+		const dayKey = new Date(point.ts).toISOString().slice(0, 10);
+		const existing = byDay.get(dayKey);
+		if (!existing || point.ts > existing.ts) {
+			byDay.set(dayKey, point);
+		}
+	});
+
+	return Array.from(byDay.values()).sort((a, b) => a.ts - b.ts);
+};
 
 const buildOrdersBySymbol = (orders: Order[]) => {
 	const bySymbol = new Map<string, Order[]>();
@@ -153,10 +172,7 @@ const Statistics = () => {
 	const { assets } = useAppSelector((state: RootState) => state.assets);
 
 	useEffect(() => {
-		if (!isAuthenticated) {
-			navigate("/login");
-			return;
-		}
+		if (!isAuthenticated) return;
 
 		dispatch(
 			fetchOrders({
@@ -191,18 +207,6 @@ const Statistics = () => {
 		});
 	}, [portfolio, assets]);
 
-	const assetDistributionData = useMemo(() => {
-		const total = enrichedAssets.reduce((sum, asset) => sum + asset.value, 0);
-
-		return enrichedAssets
-			.filter((asset) => asset.value > 0)
-			.map((asset) => ({
-				name: asset.name,
-				value: asset.value,
-				share: total > 0 ? (asset.value / total) * 100 : 0,
-			}));
-	}, [enrichedAssets]);
-
 	const priceMap = useMemo(() => {
 		return assets.reduce<Record<string, number>>((acc, asset) => {
 			acc[asset.symbol] = asset.price || asset.current_price || 0;
@@ -225,7 +229,8 @@ const Statistics = () => {
 	}, [orders, t]);
 
 	const profitOverTime = useMemo(() => {
-		return buildProfitHistory(orders, priceMap);
+		const raw = buildProfitHistory(orders, priceMap);
+		return collapseProfitPointsByDay(raw);
 	}, [orders, priceMap]);
 
 	const profitYAxisDomain = useMemo<[number, number]>(() => {
@@ -338,19 +343,12 @@ const Statistics = () => {
 		return (portfolio?.balance || 0) + currentHoldingsValue;
 	}, [portfolio, currentHoldingsValue]);
 
-	if (ordersLoading || portfolioLoading) {
-		return (
-			<div className="flex flex-col items-center justify-center p-14 text-center">
-				<div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin mb-4"></div>
-				<p className="text-text-secondary">{t("loading")}</p>
-			</div>
-		);
-	}
+	const showSkeletons = ordersLoading || portfolioLoading;
 
 	const hasNoData = orders.length === 0 && enrichedAssets.length === 0;
 
 	return (
-		<div>
+		<div className="statistics-page">
 			<div className="mb-6">
 				<h1 className="text-text-primary text-2xl font-bold m-0">
 					{t("tradingStatistics")}
@@ -358,29 +356,39 @@ const Statistics = () => {
 			</div>
 
 			<div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
-				<div className="stat-card">
-					<h3 className="stat-title">{t("totalOrders")}</h3>
-					<div className="stat-value">{orders.length}</div>
-					<p className="stat-subtitle">{t("allTime")}</p>
-				</div>
+				{showSkeletons ? (
+					<>
+						<StatCardSkeleton />
+						<StatCardSkeleton />
+						<StatCardSkeleton />
+					</>
+				) : (
+					<>
+						<div className="stat-card">
+							<h3 className="stat-title">{t("totalOrders")}</h3>
+							<div className="stat-value">{orders.length}</div>
+							<p className="stat-subtitle">{t("allTime")}</p>
+						</div>
 
-				<div className="stat-card">
-					<h3 className="stat-title">{t("holdingsValue")}</h3>
-					<div className="stat-value">
-						{formatPrice(currentHoldingsValue)}
-					</div>
-					<p className="stat-subtitle">
-						{enrichedAssets.length} {t("assets")}
-					</p>
-				</div>
+						<div className="stat-card">
+							<h3 className="stat-title">{t("holdingsValue")}</h3>
+							<div className="stat-value">
+								{formatPrice(currentHoldingsValue)}
+							</div>
+							<p className="stat-subtitle">
+								{enrichedAssets.length} {t("assets")}
+							</p>
+						</div>
 
-				<div className="stat-card">
-					<h3 className="stat-title">{t("totalValue")}</h3>
-					<div className="stat-value">
-						{formatPrice(totalAccountValue)}
-					</div>
-					<p className="stat-subtitle">{t("cashAndHoldings")}</p>
-				</div>
+						<div className="stat-card">
+							<h3 className="stat-title">{t("totalValue")}</h3>
+							<div className="stat-value">
+								{formatPrice(totalAccountValue)}
+							</div>
+							<p className="stat-subtitle">{t("cashAndHoldings")}</p>
+						</div>
+					</>
+				)}
 			</div>
 
 			{hasNoData ? (
@@ -395,181 +403,176 @@ const Statistics = () => {
 					</div>
 				) : (
 				<>
-					{assetDistributionData.length > 0 && (
-						<div className="card-padded mb-6">
-							<h2 className="section-header">{t("assetDistribution")}</h2>
-							<ResponsiveContainer width="100%" height={300}>
-								<PieChart>
-									<Pie
-										data={assetDistributionData}
-										cx="50%"
-										cy="50%"
-										labelLine={false}
-										label={false}
-										outerRadius={80}
-										dataKey="value"
-										nameKey="name"
-									>
-										{assetDistributionData.map((_entry, index) => (
-											<Cell
-												key={`cell-${index}`}
-												fill={CHART_COLORS[index % CHART_COLORS.length]}
-											/>
-										))}
-									</Pie>
-									<Tooltip
-										formatter={(value) => formatPrice(value as number)}
-										itemStyle={{ color: "#eaecef" }}
-										labelStyle={{ color: "#eaecef" }}
-										contentStyle={{
-											backgroundColor: "#1a1d23",
-											border: "1px solid #2b3139",
-											borderRadius: "10px",
-											color: "#eaecef",
-										}}
-									/>
-									<Legend
-										formatter={(value, _entry, index) => {
-											const item = assetDistributionData[index];
-											if (!item) return value;
-											return `${item.name}: ${item.share.toFixed(1)}%`;
-										}}
-									/>
-								</PieChart>
-							</ResponsiveContainer>
-						</div>
-					)}
-
 					<div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-6 mb-8">
-						{orders.length > 0 && (
-							<div className="card-padded">
-								<h2 className="section-header">{t("ordersByType")}</h2>
-								<ResponsiveContainer width="100%" height={300}>
-									<BarChart
-										data={ordersByTypeData}
-										margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
-									>
-										<CartesianGrid
-											strokeDasharray="3 3"
-											stroke="#2b3139"
-										/>
-										<XAxis
-											dataKey="name"
-											stroke="#848e9c"
-											tickLine={false}
-											axisLine={false}
-										/>
-										<YAxis
-											stroke="#848e9c"
-											allowDecimals={false}
-											tickLine={false}
-											axisLine={false}
-										/>
-										<Tooltip
-											cursor={{ fill: "rgba(132, 142, 156, 0.14)" }}
-											itemStyle={{ color: "#eaecef" }}
-											labelStyle={{ color: "#eaecef" }}
-											contentStyle={{
-												backgroundColor: "#1a1d23",
-												border: "1px solid #2b3139",
-												borderRadius: "10px",
-												color: "#eaecef",
-											}}
-										/>
+						{showSkeletons ? (
+							<>
+								<StatsChartSkeleton />
+								<StatsChartSkeleton />
+							</>
+						) : (
+							<>
+								{orders.length > 0 && (
+									<div className="card-padded stats-chart-card">
+								<div className="stats-chart-header">
+									<h2 className="section-header">{t("ordersByType")}</h2>
+									<div className="stats-chart-meta">
+										<span className="stats-chart-pill">
+											{ordersByTypeData.reduce((sum, item) => sum + item.value, 0)}{" "}
+											{t("orders")}
+										</span>
+									</div>
+								</div>
+								<ChartContainer className="h-75 w-full aspect-auto">
+									<ResponsiveContainer width="100%" height="100%">
+										<BarChart
+											data={ordersByTypeData}
+											margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+										>
+											<CartesianGrid
+												strokeDasharray="3 3"
+												stroke="#2b3139"
+											/>
+											<XAxis
+												dataKey="name"
+												stroke="#848e9c"
+												tickLine={false}
+												axisLine={false}
+											/>
+											<YAxis
+												stroke="#848e9c"
+												allowDecimals={false}
+												tickLine={false}
+												axisLine={false}
+											/>
+											<Tooltip
+												cursor={{ fill: "rgba(132, 142, 156, 0.14)" }}
+												content={
+													<ChartTooltip
+														formatter={(value) => value}
+													/>
+												}
+											/>
 										<Bar
 											dataKey="value"
 											radius={[6, 6, 0, 0]}
 											activeBar={false}
+											isAnimationActive={true}
+											animationDuration={900}
+											animationBegin={120}
+											animationEasing="ease-out"
 										>
-											{ordersByTypeData.map((entry, index) => (
-												<Cell key={`cell-${index}`} fill={entry.fill} />
-											))}
-										</Bar>
-									</BarChart>
-								</ResponsiveContainer>
+												{ordersByTypeData.map((entry, index) => (
+													<Cell key={`cell-${index}`} fill={entry.fill} />
+												))}
+											</Bar>
+										</BarChart>
+									</ResponsiveContainer>
+								</ChartContainer>
 							</div>
-						)}
+								)}
 
-						{profitOverTime.length > 0 && (
-							<div className="card-padded">
-								<h2 className="section-header">
-									{t("profitLossOverTime")}
-								</h2>
-								<ResponsiveContainer width="100%" height={300}>
-									<LineChart
-										data={profitOverTime}
-										margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
-									>
-										<CartesianGrid
-											strokeDasharray="3 3"
-											stroke="#2b3139"
-										/>
-										<XAxis
-											dataKey="ts"
-											type="number"
-											domain={["dataMin", "dataMax"]}
-											stroke="#848e9c"
-											tickLine={false}
-											axisLine={false}
-											tickFormatter={(value) =>
-												new Date(Number(value)).toLocaleDateString(
-													[],
-													{ day: "2-digit", month: "2-digit" },
-												)
-											}
-										/>
-										<YAxis
-											domain={profitYAxisDomain}
-											stroke="#848e9c"
-											tickLine={false}
-											axisLine={false}
-											tickFormatter={(value) =>
-												formatAxisValue(Number(value))
-											}
-										/>
-										<Tooltip
-											labelFormatter={(value) =>
-												new Date(Number(value)).toLocaleString([], {
-													day: "2-digit",
-													month: "2-digit",
-													hour: "2-digit",
-													minute: "2-digit",
-												})
-											}
-											formatter={(value) => formatPrice(value as number)}
-											itemStyle={{ color: "#eaecef" }}
-											labelStyle={{ color: "#eaecef" }}
-											contentStyle={{
-												backgroundColor: "#1a1d23",
-												border: "1px solid #2b3139",
-												borderRadius: "10px",
-												color: "#eaecef",
-											}}
-										/>
-										<Legend />
-										<Line
-											type="monotone"
-											dataKey="profit"
-											stroke="#3861fb"
-											strokeWidth={2.5}
-											dot={{ fill: "#3861fb", strokeWidth: 0, r: 4 }}
-											activeDot={{
-												fill: "#3861fb",
-												stroke: "#ffffff",
-												strokeWidth: 2,
-												r: 5,
-											}}
-											name={t("netProfit")}
-										/>
-									</LineChart>
-								</ResponsiveContainer>
+								{profitOverTime.length > 0 && (
+									<div className="card-padded stats-chart-card">
+								<div className="stats-chart-header">
+									<h2 className="section-header">
+										{t("profitLossOverTime")}
+									</h2>
+									<div className="stats-chart-meta">
+										<span className="stats-chart-pill">
+											{formatPrice(
+												profitOverTime[profitOverTime.length - 1]?.profit ||
+													0,
+											)}
+										</span>
+									</div>
+								</div>
+								<p className="stats-chart-subtitle">
+									Daily closing profit from last trade of each day
+								</p>
+								<ChartContainer className="h-75 w-full aspect-auto">
+									<ResponsiveContainer width="100%" height="100%">
+										<AreaChart
+											data={profitOverTime}
+											margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+										>
+											<CartesianGrid
+												strokeDasharray="3 3"
+												stroke="#2b3139"
+											/>
+											<XAxis
+												dataKey="ts"
+												type="number"
+												domain={["dataMin", "dataMax"]}
+												stroke="#848e9c"
+												tickLine={false}
+												axisLine={false}
+												tickFormatter={(value) =>
+													new Date(Number(value)).toLocaleDateString(
+														[],
+														{ day: "2-digit", month: "2-digit" },
+													)
+												}
+											/>
+											<YAxis
+												domain={profitYAxisDomain}
+												stroke="#848e9c"
+												tickLine={false}
+												axisLine={false}
+												tickFormatter={(value) =>
+													formatAxisValue(Number(value))
+												}
+											/>
+											<Tooltip
+												content={
+													<ChartTooltip
+														labelFormatter={(label) =>
+															new Date(Number(label)).toLocaleString(
+																[],
+																{
+																	day: "2-digit",
+																	month: "2-digit",
+																	hour: "2-digit",
+																	minute: "2-digit",
+																},
+															)
+														}
+														formatter={(value) =>
+															formatPrice(value as number)
+														}
+													/>
+												}
+											/>
+											<Legend content={<ChartLegend />} />
+											<Area
+												type="monotone"
+												dataKey="profit"
+												stroke="#3861fb"
+												strokeWidth={2.5}
+												fill="none"
+												fillOpacity={0}
+												dot={false}
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												isAnimationActive={true}
+												animationDuration={1000}
+												animationBegin={120}
+												animationEasing="ease-out"
+												name={t("netProfit")}
+											/>
+										</AreaChart>
+									</ResponsiveContainer>
+								</ChartContainer>
 							</div>
+								)}
+							</>
 						)}
 					</div>
 
 					{topPerformers.length > 0 && (
-						<div className="card-padded">
-							<h2 className="section-header">{t("topPerformers")}</h2>
+						<div className="card-padded top-performers-card">
+							<h2 className="section-header top-performers-header">
+								{t("topPerformers")}
+							</h2>
 							<div className="top-performers-grid">
 								{topPerformers.map((asset, index) => {
 									const sparkData =
@@ -674,13 +677,10 @@ const TopPerformerIcon = ({
 		initialImageUrl,
 		enabled: !initialImageUrl,
 	});
-	const [currentSrc, setCurrentSrc] = useState(
-		imageUrl || initialImageUrl || defaultIcon,
-	);
-
-	useEffect(() => {
-		setCurrentSrc(imageUrl || initialImageUrl || defaultIcon);
-	}, [imageUrl, initialImageUrl, defaultIcon]);
+	const [useFallback, setUseFallback] = useState(false);
+	const currentSrc = useFallback
+		? defaultIcon
+		: imageUrl || initialImageUrl || defaultIcon;
 
 	return (
 		<div className="top-performer-icon">
@@ -688,7 +688,7 @@ const TopPerformerIcon = ({
 				src={currentSrc}
 				alt={shortName}
 				loading="lazy"
-				onError={() => setCurrentSrc(defaultIcon)}
+				onError={() => setUseFallback(true)}
 			/>
 		</div>
 	);

@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { store } from "./store";
@@ -6,8 +5,17 @@ import "./i18n/config";
 import "./index.css";
 import App from "./App.tsx";
 
-// Register Service Worker for offline caching and performance
-if ("serviceWorker" in navigator) {
+// Unregister any existing Service Workers in dev to avoid reload loops
+if (!import.meta.env.PROD && "serviceWorker" in navigator) {
+	navigator.serviceWorker.getRegistrations().then((registrations) => {
+		registrations.forEach((registration) => {
+			registration.unregister();
+		});
+	});
+}
+
+// Register Service Worker only in production
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
 	window.addEventListener("load", () => {
 		navigator.serviceWorker
 			.register("/service-worker.js")
@@ -21,9 +29,7 @@ if ("serviceWorker" in navigator) {
 }
 
 createRoot(document.getElementById("root")!).render(
-	<StrictMode>
-		<Provider store={store}>
-			<App />
-		</Provider>
-	</StrictMode>,
+	<Provider store={store}>
+		<App />
+	</Provider>,
 );
