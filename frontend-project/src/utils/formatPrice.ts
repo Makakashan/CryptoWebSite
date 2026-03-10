@@ -51,9 +51,6 @@ export function formatNumber(value: number | undefined | null): string {
  * @param maxLength - Maximum number of characters (default: 2)
  * @returns Initials in uppercase
  * @example
- * getInitials("John Doe") // "JD"
- * getInitials("Alice") // "AL"
- * getInitials("") // "U"
  */
 export function getInitials(username: string, maxLength: number = 2): string {
 	if (!username || username.trim() === "") {

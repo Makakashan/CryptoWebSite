@@ -79,7 +79,6 @@ const Portfolio = () => {
 		return filtered;
 	}, [enrichedAssets, searchAsset, sortBy, sortOrder]);
 
-	// Pagination
 	const totalPages = Math.ceil(filteredAndSortedAssets.length / itemsPerPage);
 
 	// Reset to page 1 when filters change
@@ -127,7 +126,6 @@ const Portfolio = () => {
 		setCurrentPage(page);
 	};
 
-	// Всегда показываем скелетоны при загрузке - моментальная реакция
 	if (isLoading) {
 		return (
 			<div className="space-y-6">

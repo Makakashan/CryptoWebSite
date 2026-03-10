@@ -48,8 +48,6 @@ const Markets = () => {
 
 	useEffect(() => {
 		// Always fetch assets on mount to ensure we have the correct limit (12)
-		// This handles the case when coming from Dashboard which only loads 5 assets
-		// Using location.key ensures this runs on every navigation
 		const shouldFetch =
 			assets.length === 0 || (pagination?.limit ?? filters.limit) !== 12;
 

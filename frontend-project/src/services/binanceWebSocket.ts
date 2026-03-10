@@ -117,10 +117,8 @@ class BinanceWebSocketService {
 	}
 
 	updateSymbols(symbols: string[]) {
-		// Close current connection
 		this.disconnect();
 
-		// Connect with new symbols
 		if (symbols.length > 0) {
 			this.connect(symbols);
 		}
