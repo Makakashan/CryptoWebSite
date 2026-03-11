@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useId } from "react";
 import { useAppDispatch } from "../store/hooks";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { updateAssetPrice } from "../store/slices/assetsSlice";
@@ -10,11 +10,12 @@ export const useBinanceWebSocket = ({
 }: UseBinanceWebSocketProps) => {
 	const dispatch = useAppDispatch();
 	const prevSymbolsRef = useRef<string>("");
+	const sourceId = `binance-ws-${useId()}`;
 	const symbolsKey = [...symbols].sort().join(",");
 
 	useEffect(() => {
 		if (!enabled || symbolsKey.length === 0) {
-			binanceWebSocketService.updateSymbols([]);
+			binanceWebSocketService.clearSymbols(sourceId);
 			return;
 		}
 		const normalizedSymbols = symbolsKey.split(",");
@@ -34,13 +35,13 @@ export const useBinanceWebSocket = ({
 		binanceWebSocketService.subscribe(handlePriceUpdate);
 
 		// Connect to WebSocket with current symbols
-		binanceWebSocketService.updateSymbols(normalizedSymbols);
+		binanceWebSocketService.updateSymbols(normalizedSymbols, sourceId);
 
 		return () => {
 			binanceWebSocketService.unsubscribe(handlePriceUpdate);
-			binanceWebSocketService.updateSymbols([]);
+			binanceWebSocketService.clearSymbols(sourceId);
 		};
-	}, [symbolsKey, enabled, dispatch]);
+	}, [symbolsKey, enabled, dispatch, sourceId]);
 
 	return {
 		disconnect: () => binanceWebSocketService.disconnect(),

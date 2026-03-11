@@ -6,13 +6,17 @@ class BinanceWebSocketService {
 	private reconnectAttempts = 0;
 	private maxReconnectAttempts = 5;
 	private reconnectDelay = 3000;
-	private subscribedSymbols: Set<string> = new Set();
+	private symbolGroups: Map<string, Set<string>> = new Map();
+	private activeSymbols: Set<string> = new Set();
 	private prices: Map<string, number> = new Map();
 	private throttleTimers: Map<string, NodeJS.Timeout> = new Map();
 	private readonly throttleDelay = 1000; // Update UI at most once per second
 	private readonly wsUrl = "ws://localhost:3000";
 
-	connect() {
+	private connect() {
+		if (this.activeSymbols.size === 0) {
+			return;
+		}
 		if (
 			this.ws?.readyState === WebSocket.OPEN ||
 			this.ws?.readyState === WebSocket.CONNECTING
@@ -72,11 +76,11 @@ class BinanceWebSocketService {
 		if (this.ws) {
 			this.ws.close();
 			this.ws = null;
-			this.prices.clear();
-			// Clear all throttle timers
-			this.throttleTimers.forEach((timer) => clearTimeout(timer));
-			this.throttleTimers.clear();
 		}
+		this.prices.clear();
+		// Clear all throttle timers
+		this.throttleTimers.forEach((timer) => clearTimeout(timer));
+		this.throttleTimers.clear();
 	}
 
 	private throttledNotify(symbol: string, price: number) {
@@ -113,16 +117,24 @@ class BinanceWebSocketService {
 		return new Map(this.prices);
 	}
 
-	updateSymbols(symbols: string[]) {
-		this.subscribedSymbols = new Set(symbols);
+	updateSymbols(symbols: string[], sourceId = "default") {
+		const nextSymbols = symbols
+			.filter((symbol) => typeof symbol === "string")
+			.map((symbol) => symbol.trim().toUpperCase())
+			.filter(Boolean);
 
-		if (symbols.length === 0) {
-			this.disconnect();
-			return;
+		if (nextSymbols.length === 0) {
+			this.symbolGroups.delete(sourceId);
+		} else {
+			this.symbolGroups.set(sourceId, new Set(nextSymbols));
 		}
 
-		this.connect();
-		this.sendSubscription();
+		this.refreshActiveSymbols();
+	}
+
+	clearSymbols(sourceId = "default") {
+		this.symbolGroups.delete(sourceId);
+		this.refreshActiveSymbols();
 	}
 
 	private sendSubscription() {
@@ -133,9 +145,38 @@ class BinanceWebSocketService {
 		this.ws.send(
 			JSON.stringify({
 				type: "SUBSCRIBE",
-				symbols: Array.from(this.subscribedSymbols),
+				symbols: Array.from(this.activeSymbols),
 			}),
 		);
+	}
+
+	private refreshActiveSymbols() {
+		const nextSymbols = new Set<string>();
+		this.symbolGroups.forEach((symbols) => {
+			symbols.forEach((symbol) => nextSymbols.add(symbol));
+		});
+
+		if (this.areSetsEqual(this.activeSymbols, nextSymbols)) {
+			return;
+		}
+
+		this.activeSymbols = nextSymbols;
+
+		if (this.activeSymbols.size === 0) {
+			this.disconnect();
+			return;
+		}
+
+		this.connect();
+		this.sendSubscription();
+	}
+
+	private areSetsEqual(a: Set<string>, b: Set<string>) {
+		if (a.size !== b.size) return false;
+		for (const item of a) {
+			if (!b.has(item)) return false;
+		}
+		return true;
 	}
 }
 

@@ -1,11 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/slices/authSlice";
 import { formatPrice, getInitials } from "../utils/formatPrice";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { binanceWebSocketService } from "../services/binanceWebSocket";
 
 const Header = () => {
 	const { t } = useTranslation();
@@ -15,6 +16,8 @@ const Header = () => {
 	const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 	const { portfolio } = useAppSelector((state) => state.portfolio);
 	const { assets } = useAppSelector((state) => state.assets);
+	const [priceTick, setPriceTick] = useState(0);
+	const wsSourceId = `header-ws-${useId()}`;
 
 	const handleLogout = () => {
 		dispatch(logout());
@@ -22,17 +25,49 @@ const Header = () => {
 	};
 
 	const cashBalance = portfolio?.balance || user?.balance || 0;
+	const portfolioSymbols = useMemo(() => {
+		if (!portfolio) return [];
+		return portfolio.assets.map((asset) => asset.asset_symbol);
+	}, [portfolio]);
+
+	useEffect(() => {
+		if (portfolioSymbols.length === 0) {
+			binanceWebSocketService.clearSymbols(wsSourceId);
+			return;
+		}
+		binanceWebSocketService.updateSymbols(portfolioSymbols, wsSourceId);
+		return () => {
+			binanceWebSocketService.clearSymbols(wsSourceId);
+		};
+	}, [portfolioSymbols, wsSourceId]);
+
+	useEffect(() => {
+		const handlePriceUpdate = () => {
+			setPriceTick((tick) => tick + 1);
+		};
+
+		binanceWebSocketService.subscribe(handlePriceUpdate);
+		return () => {
+			binanceWebSocketService.unsubscribe(handlePriceUpdate);
+		};
+	}, []);
+
 	const holdingsValue = useMemo(() => {
 		if (!portfolio) return 0;
+		void priceTick;
 
 		return portfolio.assets.reduce((sum, portfolioAsset) => {
 			const assetData = assets.find(
 				(asset) => asset.symbol === portfolioAsset.asset_symbol,
 			);
-			const price = assetData?.price || assetData?.current_price || 0;
+			const livePrice = binanceWebSocketService.getPrice(
+				portfolioAsset.asset_symbol,
+			);
+			const price =
+				livePrice ?? assetData?.price ?? assetData?.current_price ?? 0;
 			return sum + portfolioAsset.amount * price;
 		}, 0);
-	}, [portfolio, assets]);
+	}, [portfolio, assets, priceTick]);
 	const totalBalance = cashBalance + holdingsValue;
 	const userInitials = user?.username ? getInitials(user.username) : "U";
 	const pageLabel = useMemo(() => {
