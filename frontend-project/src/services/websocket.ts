@@ -24,7 +24,11 @@ class WebSocketService {
 			this.ws.onmessage = (event) => {
 				try {
 					const data = JSON.parse(event.data);
-					if (data.type === "price" && data.symbol && data.price) {
+					if (
+						(data.type === "PRICE_UPDATE" || data.type === "price") &&
+						data.symbol &&
+						data.price
+					) {
 						this.callbacks.forEach((callback) => callback(data));
 					}
 				} catch (error) {

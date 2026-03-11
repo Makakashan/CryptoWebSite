@@ -10,35 +10,33 @@ class BinanceWebSocketService {
 	private prices: Map<string, number> = new Map();
 	private throttleTimers: Map<string, NodeJS.Timeout> = new Map();
 	private readonly throttleDelay = 1000; // Update UI at most once per second
+	private readonly wsUrl = "ws://localhost:3000";
 
-	connect(symbols: string[]) {
-		if (this.ws?.readyState === WebSocket.OPEN) {
+	connect() {
+		if (
+			this.ws?.readyState === WebSocket.OPEN ||
+			this.ws?.readyState === WebSocket.CONNECTING
+		) {
 			return;
 		}
 
-		// Convert symbols to Binance WebSocket format (lowercase)
-		const streams = symbols
-			.map((symbol) => `${symbol.toLowerCase()}@ticker`)
-			.join("/");
-
-		const wsUrl = `wss://stream.binance.com:9443/stream?streams=${streams}`;
-
 		try {
-			this.ws = new WebSocket(wsUrl);
+			this.ws = new WebSocket(this.wsUrl);
 
 			this.ws.onopen = () => {
 				this.reconnectAttempts = 0;
-				symbols.forEach((s) => this.subscribedSymbols.add(s));
+				this.sendSubscription();
 			};
 
 			this.ws.onmessage = (event) => {
 				try {
 					const data = JSON.parse(event.data);
 
-					if (data.stream && data.data) {
-						const ticker = data.data;
-						const symbol = ticker.s; // Symbol in uppercase (e.g., "BTCUSDT")
-						const price = parseFloat(ticker.c); // Current price
+					if (data.type === "PRICE_UPDATE" && data.symbol && data.price) {
+						const symbol = data.symbol;
+						const price = parseFloat(data.price);
+
+						if (!Number.isFinite(price)) return;
 
 						// Always update internal price map immediately
 						this.prices.set(symbol, price);
@@ -61,7 +59,7 @@ class BinanceWebSocketService {
 				if (this.reconnectAttempts < this.maxReconnectAttempts) {
 					this.reconnectAttempts++;
 					setTimeout(() => {
-						this.connect(Array.from(this.subscribedSymbols));
+						this.connect();
 					}, this.reconnectDelay * this.reconnectAttempts);
 				}
 			};
@@ -74,7 +72,6 @@ class BinanceWebSocketService {
 		if (this.ws) {
 			this.ws.close();
 			this.ws = null;
-			this.subscribedSymbols.clear();
 			this.prices.clear();
 			// Clear all throttle timers
 			this.throttleTimers.forEach((timer) => clearTimeout(timer));
@@ -117,11 +114,28 @@ class BinanceWebSocketService {
 	}
 
 	updateSymbols(symbols: string[]) {
-		this.disconnect();
+		this.subscribedSymbols = new Set(symbols);
 
-		if (symbols.length > 0) {
-			this.connect(symbols);
+		if (symbols.length === 0) {
+			this.disconnect();
+			return;
 		}
+
+		this.connect();
+		this.sendSubscription();
+	}
+
+	private sendSubscription() {
+		if (this.ws?.readyState !== WebSocket.OPEN) {
+			return;
+		}
+
+		this.ws.send(
+			JSON.stringify({
+				type: "SUBSCRIBE",
+				symbols: Array.from(this.subscribedSymbols),
+			}),
+		);
 	}
 }
 

@@ -26,7 +26,7 @@ const Markets = () => {
 	const { assets, isLoading, error, filters, pagination, chartData } =
 		useAppSelector((state) => state.assets);
 
-	// Use Binance WebSocket for real-time price updates
+	// Use backend WebSocket for real-time price updates
 	const symbols = useMemo(() => assets.map((asset) => asset.symbol), [assets]);
 	useBinanceWebSocket({ symbols, enabled: assets.length > 0 });
 

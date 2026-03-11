@@ -14,6 +14,7 @@ export const useBinanceWebSocket = ({
 
 	useEffect(() => {
 		if (!enabled || symbolsKey.length === 0) {
+			binanceWebSocketService.updateSymbols([]);
 			return;
 		}
 		const normalizedSymbols = symbolsKey.split(",");
@@ -37,6 +38,7 @@ export const useBinanceWebSocket = ({
 
 		return () => {
 			binanceWebSocketService.unsubscribe(handlePriceUpdate);
+			binanceWebSocketService.updateSymbols([]);
 		};
 	}, [symbolsKey, enabled, dispatch]);
 
