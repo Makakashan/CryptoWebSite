@@ -3,17 +3,11 @@ import axios from "axios";
 import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { getCurrentPrice } from "../services/priceService.js";
-import { AuthRequest } from "../types/types.js";
+import { AuthRequest, FearGreedData } from "../types/types.js";
 
 const router: Router = express.Router();
 const FEAR_GREED_URL = "https://api.alternative.me/fng/?limit=1";
 const FEAR_GREED_CACHE_TTL_MS = 10 * 60 * 1000;
-
-type FearGreedData = {
-	value: number;
-	classification: string;
-	timestamp: number;
-};
 
 let fearGreedCache: {
 	data: FearGreedData | null;

@@ -8,6 +8,7 @@ import {
 	CoinGeckoListItem,
 	CoinGeckoDetail,
 	BinanceKline,
+	ChartCacheEntry,
 } from "../types/types.js";
 import {
 	parsePagination,
@@ -26,11 +27,6 @@ import {
 const router: Router = express.Router();
 
 // In-memory cache for chart data
-interface ChartCacheEntry {
-	data: number[];
-	timestamp: number;
-}
-
 const chartCache = new Map<string, ChartCacheEntry>();
 const CHART_CACHE_TTL = 60000; // Cache for 60 seconds
 

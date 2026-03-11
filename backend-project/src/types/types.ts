@@ -107,6 +107,12 @@ export interface BinancePriceResponse {
 	price: string;
 }
 
+export interface FearGreedData {
+	value: number;
+	classification: string;
+	timestamp: number;
+}
+
 export type BinanceKline = [
 	number, // Open time
 	string, // Open
@@ -161,6 +167,11 @@ export interface AuthRequest extends Request {
 
 export interface PriceMap {
 	[symbol: string]: number;
+}
+
+export interface ChartCacheEntry {
+	data: number[];
+	timestamp: number;
 }
 
 export interface PairMap {
