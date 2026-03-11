@@ -24,6 +24,8 @@ export async function initializeDB(): Promise<DB> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
       password TEXT,
+      email TEXT,
+      google_id TEXT,
       balance REAL DEFAULT 10000.0,
       avatar TEXT DEFAULT NULL
     );
@@ -76,6 +78,30 @@ export async function initializeDB(): Promise<DB> {
 	} catch (error: any) {
 		if (!error.message.includes("duplicate column name")) {
 			console.error("Failed to add avatar column to users table:", error);
+		}
+	}
+
+	// Add google_id column to users table if it doesn't exist
+	try {
+		await db.exec(`
+      ALTER TABLE users ADD COLUMN google_id TEXT;
+    `);
+		console.log("Google ID column added to users table.");
+	} catch (error: any) {
+		if (!error.message.includes("duplicate column name")) {
+			console.error("Failed to add google_id column to users table:", error);
+		}
+	}
+
+	// Add email column to users table if it doesn't exist
+	try {
+		await db.exec(`
+      ALTER TABLE users ADD COLUMN email TEXT;
+    `);
+		console.log("Email column added to users table.");
+	} catch (error: any) {
+		if (!error.message.includes("duplicate column name")) {
+			console.error("Failed to add email column to users table:", error);
 		}
 	}
 

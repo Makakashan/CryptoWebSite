@@ -5,9 +5,11 @@ import sqlite3 from "sqlite3";
 export interface User {
 	id: number;
 	username: string;
-	password: string;
+	password: string | null;
 	balance: number;
 	avatar: string | null;
+	email?: string | null;
+	google_id?: string | null;
 }
 
 export interface PortfolioAsset {

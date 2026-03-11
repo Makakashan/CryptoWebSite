@@ -79,6 +79,18 @@ Default value:
 VITE_API_URL=http://localhost:3000/api
 ```
 
+Optional (for Google login):
+```
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+Backend (Google login verification):
+```
+GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+Create `backend-project/.env` if you want to store it locally.
+
 ## Project Structure
 
 ```

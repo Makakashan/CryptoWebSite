@@ -38,6 +38,30 @@ export const login = createAsyncThunk<
 	}
 });
 
+export const loginWithGoogle = createAsyncThunk<
+	User,
+	string,
+	{ rejectValue: string }
+>("auth/loginWithGoogle", async (credential, { rejectWithValue }) => {
+	try {
+		await authApi.googleLogin(credential);
+		const profile = await authApi.getProfile();
+		return {
+			id: profile.id,
+			username: profile.username,
+			balance: profile.balance,
+			avatar: profile.avatar,
+		};
+	} catch (error) {
+		if (error instanceof AxiosError) {
+			return rejectWithValue(
+				error.response?.data?.message || "Google login failed",
+			);
+		}
+		return rejectWithValue("Google login failed");
+	}
+});
+
 export const register = createAsyncThunk<
 	User,
 	RegisterRequest,
@@ -120,6 +144,21 @@ const authSlice = createSlice({
 			.addCase(login.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload || "Login failed";
+				state.isAuthenticated = false;
+			})
+			.addCase(loginWithGoogle.pending, (state) => {
+				state.isLoading = true;
+				state.error = null;
+			})
+			.addCase(loginWithGoogle.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.user = action.payload;
+				state.isAuthenticated = true;
+				state.error = null;
+			})
+			.addCase(loginWithGoogle.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.payload || "Google login failed";
 				state.isAuthenticated = false;
 			})
 			.addCase(register.pending, (state) => {

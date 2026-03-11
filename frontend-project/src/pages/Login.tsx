@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { login } from "../store/slices/authSlice";
+import { login, loginWithGoogle } from "../store/slices/authSlice";
 import api from "@/api/axiosConfig";
 import { Headset } from "lucide-react";
 import Button from "@/components/ui/button";
@@ -25,6 +25,10 @@ const Login = () => {
 	const navigate = useNavigate();
 	const { isLoading, error } = useAppSelector((state) => state.auth);
 	const [fearGreed, setFearGreed] = useState<string>("--");
+	const [googleReady, setGoogleReady] = useState(false);
+	const [googleLoading, setGoogleLoading] = useState(false);
+	const [googleError, setGoogleError] = useState<string | null>(null);
+	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 	useEffect(() => {
 		const fetchFearGreed = async () => {
@@ -42,6 +46,59 @@ const Login = () => {
 
 		fetchFearGreed();
 	}, []);
+
+	useEffect(() => {
+		if (!googleClientId) return;
+
+		const existingScript = document.getElementById("google-identity-script");
+		if (existingScript) {
+			setGoogleReady(true);
+			return;
+		}
+
+		const script = document.createElement("script");
+		script.id = "google-identity-script";
+		script.src = "https://accounts.google.com/gsi/client";
+		script.async = true;
+		script.defer = true;
+		script.onload = () => setGoogleReady(true);
+		script.onerror = () =>
+			setGoogleError("Failed to load Google Sign-In.");
+		document.body.appendChild(script);
+	}, [googleClientId]);
+
+	useEffect(() => {
+		if (!googleReady || !googleClientId || !window.google?.accounts?.id) {
+			return;
+		}
+
+		window.google.accounts.id.initialize({
+			client_id: googleClientId,
+			callback: async (response) => {
+				if (!response.credential) {
+					setGoogleError("Google login failed.");
+					return;
+				}
+				try {
+					setGoogleLoading(true);
+					setGoogleError(null);
+					await dispatch(loginWithGoogle(response.credential)).unwrap();
+					navigate("/");
+				} catch (loginError) {
+					const message =
+						typeof loginError === "string"
+							? loginError
+							: loginError instanceof Error
+								? loginError.message
+								: "Google login failed.";
+					setGoogleError(message);
+				} finally {
+					setGoogleLoading(false);
+				}
+			},
+		});
+
+	}, [dispatch, googleClientId, googleReady, navigate]);
 
 	const validationSchema = Yup.object({
 		username: Yup.string()
@@ -69,6 +126,41 @@ const Login = () => {
 
 	const chartCurve =
 		"M40 190 C120 160, 150 170, 220 145 C280 120, 320 130, 385 110 C450 92, 520 112, 590 90 C670 64, 720 78, 860 40";
+
+	const handleGoogleLogin = () => {
+		if (!googleClientId) {
+			setGoogleError("Google login is not configured.");
+			return;
+		}
+		if (!googleReady || !window.google?.accounts?.id) {
+			setGoogleError("Google Sign-In is still loading.");
+			return;
+		}
+		setGoogleError(null);
+		window.google.accounts.id.prompt((notification) => {
+			if (notification.isNotDisplayed()) {
+				const reason = notification.getNotDisplayedReason();
+				setGoogleError(
+					reason === "browser_not_supported"
+						? "Google Sign-In not supported in this browser."
+						: reason === "invalid_client"
+							? "Invalid Google Client ID."
+							: reason === "third_party_cookies_blocked"
+								? "Third-party cookies are blocked."
+								: reason === "origin_mismatch"
+									? "Origin mismatch. Check Google OAuth origins."
+									: "Google Sign-In not displayed.",
+				);
+			}
+			if (notification.isSkippedMoment()) {
+				setGoogleError("Google Sign-In was skipped.");
+			}
+			if (notification.isDismissedMoment()) {
+				setGoogleError("Google Sign-In was closed.");
+			}
+		});
+	};
+
 
 	return (
 		<div className="login-screen min-h-screen flex items-center justify-center p-5">
@@ -153,6 +245,7 @@ const Login = () => {
 						</CardHeader>
 						<CardContent>
 							{error && <div className="alert-error mb-4">{error}</div>}
+							{googleError && <div className="alert-error mb-4">{googleError}</div>}
 
 							<form onSubmit={formik.handleSubmit}>
 								<div className="flex flex-col gap-6">
@@ -211,8 +304,16 @@ const Login = () => {
 							>
 								{isLoading ? t("loading") : t("login")}
 							</Button>
-							<Button variant="outline" className="login-google w-full">
-								{t("loginWithGoogle")}
+							<Button
+								variant="outline"
+								className="login-google w-full"
+								onClick={handleGoogleLogin}
+								disabled={googleLoading || !googleClientId}
+							>
+								<span className="login-google-icon" aria-hidden="true">
+									G
+								</span>
+								{googleLoading ? t("loading") : t("loginWithGoogle")}
 							</Button>
 						</CardFooter>
 					</Card>
