@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -29,6 +29,8 @@ const Login = () => {
 	const [googleLoading, setGoogleLoading] = useState(false);
 	const [googleError, setGoogleError] = useState<string | null>(null);
 	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+	const googlePromptStartedRef = useRef(false);
+	const googleCredentialReceivedRef = useRef(false);
 
 	useEffect(() => {
 		const fetchFearGreed = async () => {
@@ -80,6 +82,7 @@ const Login = () => {
 					return;
 				}
 				try {
+					googleCredentialReceivedRef.current = true;
 					setGoogleLoading(true);
 					setGoogleError(null);
 					await dispatch(loginWithGoogle(response.credential)).unwrap();
@@ -137,7 +140,12 @@ const Login = () => {
 			return;
 		}
 		setGoogleError(null);
+		googlePromptStartedRef.current = true;
+		googleCredentialReceivedRef.current = false;
 		window.google.accounts.id.prompt((notification) => {
+			if (googleCredentialReceivedRef.current) {
+				return;
+			}
 			if (notification.isNotDisplayed()) {
 				const reason = notification.getNotDisplayedReason();
 				setGoogleError(
@@ -151,12 +159,19 @@ const Login = () => {
 									? "Origin mismatch. Check Google OAuth origins."
 									: "Google Sign-In not displayed.",
 				);
+				googlePromptStartedRef.current = false;
 			}
 			if (notification.isSkippedMoment()) {
-				setGoogleError("Google Sign-In was skipped.");
+				if (googlePromptStartedRef.current) {
+					setGoogleError("Google Sign-In was skipped.");
+					googlePromptStartedRef.current = false;
+				}
 			}
 			if (notification.isDismissedMoment()) {
-				setGoogleError("Google Sign-In was closed.");
+				if (googlePromptStartedRef.current) {
+					setGoogleError("Google Sign-In was closed.");
+					googlePromptStartedRef.current = false;
+				}
 			}
 		});
 	};
