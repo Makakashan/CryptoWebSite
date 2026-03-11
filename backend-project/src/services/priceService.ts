@@ -1,60 +1,115 @@
-import mqtt, { MqttClient } from "mqtt";
-import { PriceUpdateCallback, PriceMap } from "../types/types.js";
+import { getDB } from "../database.js";
+import {
+	BinancePriceResponse,
+	PriceUpdateCallback,
+	PriceMap,
+} from "../types/types.js";
+
+const PRICE_POLL_INTERVAL_MS = Number(
+	process.env.PRICE_POLL_INTERVAL_MS ?? 5000,
+);
 
 // In-memory store for current prices
 let curretPrices: PriceMap = {};
-const client: MqttClient = mqtt.connect("mqtt://test.mosquitto.org");
 
 // Callback to be invoked on price updates
 let onPriceUpdateCallback: PriceUpdateCallback | null = null;
+let pollTimer: NodeJS.Timeout | null = null;
+let isRefreshing = false;
 
-// Register message handler immediately
-client.on("message", (topic: string, message: Buffer) => {
+const normalizeSymbol = (symbol: string): string =>
+	symbol.replace(/USDT$/, "");
+
+async function refreshPrices(): Promise<void> {
+	if (isRefreshing) return;
+	isRefreshing = true;
+
 	try {
-		const symbol = topic.split("/").pop();
-		const data = JSON.parse(message.toString());
+		const db = getDB();
+		const assets = (await db.all(
+			"SELECT symbol FROM assets WHERE is_active = 1",
+		)) as { symbol: string }[];
 
-		if (symbol && data.price) {
-			curretPrices[symbol] = data.price;
+		if (!assets || assets.length === 0) {
+			return;
+		}
 
-			if (onPriceUpdateCallback) {
-				onPriceUpdateCallback(symbol, data.price);
+		const response = await fetch(
+			"https://api.binance.com/api/v3/ticker/price",
+		);
+
+		if (!response.ok) {
+			console.error(
+				"Failed to fetch prices from Binance:",
+				response.status,
+				response.statusText,
+			);
+			return;
+		}
+
+		const binancePrices = (await response.json()) as BinancePriceResponse[];
+		const priceMap = new Map(
+			binancePrices.map((item) => [item.symbol, item.price]),
+		);
+
+		let updated = 0;
+		for (const asset of assets) {
+			const binanceSymbol = asset.symbol.endsWith("USDT")
+				? asset.symbol
+				: `${asset.symbol}USDT`;
+			const priceString = priceMap.get(binanceSymbol);
+			if (!priceString) continue;
+
+			const price = Number.parseFloat(priceString);
+			if (!Number.isFinite(price)) continue;
+
+			const normalizedSymbol = normalizeSymbol(binanceSymbol);
+			const prevPrice = curretPrices[normalizedSymbol];
+			curretPrices[normalizedSymbol] = price;
+			updated++;
+
+			if (onPriceUpdateCallback && price !== prevPrice) {
+				onPriceUpdateCallback(normalizedSymbol, price);
 			}
 		}
-	} catch (error) {
-		console.error("Error parsing MQTT message:", error);
-	}
-});
 
-// Register connect handler immediately
-client.on("connect", () => {
-	console.log("Connected to MQTT broker for price updates");
-
-	client.subscribe("vacetmax/market/+", (err) => {
-		if (err) {
-			console.error("Failed to subscribe to market topic:", err);
-		} else {
-			console.log("Subscribed to vacetmax/market/+");
+		if (updated > 0) {
+			console.log(`Updated prices for ${updated} assets`);
 		}
-	});
-});
+	} catch (error) {
+		console.error("Price refresh error:", error);
+	} finally {
+		isRefreshing = false;
+	}
+}
 
-client.on("error", (error) => {
-	console.error("MQTT client error:", error);
-});
-
-// Connect to MQTT broker and subscribe to market price updates
+// Start polling Binance and emit price updates via callback
 export function connectToMarket(onPriceUpdate?: PriceUpdateCallback): void {
 	if (onPriceUpdate) {
 		onPriceUpdateCallback = onPriceUpdate;
 		console.log("Price update callback registered");
 	}
+
+	if (!pollTimer) {
+		console.log(
+			`Starting price polling from Binance every ${PRICE_POLL_INTERVAL_MS}ms`,
+		);
+		refreshPrices().catch((error) =>
+			console.error("Initial price refresh failed:", error),
+		);
+		pollTimer = setInterval(() => {
+			refreshPrices().catch((error) =>
+				console.error("Price refresh failed:", error),
+			);
+		}, PRICE_POLL_INTERVAL_MS);
+	}
 }
 
 export function getCurrentPrice(symbol: string): number {
-	const price = curretPrices[symbol] || 0;
+	const normalizedSymbol = normalizeSymbol(symbol);
+	const price = curretPrices[normalizedSymbol] || 0;
 	if (price === 0) {
-		console.log(`No price available for ${symbol}`);
+		console.log(`No price available for ${normalizedSymbol}`);
 	}
 	return price;
 }

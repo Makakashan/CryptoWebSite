@@ -87,7 +87,7 @@ export const buildPaginationResponse = <T>(
 
 // Helper to convert Asset to AssetWithPrice
 export const assetToAssetWithPrice = (asset: Asset): AssetWithPrice => {
-	// Remove USDT suffix to match MQTT topic format (e.g., "BTCUSDT" -> "BTC")
+	// Remove USDT suffix to match cached price format (e.g., "BTCUSDT" -> "BTC")
 	const priceSymbol = asset.symbol.replace(/USDT$/, "");
 	return {
 		...asset,

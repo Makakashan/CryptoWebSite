@@ -166,7 +166,7 @@ router.post(
 		const priceSymbol = asset_symbol.replace(/USDT$/, "");
 		let price = getCurrentPrice(priceSymbol);
 
-		// If price not available from MQTT, fetch directly from Binance
+		// If price not available in cache, fetch directly from Binance
 		if (!price || price <= 0) {
 			try {
 				console.log(

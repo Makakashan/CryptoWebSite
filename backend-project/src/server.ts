@@ -51,13 +51,12 @@ wss.on("connection", (ws: WebSocket) => {
 	ws.send(JSON.stringify({ message: "Welcome to MakakaTrade" }));
 });
 
-connectToMarket((symbol: string, price: number) => {
-	broadcastPrice(symbol, price);
-});
-
 // Start the server after initializing the database
 initializeDB()
 	.then(() => {
+		connectToMarket((symbol: string, price: number) => {
+			broadcastPrice(symbol, price);
+		});
 		server.listen(PORT, () => {
 			console.log(`Server is running on http://localhost:${PORT}`);
 		});
