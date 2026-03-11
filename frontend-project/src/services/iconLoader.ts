@@ -1,12 +1,8 @@
 import { CACHE_KEYS, API_DELAYS, BATCH_SIZES } from "../constants";
+import type { CachedIcon } from "../store/types";
 
 const CRYPTOCOMPARE_BASE_URL = "https://www.cryptocompare.com";
 const CACHE_EXPIRY_DAYS = 30;
-
-interface CachedIcon {
-	url: string;
-	timestamp: number;
-}
 
 class IconLoaderService {
 	private pendingRequests: Map<string, Promise<string | null>> = new Map();

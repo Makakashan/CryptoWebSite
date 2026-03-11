@@ -39,3 +39,12 @@ export interface OrdersState {
 	filters: OrdersFilters;
 	pagination: PaginationInfo | null;
 }
+
+export interface OrdersResponse {
+	data: Order[];
+	pagination?: PaginationInfo;
+	sorting?: {
+		sortBy: string;
+		sortOrder: string;
+	};
+}

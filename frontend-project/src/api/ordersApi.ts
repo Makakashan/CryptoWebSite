@@ -4,21 +4,8 @@ import type {
 	PlaceOrderRequest,
 	PaginationInfo,
 	OrdersFilters,
+	OrdersResponse,
 } from "../store/types";
-
-interface OrdersResponse {
-	data: Order[];
-	pagination?: {
-		page: number;
-		limit: number;
-		total: number;
-		totalPages: number;
-	};
-	sorting?: {
-		sortBy: string;
-		sortOrder: string;
-	};
-}
 
 export const ordersApi = {
 	getOrders: async (

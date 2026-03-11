@@ -2,11 +2,7 @@ import { useEffect, useRef } from "react";
 import { useAppDispatch } from "../store/hooks";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { updateAssetPrice } from "../store/slices/assetsSlice";
-
-interface UseBinanceWebSocketProps {
-	symbols: string[];
-	enabled?: boolean;
-}
+import type { UseBinanceWebSocketProps } from "../store/types";
 
 export const useBinanceWebSocket = ({
 	symbols,

@@ -1,9 +1,9 @@
 // WebSocket service for real-time price updates
-type PriceUpdateCallback = (data: { symbol: string; price: number }) => void;
+import type { WebSocketPriceUpdateCallback } from "../store/types";
 
 class WebSocketService {
 	private ws: WebSocket | null = null;
-	private callbacks: PriceUpdateCallback[] = [];
+	private callbacks: WebSocketPriceUpdateCallback[] = [];
 	private reconnectInterval = 5000;
 	private reconnectAttempts = 0;
 	private maxReconnectAttempts = 5;
@@ -54,11 +54,11 @@ class WebSocketService {
 		}
 	}
 
-	subscribe(callback: PriceUpdateCallback) {
+	subscribe(callback: WebSocketPriceUpdateCallback) {
 		this.callbacks.push(callback);
 	}
 
-	unsubscribe(callback: PriceUpdateCallback) {
+	unsubscribe(callback: WebSocketPriceUpdateCallback) {
 		this.callbacks = this.callbacks.filter((cb) => cb !== callback);
 	}
 

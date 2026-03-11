@@ -1,8 +1,8 @@
-type PriceUpdateCallback = (symbol: string, price: number) => void;
+import type { BinancePriceUpdateCallback } from "../store/types";
 
 class BinanceWebSocketService {
 	private ws: WebSocket | null = null;
-	private subscribers: Set<PriceUpdateCallback> = new Set();
+	private subscribers: Set<BinancePriceUpdateCallback> = new Set();
 	private reconnectAttempts = 0;
 	private maxReconnectAttempts = 5;
 	private reconnectDelay = 3000;
@@ -100,11 +100,11 @@ class BinanceWebSocketService {
 		this.throttleTimers.set(symbol, timer);
 	}
 
-	subscribe(callback: PriceUpdateCallback) {
+	subscribe(callback: BinancePriceUpdateCallback) {
 		this.subscribers.add(callback);
 	}
 
-	unsubscribe(callback: PriceUpdateCallback) {
+	unsubscribe(callback: BinancePriceUpdateCallback) {
 		this.subscribers.delete(callback);
 	}
 

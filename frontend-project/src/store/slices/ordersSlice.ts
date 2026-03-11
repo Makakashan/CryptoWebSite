@@ -10,13 +10,8 @@ import type {
 	PlaceOrderRequest,
 	OrdersState,
 	OrdersFilters,
-	PaginationInfo,
+	OrdersResponse,
 } from "../types";
-
-interface OrdersResponse {
-	data: Order[];
-	pagination?: PaginationInfo;
-}
 
 const initialState: OrdersState = {
 	orders: [],
