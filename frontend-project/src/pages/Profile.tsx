@@ -20,7 +20,7 @@ const Profile = () => {
 	useEffect(() => {
 		if (!user) return;
 		setAvatar(user.avatar || null);
-	}, [user?.avatar, user?.id]);
+	}, [user]);
 
 	const handleAvatarChange = async (newAvatar: string | null) => {
 		setAvatar(newAvatar);

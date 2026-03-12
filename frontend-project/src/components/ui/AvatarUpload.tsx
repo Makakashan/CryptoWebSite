@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { AvatarUploadProps } from "@/store/types";
 import { UPLOAD_LIMITS, UPLOAD_ERRORS } from "@/constants/upload";
@@ -10,14 +10,10 @@ export function AvatarUpload({
 	onAvatarChange,
 	size = "lg",
 }: AvatarUploadProps) {
-	const [preview, setPreview] = useState<string | null>(currentAvatar || null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const sizeClass = `avatar-${size}`;
-
-	useEffect(() => {
-		setPreview(currentAvatar || null);
-	}, [currentAvatar]);
+	const preview = currentAvatar || null;
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -38,14 +34,12 @@ export function AvatarUpload({
 		const reader = new FileReader();
 		reader.onloadend = () => {
 			const base64String = reader.result as string;
-			setPreview(base64String);
 			onAvatarChange(base64String);
 		};
 		reader.readAsDataURL(file);
 	};
 
 	const handleRemove = () => {
-		setPreview(null);
 		onAvatarChange(null);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
