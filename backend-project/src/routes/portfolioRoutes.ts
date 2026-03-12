@@ -2,6 +2,7 @@ import express, { Router, Response } from "express";
 import { getDB } from "../database.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { AuthRequest, User, PortfolioAsset } from "../types/types.js";
+import { resolveAvatarDataUrl } from "../utils/avatar.js";
 
 // Create a router for portfolio routes
 const router: Router = express.Router();
@@ -25,6 +26,14 @@ router.get(
 				return;
 			}
 
+			const resolvedAvatar = await resolveAvatarDataUrl(user.avatar);
+			if (resolvedAvatar && resolvedAvatar !== user.avatar) {
+				await db.run("UPDATE users SET avatar = ? WHERE id = ?", [
+					resolvedAvatar,
+					userId,
+				]);
+			}
+
 			const assets = await db.all(
 				"SELECT asset_symbol, amount FROM portfolio WHERE user_id = ?",
 				[userId],
@@ -34,7 +43,7 @@ router.get(
 				id: userId,
 				username: req.user!.username,
 				balance: user.balance,
-				avatar: user.avatar,
+				avatar: resolvedAvatar,
 				assets: assets,
 			});
 		} catch (error) {

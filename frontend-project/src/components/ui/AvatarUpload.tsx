@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { AvatarUploadProps } from "@/store/types";
 import { UPLOAD_LIMITS, UPLOAD_ERRORS } from "@/constants/upload";
@@ -14,6 +14,10 @@ export function AvatarUpload({
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const sizeClass = `avatar-${size}`;
+
+	useEffect(() => {
+		setPreview(currentAvatar || null);
+	}, [currentAvatar]);
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];

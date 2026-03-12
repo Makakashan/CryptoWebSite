@@ -5,6 +5,7 @@ import { OAuth2Client } from "google-auth-library";
 import { getDB } from "../database.js";
 import { SECRET_KEY } from "../config/secret.js";
 import { DB, User } from "../types/types.js";
+import { resolveAvatarDataUrl } from "../utils/avatar.js";
 
 // Create a router for authentication routes
 const router: Router = express.Router();
@@ -40,6 +41,7 @@ const buildUniqueUsername = async (db: DB, base: string): Promise<string> => {
 		suffix += 1;
 	}
 };
+
 
 // User Registration Endpoint
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
@@ -168,7 +170,7 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 
 		const googleId = payload.sub;
 		const email = payload.email || null;
-		const avatar = payload.picture || null;
+		const avatar = await resolveAvatarDataUrl(payload.picture || null);
 		const baseUsername =
 			(email ? email.split("@")[0] : payload.name) ||
 			`user_${googleId.slice(0, 6)}`;

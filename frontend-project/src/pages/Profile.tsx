@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AvatarUpload } from "../components/ui/AvatarUpload";
@@ -16,6 +16,11 @@ const Profile = () => {
 		type: "success" | "error";
 		text: string;
 	} | null>(null);
+
+	useEffect(() => {
+		if (!user) return;
+		setAvatar(user.avatar || null);
+	}, [user?.avatar, user?.id]);
 
 	const handleAvatarChange = async (newAvatar: string | null) => {
 		setAvatar(newAvatar);
