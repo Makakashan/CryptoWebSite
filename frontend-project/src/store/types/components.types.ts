@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import type { Asset } from "../types";
 
 export type AvatarSize = "sm" | "md" | "lg";
@@ -18,4 +19,10 @@ export interface AssetCardProps {
 export interface MiniChartProps {
 	data: number[];
 	color: string;
+}
+
+export interface SidebarNavItem {
+	to: string;
+	label: string;
+	icon: ComponentType<{ className?: string }>;
 }
