@@ -65,6 +65,12 @@ export const en = {
 	saveChanges: "Save Changes",
 	deleting: "Deleting...",
 
+	// Sidebar
+	sidebar: {
+		brand: "MakakaTrade",
+		tagline: "Trade smarter with clarity",
+	},
+
 	// Dashboard
 	totalBalance: "Total Balance",
 	cashBalance: "Cash Balance",
@@ -84,6 +90,15 @@ export const en = {
 	topMovers: "Top movers",
 	strongest24hMove: "Assets with the strongest 24h move",
 	noMarketDataYet: "No market data yet.",
+	balanceTrend: "Balance Trend",
+	lastNTrades: "Last {count} trades",
+	balanceOverTime: "Balance over time",
+	balanceOverTimeDescription:
+		"Last 7 days, reconstructed from your trades and current prices",
+	details: "Details",
+	shortcutsForNextMove: "Shortcuts for your next move",
+	addMoreTradesToBuildChart:
+		"Add more trades to build your balance trend chart.",
 
 	// Markets
 	allAssets: "All Assets",

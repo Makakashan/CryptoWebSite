@@ -65,6 +65,12 @@ export const pl = {
 	saveChanges: "Zapisz zmiany",
 	deleting: "Usuwanie...",
 
+	// Sidebar
+	sidebar: {
+		brand: "MakakaTrade",
+		tagline: "Handluj mądzej i czytelniej",
+	},
+
 	// Panel główny
 	totalBalance: "Całkowite saldo",
 	cashBalance: "Saldo gotówkowe",
@@ -85,6 +91,15 @@ export const pl = {
 	topMovers: "Największe ruchy",
 	strongest24hMove: "Aktywa z najsilniejszym ruchem 24h",
 	noMarketDataYet: "Brak danych rynkowych.",
+	balanceTrend: "Trend salda",
+	lastNTrades: "Ostatnie {count} transakcji",
+	balanceOverTime: "Saldo w czasie",
+	balanceOverTimeDescription:
+		"Ostatnie 7 dni, odtworzono na podstawie transakcji i aktualnych cen",
+	details: "Szczegóły",
+	shortcutsForNextMove: "Szybkie akcje dla następnego ruchu",
+	addMoreTradesToBuildChart:
+		"Dodaj więcej transakcji, aby zbudować wykres trendu salda.",
 
 	// Rynki
 	allAssets: "Wszystkie aktywa",

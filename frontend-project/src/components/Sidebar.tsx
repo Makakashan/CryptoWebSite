@@ -23,7 +23,7 @@ const Sidebar = () => {
 		{ to: "/portfolio", label: t("portfolio"), icon: FiBriefcase },
 		{ to: "/orders", label: t("orders"), icon: FiShoppingCart },
 		{ to: "/statistics", label: t("statistics"), icon: FiBarChart2 },
-		{ to: "/profile", label: t("Profile"), icon: FiUser },
+		{ to: "/profile", label: t("profile"), icon: FiUser },
 	];
 
 	return (
@@ -119,10 +119,12 @@ const Sidebar = () => {
 				<footer className="mt-4 border-t border-white/10 px-2 pt-4">
 					<div className="rounded-xl border border-yellow-200/15 bg-linear-to-r from-yellow-300/8 to-red-400/8 p-3 text-xs text-slate-300/80">
 						<div className="mb-1 text-[11px] uppercase tracking-[0.14em] text-yellow-200/75">
-							MakakaTrade
+							{t("sidebar.brand", { defaultValue: "MakakaTrade" })}
 						</div>
 						<div className="text-sm font-medium text-slate-100">
-							Trade smarter with clarity
+							{t("sidebar.tagline", {
+								defaultValue: "Trade smarter with clarity",
+							})}
 						</div>
 					</div>
 				</footer>

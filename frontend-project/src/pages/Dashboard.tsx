@@ -345,7 +345,7 @@ const Dashboard = () => {
 
 				<Card>
 					<CardHeader className="pb-2">
-						<CardDescription>Balance trend</CardDescription>
+						<CardDescription>{t("balanceTrend")}</CardDescription>
 						<CardTitle
 							className={`text-2xl ${balanceChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}
 						>
@@ -356,7 +356,9 @@ const Dashboard = () => {
 					<CardContent>
 						<p className="text-xs text-text-secondary flex items-center gap-2">
 							<TrendingUp className="w-3.5 h-3.5" />
-							Last {Math.max(balanceHistory.length, 1)} trades
+							{t("lastNTrades", {
+								count: Math.max(balanceHistory.length, 1),
+							})}
 						</p>
 					</CardContent>
 				</Card>
@@ -365,10 +367,11 @@ const Dashboard = () => {
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 				<Card className="xl:col-span-2">
 					<CardHeader>
-						<CardTitle className="text-xl">Balance over time</CardTitle>
+						<CardTitle className="text-xl">
+							{t("balanceOverTime")}
+						</CardTitle>
 						<CardDescription>
-							Last 7 days, reconstructed from your trades and current
-							prices
+							{t("balanceOverTimeDescription")}
 						</CardDescription>
 						<CardAction>
 							<Button
@@ -376,7 +379,7 @@ const Dashboard = () => {
 								size="sm"
 								onClick={() => navigate("/statistics")}
 							>
-								Details
+								{t("details")}
 							</Button>
 						</CardAction>
 					</CardHeader>
@@ -452,7 +455,7 @@ const Dashboard = () => {
 											}
 											formatter={(value) => [
 												formatPrice(Number(value)),
-												"Balance",
+												t("balance"),
 											]}
 											contentStyle={{
 												backgroundColor: "#1a1d23",
@@ -472,7 +475,7 @@ const Dashboard = () => {
 							</div>
 						) : (
 							<div className="h-75 flex items-center justify-center text-text-secondary text-sm">
-								Add more trades to build your balance trend chart.
+								{t("addMoreTradesToBuildChart")}
 							</div>
 						)}
 					</CardContent>
@@ -552,7 +555,7 @@ const Dashboard = () => {
 			<Card>
 				<CardHeader>
 					<CardTitle className="text-xl">{t("quickActions")}</CardTitle>
-					<CardDescription>Shortcuts for your next move</CardDescription>
+					<CardDescription>{t("shortcutsForNextMove")}</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-wrap gap-3">
 					<Button onClick={() => navigate("/markets")}>
