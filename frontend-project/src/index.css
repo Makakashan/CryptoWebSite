@@ -4,15 +4,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@keyframes fadeIn {
+@keyframes pageFadeIn {
     from {
         opacity: 0;
         transform: translateY(10px);
+        filter: blur(2px);
     }
     to {
         opacity: 1;
         transform: translateY(0);
+        filter: blur(0);
     }
+}
+
+.page-transition {
+    animation: pageFadeIn 260ms ease-out;
+    will-change: transform, opacity, filter;
 }
 
 @keyframes loginCardIn {
@@ -73,9 +80,21 @@
     position: relative;
     overflow: hidden;
     background:
-        radial-gradient(circle at 12% 10%, rgba(248, 113, 113, 0.18), transparent 32%),
-        radial-gradient(circle at 80% 24%, rgba(239, 68, 68, 0.14), transparent 34%),
-        radial-gradient(circle at 68% 92%, rgba(234, 179, 8, 0.13), transparent 38%),
+        radial-gradient(
+            circle at 12% 10%,
+            rgba(248, 113, 113, 0.18),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 80% 24%,
+            rgba(239, 68, 68, 0.14),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 68% 92%,
+            rgba(234, 179, 8, 0.13),
+            transparent 38%
+        ),
         linear-gradient(145deg, #04060a 0%, #09101a 52%, #0a1018 100%);
 }
 
@@ -110,7 +129,11 @@
     z-index: 1;
     border-color: rgba(255, 255, 255, 0.08) !important;
     background:
-        linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+        linear-gradient(
+            160deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(255, 255, 255, 0.015)
+        ),
         rgba(12, 16, 24, 0.84) !important;
     backdrop-filter: blur(16px);
     box-shadow:
@@ -259,7 +282,11 @@
     border-radius: 1.15rem;
     background:
         linear-gradient(180deg, rgba(12, 18, 30, 0.65), rgba(10, 16, 27, 0.35)),
-        radial-gradient(circle at 75% 2%, rgba(248, 113, 113, 0.18), transparent 38%);
+        radial-gradient(
+            circle at 75% 2%,
+            rgba(248, 113, 113, 0.18),
+            transparent 38%
+        );
     overflow: hidden;
     backdrop-filter: blur(10px);
     box-shadow:
@@ -416,7 +443,6 @@
     color: #1f2937;
 }
 
-
 @media (max-width: 767px) {
     .login-hero {
         margin-bottom: 0.25rem;
@@ -455,7 +481,6 @@
     .login-card {
         max-width: 34rem;
     }
-
 }
 
 @layer base {
@@ -549,7 +574,9 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
     background: #13161b;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-    transition: transform 0.25s ease, border-color 0.25s ease;
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease;
     position: relative;
     overflow: hidden;
 }
@@ -569,14 +596,30 @@
 
 .top-performer-card.is-positive::before {
     background:
-        radial-gradient(circle at 15% 20%, rgba(14, 203, 129, 0.45), transparent 55%),
-        radial-gradient(circle at 80% 80%, rgba(14, 203, 129, 0.2), transparent 60%);
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(14, 203, 129, 0.45),
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 80% 80%,
+            rgba(14, 203, 129, 0.2),
+            transparent 60%
+        );
 }
 
 .top-performer-card.is-negative::before {
     background:
-        radial-gradient(circle at 15% 20%, rgba(246, 70, 93, 0.45), transparent 55%),
-        radial-gradient(circle at 80% 80%, rgba(246, 70, 93, 0.2), transparent 60%);
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(246, 70, 93, 0.45),
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 80% 80%,
+            rgba(246, 70, 93, 0.2),
+            transparent 60%
+        );
 }
 
 .top-performer-card > * {
@@ -1087,7 +1130,11 @@
     inset: auto 1.25rem 0.85rem 1.25rem;
     height: 2px;
     border-radius: 999px;
-    background: linear-gradient(90deg, rgba(56, 97, 251, 0.2), rgba(56, 97, 251, 0.65));
+    background: linear-gradient(
+        90deg,
+        rgba(56, 97, 251, 0.2),
+        rgba(56, 97, 251, 0.65)
+    );
     opacity: 0.6;
 }
 
@@ -1120,8 +1167,16 @@
     inset: 1px;
     border-radius: 0.7rem;
     background:
-        radial-gradient(circle at 15% 15%, rgba(56, 97, 251, 0.14), transparent 55%),
-        radial-gradient(circle at 85% 85%, rgba(14, 203, 129, 0.08), transparent 60%);
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(56, 97, 251, 0.14),
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 85% 85%,
+            rgba(14, 203, 129, 0.08),
+            transparent 60%
+        );
     opacity: 0.6;
     pointer-events: none;
 }
@@ -1176,7 +1231,11 @@
     content: "";
     height: 1px;
     flex: 1;
-    background: linear-gradient(90deg, rgba(234, 236, 239, 0.2), rgba(234, 236, 239, 0.05));
+    background: linear-gradient(
+        90deg,
+        rgba(234, 236, 239, 0.2),
+        rgba(234, 236, 239, 0.05)
+    );
 }
 
 /* Form Label */

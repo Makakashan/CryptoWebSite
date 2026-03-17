@@ -2,8 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { fetchProfile } from "./store/slices/authSlice";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
+import AppLayout from "./components/AppLayout";
 
 // Lazy load all page components for code splitting
 const Markets = lazy(() => import("./pages/Markets"));
@@ -17,7 +16,6 @@ const AssetDetail = lazy(() => import("./pages/AssetDetail"));
 const AssetForm = lazy(() => import("./pages/AssetForm"));
 const Profile = lazy(() => import("./pages/Profile"));
 
-// Loading component
 const PageLoader = () => (
 	<div className="flex items-center justify-center min-h-100">
 		<div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin"></div>
@@ -36,10 +34,7 @@ const ProtectedRoutes = ({ children }: { children: React.ReactNode }) => {
 		);
 	}
 
-	if (!isAuthenticated) {
-		return <Navigate to="/login" replace />;
-	}
-
+	if (!isAuthenticated) return <Navigate to="/login" replace />;
 	return <>{children}</>;
 };
 
@@ -53,87 +48,46 @@ function App() {
 
 	return (
 		<BrowserRouter>
-			<Routes>
-				{/* Auth routes without sidebar */}
-				<Route
-					path="/login"
-					element={
-						isAuthenticated ? (
-							<Navigate to="/" replace />
-						) : (
-							<Suspense fallback={<PageLoader />}>
-								<Login />
-							</Suspense>
-						)
-					}
-				/>
-				<Route
-					path="/register"
-					element={
-						isAuthenticated ? (
-							<Navigate to="/" replace />
-						) : (
-							<Suspense fallback={<PageLoader />}>
+			<Suspense fallback={<PageLoader />}>
+				<Routes>
+					<Route
+						path="/login"
+						element={
+							isAuthenticated ? <Navigate to="/" replace /> : <Login />
+						}
+					/>
+					<Route
+						path="/register"
+						element={
+							isAuthenticated ? (
+								<Navigate to="/" replace />
+							) : (
 								<Register />
-							</Suspense>
-						)
-					}
-				/>
+							)
+						}
+					/>
 
-				{/* Main app routes with sidebar */}
-				<Route
-					path="/*"
-					element={
-						<ProtectedRoutes>
-							<div className="flex min-h-screen bg-bg-dark">
-								<Sidebar />
-								<div className="ml-sidebar flex-1 p-6 min-h-screen w-full">
-									<Header />
-									<Suspense fallback={<PageLoader />}>
-										<div className="page-transition">
-											<Routes>
-												<Route path="/" element={<Dashboard />} />
-												<Route
-													path="/markets"
-													element={<Markets />}
-												/>
-												<Route
-													path="/markets/add"
-													element={<AssetForm />}
-												/>
-												<Route
-													path="/markets/edit/:symbol"
-													element={<AssetForm />}
-												/>
-												<Route
-													path="/markets/:symbol"
-													element={<AssetDetail />}
-												/>
-												<Route
-													path="/portfolio"
-													element={<Portfolio />}
-												/>
-												<Route
-													path="/orders"
-													element={<Orders />}
-												/>
-												<Route
-													path="/statistics"
-													element={<Statistics />}
-												/>
-												<Route
-													path="/profile"
-													element={<Profile />}
-												/>
-											</Routes>
-										</div>
-									</Suspense>
-								</div>
-							</div>
-						</ProtectedRoutes>
-					}
-				/>
-			</Routes>
+					<Route
+						element={
+							<ProtectedRoutes>
+								<AppLayout />
+							</ProtectedRoutes>
+						}
+					>
+						<Route path="/" element={<Dashboard />} />
+						<Route path="/markets" element={<Markets />} />
+						<Route path="/markets/add" element={<AssetForm />} />
+						<Route path="/markets/edit/:symbol" element={<AssetForm />} />
+						<Route path="/markets/:symbol" element={<AssetDetail />} />
+						<Route path="/portfolio" element={<Portfolio />} />
+						<Route path="/orders" element={<Orders />} />
+						<Route path="/statistics" element={<Statistics />} />
+						<Route path="/profile" element={<Profile />} />
+					</Route>
+
+					<Route path="*" element={<Navigate to="/" replace />} />
+				</Routes>
+			</Suspense>
 		</BrowserRouter>
 	);
 }
