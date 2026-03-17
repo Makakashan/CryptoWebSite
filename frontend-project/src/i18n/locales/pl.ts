@@ -92,7 +92,7 @@ export const pl = {
 	strongest24hMove: "Aktywa z najsilniejszym ruchem 24h",
 	noMarketDataYet: "Brak danych rynkowych.",
 	balanceTrend: "Trend salda",
-	lastNTrades: "Ostatnie {count} transakcji",
+	lastNTrades: "Ostatnie {{count}} transakcji",
 	balanceOverTime: "Saldo w czasie",
 	balanceOverTimeDescription:
 		"Ostatnie 7 dni, odtworzono na podstawie transakcji i aktualnych cen",

@@ -91,7 +91,7 @@ export const en = {
 	strongest24hMove: "Assets with the strongest 24h move",
 	noMarketDataYet: "No market data yet.",
 	balanceTrend: "Balance Trend",
-	lastNTrades: "Last {count} trades",
+	lastNTrades: "Last {{count}} trades",
 	balanceOverTime: "Balance over time",
 	balanceOverTimeDescription:
 		"Last 7 days, reconstructed from your trades and current prices",
