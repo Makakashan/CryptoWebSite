@@ -17,7 +17,13 @@ import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { fetchOrders } from "../store/slices/ordersSlice";
 import { fetchAssets } from "../store/slices/assetsSlice";
 import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
+import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
+import type {
+	SortKey,
+	SortOrder,
+	AssetPnl,
+} from "../store/types/portfolio.types";
 import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import Card, {
@@ -27,17 +33,6 @@ import Card, {
 	CardTitle,
 } from "@/components/ui/card";
 import Button from "@/components/ui/button";
-
-type SortKey = "symbol" | "amount" | "value" | "pnl";
-type SortOrder = "asc" | "desc";
-
-type AssetPnl = {
-	invested: number;
-	realized: number;
-	currentAmount: number;
-	netProfit: number;
-	netProfitPercent: number;
-};
 
 const Portfolio = () => {
 	const { t } = useTranslation();
@@ -92,7 +87,6 @@ const Portfolio = () => {
 	useBinanceWebSocket({ symbols: wsSymbols, enabled: wsSymbols.length > 0 });
 
 	const pnlBySymbol = useMemo<Record<string, AssetPnl>>(() => {
-		// Weighted-average cost model from orders
 		const state: Record<
 			string,
 			{
@@ -115,7 +109,6 @@ const Portfolio = () => {
 				s.amount += qty;
 				s.cost += qty * px;
 			} else {
-				// SELL
 				const avgCost = s.amount > 0 ? s.cost / s.amount : 0;
 				const soldCost = avgCost * qty;
 				const proceeds = qty * px;
@@ -148,7 +141,10 @@ const Portfolio = () => {
 				(a) => a.symbol === portfolioAsset.asset_symbol,
 			);
 			const symbol = portfolioAsset.asset_symbol;
-			const currentPrice = assetData?.price || assetData?.current_price || 0;
+			const livePrice = binanceWebSocketService.getPrice(symbol);
+			const currentPrice =
+				livePrice ?? assetData?.price ?? assetData?.current_price ?? 0;
+
 			const value = portfolioAsset.amount * currentPrice;
 			const pnl = pnlBySymbol[symbol];
 
@@ -275,7 +271,6 @@ const Portfolio = () => {
 			</div>
 		);
 	}
-
 	if (error) {
 		return (
 			<div className="flex flex-col items-center justify-center p-14 text-center gap-4">
@@ -557,7 +552,7 @@ const Portfolio = () => {
 							<div className="overflow-x-auto rounded-xl border border-white/10 bg-white/2">
 								<table className="w-full border-collapse">
 									<thead>
-										<tr className="border-b border-white/10 bg-white/4]">
+										<tr className="border-b border-white/10 bg-white/4">
 											<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
 												{t("asset")}
 											</th>

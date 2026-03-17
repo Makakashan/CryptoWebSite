@@ -1,4 +1,7 @@
 // Portfolio Domain Types
+export type SortKey = "symbol" | "amount" | "value" | "pnl";
+
+export type SortOrder = "asc" | "desc";
 
 export interface PortfolioAsset {
 	asset_symbol: string;
@@ -21,3 +24,11 @@ export interface PortfolioState {
 	isLoading: boolean;
 	error: string | null;
 }
+
+export type AssetPnl = {
+	invested: number;
+	realized: number;
+	currentAmount: number;
+	netProfit: number;
+	netProfitPercent: number;
+};
