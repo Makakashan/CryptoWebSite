@@ -10,7 +10,7 @@ import {
 	TrendingUp,
 	TrendingDown,
 	ShieldAlert,
-	CircleDollarSign,
+	Coins,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
@@ -258,6 +258,9 @@ const Portfolio = () => {
 		setCurrentPage(page);
 	};
 
+	const summaryCardClassName =
+		"relative overflow-hidden border border-white/10 bg-[rgba(24,18,16,0.94)] shadow-[0_18px_44px_rgba(0,0,0,0.2)]";
+
 	if (isLoading) {
 		return (
 			<div className="space-y-6">
@@ -284,22 +287,33 @@ const Portfolio = () => {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-3xl font-bold text-text-primary">
-						{t("myPortfolio")}
-					</h1>
-					<p className="text-sm text-text-secondary">
-						Your command center for capital, allocation, and execution.
-					</p>
+			<div className="rounded-3xl bg-[rgba(18,18,18,0.92)] px-6 py-4 shadow-[0_18px_48px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+				<div
+					aria-hidden
+					className="pointer-events-none hidden"
+				>
 				</div>
-				<Button onClick={() => navigate("/markets")}>
-					{t("tradeAssets")}
-				</Button>
+				<div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+					<div className="max-w-2xl">
+						<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+							{t("myPortfolio")}
+						</h1>
+						<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+							Your command center for capital, allocation, and execution.
+						</p>
+					</div>
+					<Button
+						variant="outline"
+						className="shrink-0 self-start border-white/10 bg-white/3 text-text-primary hover:border-white/15 hover:bg-white/6 lg:self-center"
+						onClick={() => navigate("/markets")}
+					>
+						{t("tradeAssets")}
+					</Button>
+				</div>
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-				<Card className="relative overflow-hidden border border-white/10 bg-linear-to-br from-[#241512]/92 via-[#1a1412]/90 to-[#120f0d]/92">
+				<Card className={summaryCardClassName}>
 					<CardHeader className="pb-2">
 						<CardDescription>{t("totalValue")}</CardDescription>
 						<CardTitle className="text-2xl">
@@ -314,7 +328,7 @@ const Portfolio = () => {
 					</CardContent>
 				</Card>
 
-				<Card className="relative overflow-hidden border border-white/10 bg-linear-to-br from-[#241512]/92 via-[#1a1412]/90 to-[#120f0d]/92">
+				<Card className={summaryCardClassName}>
 					<CardHeader className="pb-2">
 						<CardDescription>{t("availableBalance")}</CardDescription>
 						<CardTitle className="text-2xl">
@@ -329,7 +343,7 @@ const Portfolio = () => {
 					</CardContent>
 				</Card>
 
-				<Card className="relative overflow-hidden border border-white/10 bg-linear-to-br from-[#241512]/92 via-[#1a1412]/90 to-[#120f0d]/92">
+				<Card className={summaryCardClassName}>
 					<CardHeader className="pb-2">
 						<CardDescription>{t("holdingsValue")}</CardDescription>
 						<CardTitle className="text-2xl">
@@ -344,7 +358,7 @@ const Portfolio = () => {
 					</CardContent>
 				</Card>
 
-				<Card className="relative overflow-hidden border border-white/10 bg-linear-to-br from-[#241512]/92 via-[#1a1412]/90 to-[#120f0d]/92">
+				<Card className={summaryCardClassName}>
 					<CardHeader className="pb-2">
 						<CardDescription>{t("totalAssets")}</CardDescription>
 						<CardTitle className="text-2xl">
@@ -517,7 +531,7 @@ const Portfolio = () => {
 
 						<div className="rounded-xl border border-white/10 bg-white/3 p-4">
 							<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-								<CircleDollarSign className="w-3.5 h-3.5 text-cyan-300" />
+								<Coins className="w-3.5 h-3.5 text-cyan-300" />
 								Cash ratio
 							</div>
 							<div className="text-sm font-semibold text-text-primary">
