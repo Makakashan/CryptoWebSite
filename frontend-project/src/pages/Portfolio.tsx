@@ -432,15 +432,34 @@ const Portfolio = () => {
 					<CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
 						<div className="rounded-xl border border-white/10 bg-white/3 p-4">
 							<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-								<TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+								<TrendingUp
+									className={`w-3.5 h-3.5 ${
+										bestPerformer &&
+										bestPerformer.netProfitPercent < 0
+											? "text-amber-300"
+											: "text-emerald-400"
+									}`}
+								/>
 								Best performer
+								{bestPerformer &&
+									bestPerformer.netProfitPercent < 0 && (
+										<span className="ml-1 inline-flex items-center rounded-full border border-amber-300/35 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+											Unusual
+										</span>
+									)}
 							</div>
 							<div className="text-sm font-semibold text-text-primary">
 								{bestPerformer
 									? bestPerformer.asset_symbol.replace("USDT", "")
 									: "-"}
 							</div>
-							<div className="text-xs text-emerald-400">
+							<div
+								className={`text-xs ${
+									bestPerformer && bestPerformer.netProfitPercent < 0
+										? "text-amber-300"
+										: "text-emerald-400"
+								}`}
+							>
 								{bestPerformer
 									? `${bestPerformer.netProfitPercent.toFixed(2)}%`
 									: "0.00%"}
@@ -449,15 +468,34 @@ const Portfolio = () => {
 
 						<div className="rounded-xl border border-white/10 bg-white/3 p-4">
 							<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-								<TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+								<TrendingDown
+									className={`w-3.5 h-3.5 ${
+										worstPerformer &&
+										worstPerformer.netProfitPercent > 0
+											? "text-amber-300"
+											: "text-rose-400"
+									}`}
+								/>
 								Worst performer
+								{worstPerformer &&
+									worstPerformer.netProfitPercent > 0 && (
+										<span className="ml-1 inline-flex items-center rounded-full border border-amber-300/35 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+											Unusual
+										</span>
+									)}
 							</div>
 							<div className="text-sm font-semibold text-text-primary">
 								{worstPerformer
 									? worstPerformer.asset_symbol.replace("USDT", "")
 									: "-"}
 							</div>
-							<div className="text-xs text-rose-400">
+							<div
+								className={`text-xs ${
+									worstPerformer && worstPerformer.netProfitPercent > 0
+										? "text-amber-300"
+										: "text-rose-400"
+								}`}
+							>
 								{worstPerformer
 									? `${worstPerformer.netProfitPercent.toFixed(2)}%`
 									: "0.00%"}
