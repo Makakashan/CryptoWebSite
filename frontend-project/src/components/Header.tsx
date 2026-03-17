@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMemo, useEffect, useState, useId } from "react";
 import { useTranslation } from "react-i18next";
+import { FiArrowUpRight } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/slices/authSlice";
 import { formatPrice, getInitials } from "../utils/formatPrice";
@@ -82,68 +83,85 @@ const Header = () => {
 	}, [location.pathname, t]);
 
 	return (
-		<div className="flex items-center justify-between card px-6 py-4 mb-6">
-			<div className="flex items-center gap-4">
+		<div className="relative mb-6 overflow-hidden rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] px-6 py-4 shadow-[0_24px_64px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+			<div
+				aria-hidden
+				className="pointer-events-none absolute inset-0 overflow-hidden"
+			>
+				<div className="absolute -left-16 top-0 h-32 w-32 rounded-full bg-yellow-300/10 blur-3xl" />
+				<div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-red-500/10 blur-3xl" />
+			</div>
+
+			<div className="relative z-10 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 				<button
-					className="flex items-center gap-3 text-left"
+					className="flex items-center gap-4 text-left"
 					onClick={() => navigate("/")}
 				>
-					<div className="w-10 h-10 rounded-xl bg-bg-hover/60 border border-bg-hover flex items-center justify-center">
-						<img src="/favicon.svg" alt="MakakaTrade" className="w-5 h-5" />
+					<div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-300/20 bg-[linear-gradient(135deg,rgba(250,204,21,0.12),rgba(239,68,68,0.12))] shadow-[0_0_24px_rgba(251,146,60,0.18)]">
+						<img src="/favicon.svg" alt="MakakaTrade" className="h-5 w-5" />
 					</div>
-					<div className="hidden sm:flex flex-col">
-						<span className="text-sm font-semibold text-text-primary">
+					<div className="flex flex-col">
+						<span className="text-base font-semibold text-text-primary">
 							MakakaTrade
 						</span>
-						<span className="text-xs text-text-secondary uppercase tracking-[0.2em]">
+						<span className="text-[11px] uppercase tracking-[0.24em] text-yellow-100/70">
 							{pageLabel}
 						</span>
 					</div>
 				</button>
-			</div>
-			<div className="flex items-center gap-4">
-				<LanguageSwitcher />
-				{isAuthenticated && user ? (
-					<>
-						<Avatar
-							className="avatar-sm cursor-pointer hover:opacity-80 transition-opacity"
-							onClick={() => navigate("/profile")}
-						>
-							{user.avatar ? (
-								<AvatarImage src={user.avatar} alt={user.username} />
-							) : (
-								<AvatarFallback className="bg-blue text-white font-semibold">
-									{userInitials}
-								</AvatarFallback>
-							)}
-						</Avatar>
-						<div className="flex flex-col items-end gap-1">
-							<span className="font-semibold text-text-primary text-sm">
-								{user.username}
-							</span>
-							<span className="text-base text-emerald-400 font-bold">
-								{formatPrice(totalBalance)}
-							</span>
-							<span className="text-[11px] text-text-secondary leading-none">
-								{t("cash")}: {formatPrice(cashBalance)} ·{" "}
-								{t("holdings")}: {formatPrice(holdingsValue)}
-							</span>
-						</div>
+
+				<div className="flex flex-wrap items-center justify-end gap-3">
+					<LanguageSwitcher />
+					{isAuthenticated && user ? (
+						<>
+							<div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-2.5">
+								<Avatar
+									className="avatar-sm cursor-pointer ring-1 ring-white/10 transition-opacity hover:opacity-80"
+									onClick={() => navigate("/profile")}
+								>
+									{user.avatar ? (
+										<AvatarImage src={user.avatar} alt={user.username} />
+									) : (
+										<AvatarFallback className="bg-blue text-white font-semibold">
+											{userInitials}
+										</AvatarFallback>
+									)}
+								</Avatar>
+								<div className="min-w-[140px]">
+									<div className="flex items-center gap-2">
+										<span className="text-sm font-semibold text-text-primary">
+											{user.username}
+										</span>
+										<span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">
+											USDT
+										</span>
+									</div>
+									<div className="text-base font-semibold text-emerald-400">
+										{formatPrice(totalBalance)}
+									</div>
+									<div className="text-[10px] leading-none text-text-secondary">
+										{t("cash")}: {formatPrice(cashBalance)} ·{" "}
+										{t("holdings")}: {formatPrice(holdingsValue)}
+									</div>
+								</div>
+							</div>
+							<button
+								className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/10 bg-white/4 px-4 text-sm font-semibold text-text-primary transition-all hover:border-red/35 hover:bg-red/10"
+								onClick={handleLogout}
+							>
+								{t("logout")}
+								<FiArrowUpRight className="text-sm opacity-70" />
+							</button>
+						</>
+					) : (
 						<button
-							className="btn-outline btn-small"
-							onClick={handleLogout}
+							className="btn-primary btn-small"
+							onClick={() => navigate("/login")}
 						>
-							{t("logout")}
+							{t("login")}
 						</button>
-					</>
-				) : (
-					<button
-						className="btn-primary btn-small"
-						onClick={() => navigate("/login")}
-					>
-						{t("login")}
-					</button>
-				)}
+					)}
+				</div>
 			</div>
 		</div>
 	);

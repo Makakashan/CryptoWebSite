@@ -1,12 +1,14 @@
 // Simple price formatting utilities
 
 export function formatPrice(price: number | undefined | null): string {
+	const currencySymbol = "₮";
+
 	if (price === undefined || price === null) {
-		return "$0.00";
+		return `${currencySymbol}0.00`;
 	}
 
 	if (price === 0) {
-		return "$0.00";
+		return `${currencySymbol}0.00`;
 	}
 
 	const isNegative = price < 0;
@@ -15,11 +17,11 @@ export function formatPrice(price: number | undefined | null): string {
 	let formatted = "";
 
 	if (absPrice >= 1) {
-		formatted = `$${absPrice.toFixed(2)}`;
+		formatted = `${currencySymbol}${absPrice.toFixed(2)}`;
 	} else if (absPrice >= 0.01) {
-		formatted = `$${absPrice.toFixed(4)}`;
+		formatted = `${currencySymbol}${absPrice.toFixed(4)}`;
 	} else {
-		formatted = `$${absPrice.toFixed(6)}`;
+		formatted = `${currencySymbol}${absPrice.toFixed(6)}`;
 	}
 
 	return isNegative ? `-${formatted}` : formatted;
