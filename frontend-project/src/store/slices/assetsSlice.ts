@@ -14,6 +14,14 @@ import type {
 	AssetsResponse,
 } from "../types/assets.types";
 
+type FetchChartDataParams =
+	| string[]
+	| {
+			symbols: string[];
+			interval?: string;
+			limit?: number;
+	  };
+
 const initialState: AssetsState = {
 	assets: [],
 	isLoading: false,
@@ -48,11 +56,16 @@ export const fetchAssets = createAsyncThunk<
 
 export const fetchChartData = createAsyncThunk<
 	Record<string, number[]>,
-	string[],
+	FetchChartDataParams,
 	{ rejectValue: string }
->("assets/fetchChartData", async (symbols, { rejectWithValue }) => {
+>("assets/fetchChartData", async (params, { rejectWithValue }) => {
 	try {
-		const response = await assetsApi.getChartData(symbols, "15m", 96);
+		const request = Array.isArray(params) ? { symbols: params } : params;
+		const response = await assetsApi.getChartData(
+			request.symbols,
+			request.interval ?? "15m",
+			request.limit ?? 96,
+		);
 		return response.data;
 	} catch (error) {
 		if (error instanceof AxiosError) {

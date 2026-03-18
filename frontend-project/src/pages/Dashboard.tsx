@@ -18,7 +18,7 @@ import {
 	Landmark,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { fetchAssets } from "../store/slices/assetsSlice";
+import { fetchAssets, fetchChartData } from "../store/slices/assetsSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { fetchOrders } from "../store/slices/ordersSlice";
 import { formatPrice } from "../utils/formatPrice";
@@ -33,16 +33,17 @@ import Button from "@/components/ui/button";
 import type { Order } from "../store/types/orders.types";
 
 type BalancePoint = {
-	tradeIndex: number;
 	ts: number;
 	label: string;
 	value: number;
-	assetSymbol: string;
-	orderType: "BUY" | "SELL";
 };
 
-const formatPointLabel = (isoTimestamp: string): string => {
-	const date = new Date(isoTimestamp);
+const BALANCE_HISTORY_INTERVAL = "1h";
+const BALANCE_HISTORY_LIMIT = 7 * 24;
+const BALANCE_HISTORY_STEP_MS = 60 * 60 * 1000;
+
+const formatPointLabel = (timestamp: number): string => {
+	const date = new Date(timestamp);
 	return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
 		.toString()
 		.padStart(2, "0")} ${date.getHours().toString().padStart(2, "0")}:${date
@@ -71,13 +72,78 @@ const calculateHoldingsValue = (
 	return total;
 };
 
+const applyOrderToState = (
+	holdings: Map<string, number>,
+	cash: number,
+	order: Order,
+	direction: "forward" | "rewind",
+): number => {
+	const totalAmount = order.amount * order.price_at_transaction;
+	const currentAmount = holdings.get(order.asset_symbol) || 0;
+
+	if (direction === "forward") {
+		if (order.order_type === "BUY") {
+			holdings.set(order.asset_symbol, currentAmount + order.amount);
+			return cash - totalAmount;
+		}
+
+		const nextAmount = Math.max(0, currentAmount - order.amount);
+		if (nextAmount > 0) {
+			holdings.set(order.asset_symbol, nextAmount);
+		} else {
+			holdings.delete(order.asset_symbol);
+		}
+		return cash + totalAmount;
+	}
+
+	if (order.order_type === "BUY") {
+		const nextAmount = Math.max(0, currentAmount - order.amount);
+		if (nextAmount > 0) {
+			holdings.set(order.asset_symbol, nextAmount);
+		} else {
+			holdings.delete(order.asset_symbol);
+		}
+		return cash + totalAmount;
+	}
+
+	holdings.set(order.asset_symbol, currentAmount + order.amount);
+	return cash - totalAmount;
+};
+
+const getHistoricalPrice = (
+	symbol: string,
+	pointIndex: number,
+	totalPoints: number,
+	historicalPrices: Record<string, number[]>,
+	currentPrices: Record<string, number>,
+): number => {
+	const series = historicalPrices[symbol];
+	const currentPrice = currentPrices[symbol] || 0;
+
+	if (!series || series.length === 0) {
+		return currentPrice;
+	}
+
+	if (pointIndex === totalPoints - 1 && currentPrice > 0) {
+		return currentPrice;
+	}
+
+	const mappedIndex =
+		totalPoints <= 1
+			? 0
+			: Math.round((pointIndex * (series.length - 1)) / (totalPoints - 1));
+
+	return series[mappedIndex] || currentPrice;
+};
+
 const buildBalanceHistory = (
 	orders: Order[],
 	currentPrices: Record<string, number>,
 	currentCashBalance: number,
 	currentHoldings: Map<string, number>,
+	historicalPrices: Record<string, number[]>,
 ): BalancePoint[] => {
-	if (orders.length === 0) {
+	if (orders.length === 0 && currentHoldings.size === 0) {
 		return [];
 	}
 
@@ -85,61 +151,60 @@ const buildBalanceHistory = (
 		(a, b) =>
 			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 	);
+	const endTime = Date.now();
+	const startTime =
+		endTime - (BALANCE_HISTORY_LIMIT - 1) * BALANCE_HISTORY_STEP_MS;
+	const ordersInRange = sortedOrdersAsc.filter(
+		(order) => new Date(order.timestamp).getTime() >= startTime,
+	);
 
-	// Start from current portfolio state, rewind all fetched trades,
-	// then replay trade-by-trade so the curve follows actual order sequence.
 	let cash = currentCashBalance;
 	const holdings = new Map<string, number>(currentHoldings);
-	const valuationPrices: Record<string, number> = { ...currentPrices };
 
-	for (let i = sortedOrdersAsc.length - 1; i >= 0; i--) {
-		const order = sortedOrdersAsc[i];
-		const amount = order.amount * order.price_at_transaction;
-		const currentAmount = holdings.get(order.asset_symbol) || 0;
-
-		if (order.order_type === "BUY") {
-			holdings.set(
-				order.asset_symbol,
-				Math.max(0, currentAmount - order.amount),
-			);
-			cash += amount;
-		} else {
-			holdings.set(order.asset_symbol, currentAmount + order.amount);
-			cash -= amount;
-		}
+	for (let index = ordersInRange.length - 1; index >= 0; index--) {
+		cash = applyOrderToState(holdings, cash, ordersInRange[index], "rewind");
 	}
 
+	const trackedSymbols = new Set<string>([
+		...currentHoldings.keys(),
+		...ordersInRange.map((order) => order.asset_symbol),
+	]);
 	const points: BalancePoint[] = [];
+	let orderIndex = 0;
 
-	sortedOrdersAsc.forEach((order, index) => {
-		const amount = order.amount * order.price_at_transaction;
-		const currentAmount = holdings.get(order.asset_symbol) || 0;
+	for (let pointIndex = 0; pointIndex < BALANCE_HISTORY_LIMIT; pointIndex++) {
+		const ts = startTime + pointIndex * BALANCE_HISTORY_STEP_MS;
 
-		if (order.order_type === "BUY") {
-			holdings.set(order.asset_symbol, currentAmount + order.amount);
-			cash -= amount;
-		} else {
-			holdings.set(
-				order.asset_symbol,
-				Math.max(0, currentAmount - order.amount),
-			);
-			cash += amount;
+		while (orderIndex < ordersInRange.length) {
+			const order = ordersInRange[orderIndex];
+			const orderTimestamp = new Date(order.timestamp).getTime();
+			if (orderTimestamp > ts) {
+				break;
+			}
+
+			cash = applyOrderToState(holdings, cash, order, "forward");
+			orderIndex += 1;
 		}
-		// Anchor valuation for traded asset to the transaction price at this point.
-		// This removes artificial jumps caused by valuing new holdings at "current" market price.
-		valuationPrices[order.asset_symbol] = order.price_at_transaction;
+
+		const valuationPrices: Record<string, number> = {};
+		trackedSymbols.forEach((symbol) => {
+			valuationPrices[symbol] = getHistoricalPrice(
+				symbol,
+				pointIndex,
+				BALANCE_HISTORY_LIMIT,
+				historicalPrices,
+				currentPrices,
+			);
+		});
 
 		points.push({
-			tradeIndex: index + 1,
-			ts: new Date(order.timestamp).getTime(),
-			label: formatPointLabel(order.timestamp),
+			ts,
+			label: formatPointLabel(ts),
 			value: cash + calculateHoldingsValue(holdings, valuationPrices),
-			assetSymbol: order.asset_symbol,
-			orderType: order.order_type,
 		});
-	});
+	}
 
-	return points.slice(-40);
+	return points;
 };
 
 const Dashboard = () => {
@@ -148,9 +213,11 @@ const Dashboard = () => {
 	const dispatch = useAppDispatch();
 
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
-	const { assets, isLoading: assetsLoading } = useAppSelector(
-		(state) => state.assets,
-	);
+	const {
+		assets,
+		isLoading: assetsLoading,
+		chartData,
+	} = useAppSelector((state) => state.assets);
 	const { portfolio, isLoading: portfolioLoading } = useAppSelector(
 		(state) => state.portfolio,
 	);
@@ -224,11 +291,49 @@ const Dashboard = () => {
 	const totalBalance = cashBalance + holdingsValue;
 
 	const recentOrders = useMemo(() => {
-		const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+		const sevenDaysAgo =
+			Date.now() - BALANCE_HISTORY_LIMIT * BALANCE_HISTORY_STEP_MS;
 		return orders.filter(
 			(order) => new Date(order.timestamp).getTime() >= sevenDaysAgo,
 		);
 	}, [orders]);
+
+	const balanceHistorySymbols = useMemo(() => {
+		if (!isAuthenticated) return [];
+
+		return Array.from(
+			new Set([
+				...(portfolio?.assets.map((asset) => asset.asset_symbol) ?? []),
+				...recentOrders.map((order) => order.asset_symbol),
+			]),
+		).slice(0, 50);
+	}, [isAuthenticated, portfolio, recentOrders]);
+
+	useEffect(() => {
+		if (balanceHistorySymbols.length === 0) {
+			return;
+		}
+
+		const symbolsToFetch = balanceHistorySymbols.filter(
+			(symbol) => !(symbol in chartData),
+		);
+
+		if (symbolsToFetch.length === 0) {
+			return;
+		}
+
+		dispatch(
+			fetchChartData({
+				symbols: symbolsToFetch,
+				interval: BALANCE_HISTORY_INTERVAL,
+				limit: BALANCE_HISTORY_LIMIT,
+			}),
+		);
+	}, [balanceHistorySymbols, chartData, dispatch]);
+
+	const isBalanceHistoryLoading =
+		balanceHistorySymbols.length > 0 &&
+		balanceHistorySymbols.some((symbol) => !(symbol in chartData));
 
 	const balanceHistory = useMemo(() => {
 		return buildBalanceHistory(
@@ -236,8 +341,9 @@ const Dashboard = () => {
 			priceMap,
 			cashBalance,
 			currentHoldings,
+			chartData,
 		);
-	}, [recentOrders, priceMap, cashBalance, currentHoldings]);
+	}, [recentOrders, priceMap, cashBalance, currentHoldings, chartData]);
 
 	const balanceChange = useMemo(() => {
 		if (balanceHistory.length < 2) return 0;
@@ -356,9 +462,7 @@ const Dashboard = () => {
 					<CardContent>
 						<p className="text-xs text-text-secondary flex items-center gap-2">
 							<TrendingUp className="w-3.5 h-3.5" />
-							{t("lastNTrades", {
-								count: Math.max(balanceHistory.length, 1),
-							})}
+							{t("last7DaysHourly")}
 						</p>
 					</CardContent>
 				</Card>
@@ -384,7 +488,7 @@ const Dashboard = () => {
 						</CardAction>
 					</CardHeader>
 					<CardContent>
-						{isLoading ? (
+						{isLoading || isBalanceHistoryLoading ? (
 							<div className="h-75 rounded-lg bg-bg-hover/40 animate-pulse" />
 						) : balanceHistory.length > 1 ? (
 							<div className="h-75">
@@ -453,9 +557,9 @@ const Dashboard = () => {
 													minute: "2-digit",
 												})
 											}
-											formatter={(value) => [
+											formatter={(value, _name, item) => [
 												formatPrice(Number(value)),
-												t("balance"),
+												item?.payload?.label || t("balance"),
 											]}
 											contentStyle={{
 												backgroundColor: "#1a1d23",

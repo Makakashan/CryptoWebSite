@@ -93,9 +93,10 @@ export const pl = {
 	noMarketDataYet: "Brak danych rynkowych.",
 	balanceTrend: "Trend salda",
 	lastNTrades: "Ostatnie {{count}} transakcji",
+	last7DaysHourly: "Ostatnie 7 dni co godzinę",
 	balanceOverTime: "Saldo w czasie",
 	balanceOverTimeDescription:
-		"Ostatnie 7 dni, odtworzono na podstawie transakcji i aktualnych cen",
+		"Ostatnie 7 dni, odtworzone na podstawie transakcji i godzinowych cen rynkowych",
 	details: "Szczegóły",
 	shortcutsForNextMove: "Szybkie akcje dla następnego ruchu",
 	addMoreTradesToBuildChart:

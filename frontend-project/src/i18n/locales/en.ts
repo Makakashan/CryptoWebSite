@@ -92,9 +92,10 @@ export const en = {
 	noMarketDataYet: "No market data yet.",
 	balanceTrend: "Balance Trend",
 	lastNTrades: "Last {{count}} trades",
+	last7DaysHourly: "Last 7 days hourly",
 	balanceOverTime: "Balance over time",
 	balanceOverTimeDescription:
-		"Last 7 days, reconstructed from your trades and current prices",
+		"Last 7 days, reconstructed from your trades and hourly market prices",
 	details: "Details",
 	shortcutsForNextMove: "Shortcuts for your next move",
 	addMoreTradesToBuildChart:
