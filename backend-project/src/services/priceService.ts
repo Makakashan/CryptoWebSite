@@ -33,6 +33,10 @@ const missingPriceFirstSeen = new Map<string, number>();
 const BASE_SYMBOL_RE = /^[A-Z0-9]{1,20}$/;
 const FULL_SYMBOL_RE = /^[A-Z0-9]{1,20}USDT$/;
 
+type GetCurrentPriceOptions = {
+	logMissing?: boolean;
+};
+
 const normalizeSymbol = (symbol: string): string => symbol.replace(/USDT$/, "");
 
 const toUsdtPair = (symbol: string): string | null => {
@@ -215,14 +219,18 @@ export function updateSubscribedSymbols(symbols: string[]): void {
 	}
 }
 
-export function getCurrentPrice(symbol: string): number {
+export function getCurrentPrice(
+	symbol: string,
+	options: GetCurrentPriceOptions = {},
+): number {
 	const pair = toUsdtPair(symbol);
 	if (!pair) return 0;
 
 	const normalizedSymbol = normalizeSymbol(pair);
 	const price = currentPrices[normalizedSymbol] || 0;
+	const shouldLog = options.logMissing ?? true;
 
-	if (price === 0 && shouldLogMissingPrice(normalizedSymbol)) {
+	if (shouldLog && price === 0 && shouldLogMissingPrice(normalizedSymbol)) {
 		console.warn(`[BACKEND] No price available for ${normalizedSymbol}`);
 	}
 

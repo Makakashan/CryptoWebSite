@@ -92,6 +92,6 @@ export const assetToAssetWithPrice = (asset: Asset): AssetWithPrice => {
 	return {
 		...asset,
 		is_active: Boolean(asset.is_active),
-		price: getCurrentPrice(priceSymbol) || 0,
+		price: getCurrentPrice(priceSymbol, { logMissing: false }) || 0,
 	};
 };
