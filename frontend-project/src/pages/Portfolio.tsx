@@ -258,8 +258,16 @@ const Portfolio = () => {
 		setCurrentPage(page);
 	};
 
-	const summaryCardClassName =
-		"relative overflow-hidden border border-white/10 bg-[rgba(24,18,16,0.94)] shadow-[0_18px_44px_rgba(0,0,0,0.2)]";
+	const bestPerformerTone = bestPerformer
+		? bestPerformer.netProfitPercent < 0
+			? "portfolio-status-text-unusual"
+			: "portfolio-status-text-positive"
+		: "text-text-secondary";
+	const worstPerformerTone = worstPerformer
+		? worstPerformer.netProfitPercent > 0
+			? "portfolio-status-text-unusual"
+			: "portfolio-status-text-negative"
+		: "text-text-secondary";
 
 	if (isLoading) {
 		return (
@@ -286,463 +294,538 @@ const Portfolio = () => {
 	if (!portfolio) return null;
 
 	return (
-		<div className="space-y-6">
-			<div className="rounded-3xl bg-[rgba(18,18,18,0.92)] px-6 py-4 shadow-[0_18px_48px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-				<div
-					aria-hidden
-					className="pointer-events-none hidden"
-				>
-				</div>
-				<div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-					<div className="max-w-2xl">
-						<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-							{t("myPortfolio")}
-						</h1>
-						<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
-							Your command center for capital, allocation, and execution.
-						</p>
-					</div>
-					<Button
-						variant="outline"
-						className="shrink-0 self-start border-white/10 bg-white/3 text-text-primary hover:border-white/15 hover:bg-white/6 lg:self-center"
-						onClick={() => navigate("/markets")}
+		<div className="relative isolate overflow-hidden rounded-[40px] bg-[#020202]">
+			<div className="relative z-10 space-y-6 px-1 py-2">
+				<div className="portfolio-hero-glass px-6 py-5">
+					<div
+						aria-hidden
+						className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
 					>
-						{t("tradeAssets")}
-					</Button>
+						<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
+						<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
+						<div className="portfolio-glass-highlight__orb portfolio-glass-highlight__orb--left" />
+						<div className="portfolio-glass-highlight__orb portfolio-glass-highlight__orb--right" />
+					</div>
+					<div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+						<div className="max-w-2xl">
+							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+								{t("myPortfolio")}
+							</h1>
+							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+								Your command center for capital, allocation, and
+								execution.
+							</p>
+						</div>
+						<Button
+							variant="outline"
+							className="shrink-0 self-start rounded-full border-white/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.035))] text-text-primary shadow-[0_16px_40px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.16)] hover:border-white/22 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.05))] lg:self-center"
+							onClick={() => navigate("/markets")}
+						>
+							{t("tradeAssets")}
+						</Button>
+					</div>
 				</div>
-			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-				<Card className={summaryCardClassName}>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("totalValue")}</CardDescription>
-						<CardTitle className="text-2xl">
-							{formatPrice(totalValue)}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<Wallet className="w-3.5 h-3.5" />
-							{t("cashAndHoldings")}
-						</p>
-					</CardContent>
-				</Card>
+				<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+					<Card className="portfolio-glass-card">
+						<div
+							aria-hidden
+							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+						>
+							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
+							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
+						</div>
+						<CardHeader className="pb-2">
+							<CardDescription>{t("totalValue")}</CardDescription>
+							<CardTitle className="text-2xl">
+								{formatPrice(totalValue)}
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-xs text-text-secondary flex items-center gap-2">
+								<Wallet className="w-3.5 h-3.5" />
+								{t("cashAndHoldings")}
+							</p>
+						</CardContent>
+					</Card>
 
-				<Card className={summaryCardClassName}>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("availableBalance")}</CardDescription>
-						<CardTitle className="text-2xl">
-							{formatPrice(cashBalance)}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<Landmark className="w-3.5 h-3.5" />
-							{t("available")}
-						</p>
-					</CardContent>
-				</Card>
+					<Card className="portfolio-glass-card">
+						<div
+							aria-hidden
+							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+						>
+							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
+							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
+						</div>
+						<CardHeader className="pb-2">
+							<CardDescription>{t("availableBalance")}</CardDescription>
+							<CardTitle className="text-2xl">
+								{formatPrice(cashBalance)}
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-xs text-text-secondary flex items-center gap-2">
+								<Landmark className="w-3.5 h-3.5" />
+								{t("available")}
+							</p>
+						</CardContent>
+					</Card>
 
-				<Card className={summaryCardClassName}>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("holdingsValue")}</CardDescription>
-						<CardTitle className="text-2xl">
-							{formatPrice(holdingsValue)}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<PieChart className="w-3.5 h-3.5" />
-							{enrichedAssets.length} {t("assets")}
-						</p>
-					</CardContent>
-				</Card>
+					<Card className="portfolio-glass-card">
+						<div
+							aria-hidden
+							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+						>
+							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
+							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
+						</div>
+						<CardHeader className="pb-2">
+							<CardDescription>{t("holdingsValue")}</CardDescription>
+							<CardTitle className="text-2xl">
+								{formatPrice(holdingsValue)}
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-xs text-text-secondary flex items-center gap-2">
+								<PieChart className="w-3.5 h-3.5" />
+								{enrichedAssets.length} {t("assets")}
+							</p>
+						</CardContent>
+					</Card>
 
-				<Card className={summaryCardClassName}>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("totalAssets")}</CardDescription>
-						<CardTitle className="text-2xl">
-							{enrichedAssets.length}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<Layers className="w-3.5 h-3.5" />
-							{t("inPortfolio")}
-						</p>
-					</CardContent>
-				</Card>
-			</div>
+					<Card className="portfolio-glass-card">
+						<div
+							aria-hidden
+							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+						>
+							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
+							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
+						</div>
+						<CardHeader className="pb-2">
+							<CardDescription>{t("totalAssets")}</CardDescription>
+							<CardTitle className="text-2xl">
+								{enrichedAssets.length}
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-xs text-text-secondary flex items-center gap-2">
+								<Layers className="w-3.5 h-3.5" />
+								{t("inPortfolio")}
+							</p>
+						</CardContent>
+					</Card>
+				</div>
 
-			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-				<Card className="xl:col-span-1 relative overflow-hidden border border-white/10 bg-linear-to-br from-[#221510]/92 via-[#181310]/91 to-[#120f0d]/93">
-					<CardHeader>
-						<CardTitle className="text-xl">Allocation preview</CardTitle>
-						<CardDescription>
-							Largest positions by portfolio value
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						{topHoldings.length > 0 ? (
-							topHoldings.map((asset) => {
-								const short = asset.asset_symbol.replace("USDT", "");
-								const share =
-									totalValue > 0
-										? (asset.value / totalValue) * 100
-										: 0;
-								const defaultIcon = `https://ui-avatars.com/api/?name=${short}&background=random&size=32`;
+				<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+					<Card className="portfolio-glass-panel xl:col-span-1">
+						<div
+							aria-hidden
+							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+						>
+							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
+							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
+						</div>
+						<CardHeader>
+							<CardTitle className="text-xl">
+								Allocation preview
+							</CardTitle>
+							<CardDescription>
+								Largest positions by portfolio value
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							{topHoldings.length > 0 ? (
+								topHoldings.map((asset) => {
+									const short = asset.asset_symbol.replace("USDT", "");
+									const share =
+										totalValue > 0
+											? (asset.value / totalValue) * 100
+											: 0;
+									const defaultIcon = `https://ui-avatars.com/api/?name=${short}&background=random&size=32`;
 
-								return (
-									<div key={asset.asset_symbol} className="space-y-2">
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-2">
-												<img
-													src={asset.image_url || defaultIcon}
-													alt={short}
-													className="w-7 h-7 rounded-full"
-													onError={(e) => {
-														e.currentTarget.src = defaultIcon;
+									return (
+										<div
+											key={asset.asset_symbol}
+											className="space-y-2"
+										>
+											<div className="flex items-center justify-between">
+												<div className="flex items-center gap-2">
+													<img
+														src={asset.image_url || defaultIcon}
+														alt={short}
+														className="w-7 h-7 rounded-full"
+														onError={(e) => {
+															e.currentTarget.src = defaultIcon;
+														}}
+													/>
+													<div>
+														<p className="text-sm font-semibold text-text-primary">
+															{short}
+														</p>
+														<p className="text-xs text-text-secondary">
+															{formatPrice(asset.value)}
+														</p>
+													</div>
+												</div>
+												<span className="text-xs text-text-secondary">
+													{share.toFixed(1)}%
+												</span>
+											</div>
+											<div className="h-2 overflow-hidden rounded-full border border-white/6 bg-white/4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+												<div
+													className="h-full rounded-full bg-linear-to-r from-white/85 via-white/45 to-white/18 shadow-[0_0_16px_rgba(255,255,255,0.14)]"
+													style={{
+														width: `${Math.min(share, 100)}%`,
 													}}
 												/>
-												<div>
-													<p className="text-sm font-semibold text-text-primary">
-														{short}
-													</p>
-													<p className="text-xs text-text-secondary">
-														{formatPrice(asset.value)}
-													</p>
-												</div>
 											</div>
-											<span className="text-xs text-text-secondary">
-												{share.toFixed(1)}%
+										</div>
+									);
+								})
+							) : (
+								<p className="text-sm text-text-secondary">
+									{t("noAssetsYet")}
+								</p>
+							)}
+						</CardContent>
+					</Card>
+
+					<Card className="portfolio-glass-panel xl:col-span-2">
+						<div
+							aria-hidden
+							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+						>
+							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
+							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
+						</div>
+						<CardHeader>
+							<CardTitle className="text-xl">Position Health</CardTitle>
+							<CardDescription>
+								Performance and risk snapshot of your holdings
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
+							<div className="portfolio-glass-metric">
+								<div
+									aria-hidden
+									className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+								>
+									<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--metric" />
+									<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--metric" />
+								</div>
+								<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
+									<TrendingUp
+										className={`h-3.5 w-3.5 ${bestPerformerTone}`}
+									/>
+									Best performer
+									{bestPerformer &&
+										bestPerformer.netProfitPercent < 0 && (
+											<span className="portfolio-status-chip portfolio-status-chip-unusual ml-1">
+												Unusual
 											</span>
-										</div>
-										<div className="h-2 rounded-full bg-bg-hover overflow-hidden">
-											<div
-												className="h-full bg-linear-to-r from-yellow-300/70 to-red-400/70"
-												style={{
-													width: `${Math.min(share, 100)}%`,
-												}}
-											/>
-										</div>
-									</div>
-								);
-							})
+										)}
+								</div>
+								<div className="text-sm font-semibold text-text-primary">
+									{bestPerformer
+										? bestPerformer.asset_symbol.replace("USDT", "")
+										: "-"}
+								</div>
+								<div className={`text-xs ${bestPerformerTone}`}>
+									{bestPerformer
+										? `${bestPerformer.netProfitPercent.toFixed(2)}%`
+										: "0.00%"}
+								</div>
+							</div>
+
+							<div className="portfolio-glass-metric">
+								<div
+									aria-hidden
+									className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+								>
+									<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--metric" />
+									<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--metric" />
+								</div>
+								<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
+									<TrendingDown
+										className={`h-3.5 w-3.5 ${worstPerformerTone}`}
+									/>
+									Worst performer
+									{worstPerformer &&
+										worstPerformer.netProfitPercent > 0 && (
+											<span className="portfolio-status-chip portfolio-status-chip-unusual ml-1">
+												Unusual
+											</span>
+										)}
+								</div>
+								<div className="text-sm font-semibold text-text-primary">
+									{worstPerformer
+										? worstPerformer.asset_symbol.replace("USDT", "")
+										: "-"}
+								</div>
+								<div className={`text-xs ${worstPerformerTone}`}>
+									{worstPerformer
+										? `${worstPerformer.netProfitPercent.toFixed(2)}%`
+										: "0.00%"}
+								</div>
+							</div>
+
+							<div className="portfolio-glass-metric">
+								<div
+									aria-hidden
+									className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+								>
+									<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--metric" />
+									<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--metric" />
+								</div>
+								<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
+									<ShieldAlert className="h-3.5 w-3.5 text-white/75" />
+									Concentration risk
+								</div>
+								<div className="text-sm font-semibold text-text-primary">
+									{concentrationRisk.toFixed(1)}%
+								</div>
+								<div className="text-xs text-text-secondary">
+									Largest single position share
+								</div>
+							</div>
+
+							<div className="portfolio-glass-metric">
+								<div
+									aria-hidden
+									className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+								>
+									<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--metric" />
+									<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--metric" />
+								</div>
+								<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
+									<Coins className="h-3.5 w-3.5 text-white/75" />
+									Cash ratio
+								</div>
+								<div className="text-sm font-semibold text-text-primary">
+									{cashRatio.toFixed(1)}%
+								</div>
+								<div className="text-xs text-text-secondary">
+									Unallocated liquidity
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+
+				<Card className="portfolio-glass-panel portfolio-glass-panel-assets">
+					<div
+						aria-hidden
+						className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+					>
+						<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
+						<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
+					</div>
+					<CardHeader className="pb-3">
+						<CardTitle className="text-xl">{t("yourAssets")}</CardTitle>
+						<CardDescription>
+							Manage positions and monitor per-asset PnL
+						</CardDescription>
+					</CardHeader>
+
+					<CardContent>
+						{!hasAssets ? (
+							<div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+								<p className="text-text-secondary">
+									{t("noAssetsYet")}
+								</p>
+								<Button onClick={() => navigate("/markets")}>
+									{t("browseMarkets")}
+								</Button>
+							</div>
 						) : (
-							<p className="text-sm text-text-secondary">
-								{t("noAssetsYet")}
-							</p>
+							<>
+								<div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+									<input
+										type="text"
+										placeholder={t("searchAssets")}
+										value={searchAsset}
+										onChange={(e) => setSearchAsset(e.target.value)}
+										className="input md:col-span-2"
+									/>
+									<select
+										value={sortBy}
+										onChange={(e) =>
+											setSortBy(e.target.value as SortKey)
+										}
+										className="select"
+									>
+										<option value="value">{t("totalValue")}</option>
+										<option value="pnl">Net Profit</option>
+										<option value="symbol">{t("symbol")}</option>
+										<option value="amount">{t("amount")}</option>
+									</select>
+									<select
+										value={sortOrder}
+										onChange={(e) =>
+											setSortOrder(e.target.value as SortOrder)
+										}
+										className="select"
+									>
+										<option value="desc">{t("highToLow")}</option>
+										<option value="asc">{t("lowToHigh")}</option>
+									</select>
+								</div>
+
+								<div className="flex justify-end mb-4">
+									<Button
+										variant="secondary"
+										className="portfolio-assets-reset rounded-full text-text-primary"
+										onClick={resetFilters}
+									>
+										{t("reset")}
+									</Button>
+								</div>
+
+								<div className="portfolio-assets-table overflow-x-auto">
+									<table className="w-full border-collapse">
+										<thead>
+											<tr>
+												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
+													{t("asset")}
+												</th>
+												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
+													{t("amount")}
+												</th>
+												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
+													{t("currentPrice")}
+												</th>
+												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
+													{t("totalValue")}
+												</th>
+												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
+													Net Profit
+												</th>
+												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
+													{t("actions")}
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											{paginatedAssets.map((asset) => {
+												const short = asset.asset_symbol.replace(
+													"USDT",
+													"",
+												);
+												const defaultIcon = `https://ui-avatars.com/api/?name=${short}&background=random&size=32`;
+
+												const positive = asset.netProfit > 0;
+												const negative = asset.netProfit < 0;
+
+												return (
+													<tr key={asset.asset_symbol}>
+														<td className="p-3">
+															<div className="flex items-center gap-3">
+																<img
+																	src={
+																		asset.image_url ||
+																		defaultIcon
+																	}
+																	alt={short}
+																	className="w-8 h-8 rounded-full"
+																	onError={(e) => {
+																		e.currentTarget.src =
+																			defaultIcon;
+																	}}
+																/>
+																<div>
+																	<p className="text-sm font-semibold text-text-primary">
+																		{short}
+																	</p>
+																	<p className="text-xs text-text-secondary">
+																		{asset.name}
+																	</p>
+																</div>
+															</div>
+														</td>
+														<td className="p-3 text-sm text-text-primary">
+															{asset.amount.toFixed(6)}
+														</td>
+														<td className="p-3 text-sm text-text-primary">
+															{formatPrice(asset.currentPrice)}
+														</td>
+														<td className="p-3 text-sm font-semibold text-text-primary">
+															{formatPrice(asset.value)}
+														</td>
+														<td className="p-3">
+															<div
+																className={`portfolio-status-chip ${
+																	positive
+																		? "portfolio-status-chip-positive"
+																		: negative
+																			? "portfolio-status-chip-negative"
+																			: "portfolio-status-chip-neutral"
+																}`}
+															>
+																{asset.netProfit > 0 ? "+" : ""}
+																{formatPrice(asset.netProfit)} (
+																{asset.netProfitPercent.toFixed(
+																	2,
+																)}
+																%)
+															</div>
+														</td>
+														<td className="p-3">
+															<Button
+																variant="outline"
+																size="sm"
+																className="portfolio-assets-action rounded-full text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+																onClick={() =>
+																	navigate(
+																		`/markets/${asset.asset_symbol}`,
+																	)
+																}
+															>
+																{t("trade")}
+																<ArrowUpRight className="w-4 h-4" />
+															</Button>
+														</td>
+													</tr>
+												);
+											})}
+										</tbody>
+									</table>
+								</div>
+
+								{totalPages > 1 && (
+									<div className="flex items-center justify-center gap-3 mt-5">
+										<Button
+											variant="secondary"
+											size="sm"
+											className="rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.025))] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.03))]"
+											disabled={effectiveCurrentPage === 1}
+											onClick={() =>
+												handlePageChange(effectiveCurrentPage - 1)
+											}
+										>
+											{t("previous")}
+										</Button>
+										<span className="text-sm text-text-secondary">
+											{t("page")} {effectiveCurrentPage} {t("of")}{" "}
+											{totalPages}
+										</span>
+										<Button
+											variant="secondary"
+											size="sm"
+											className="rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.025))] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.03))]"
+											disabled={effectiveCurrentPage === totalPages}
+											onClick={() =>
+												handlePageChange(effectiveCurrentPage + 1)
+											}
+										>
+											{t("next")}
+										</Button>
+									</div>
+								)}
+							</>
 						)}
 					</CardContent>
 				</Card>
-
-				<Card className="xl:col-span-2 relative overflow-hidden border border-white/10 bg-linear-to-br from-[#221510]/92 via-[#181310]/91 to-[#120f0d]/93">
-					<CardHeader>
-						<CardTitle className="text-xl">Position Health</CardTitle>
-						<CardDescription>
-							Performance and risk snapshot of your holdings
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
-						<div className="rounded-xl border border-white/10 bg-white/3 p-4">
-							<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-								<TrendingUp
-									className={`w-3.5 h-3.5 ${
-										bestPerformer &&
-										bestPerformer.netProfitPercent < 0
-											? "text-amber-300"
-											: "text-emerald-400"
-									}`}
-								/>
-								Best performer
-								{bestPerformer &&
-									bestPerformer.netProfitPercent < 0 && (
-										<span className="ml-1 inline-flex items-center rounded-full border border-amber-300/35 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
-											Unusual
-										</span>
-									)}
-							</div>
-							<div className="text-sm font-semibold text-text-primary">
-								{bestPerformer
-									? bestPerformer.asset_symbol.replace("USDT", "")
-									: "-"}
-							</div>
-							<div
-								className={`text-xs ${
-									bestPerformer && bestPerformer.netProfitPercent < 0
-										? "text-amber-300"
-										: "text-emerald-400"
-								}`}
-							>
-								{bestPerformer
-									? `${bestPerformer.netProfitPercent.toFixed(2)}%`
-									: "0.00%"}
-							</div>
-						</div>
-
-						<div className="rounded-xl border border-white/10 bg-white/3 p-4">
-							<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-								<TrendingDown
-									className={`w-3.5 h-3.5 ${
-										worstPerformer &&
-										worstPerformer.netProfitPercent > 0
-											? "text-amber-300"
-											: "text-rose-400"
-									}`}
-								/>
-								Worst performer
-								{worstPerformer &&
-									worstPerformer.netProfitPercent > 0 && (
-										<span className="ml-1 inline-flex items-center rounded-full border border-amber-300/35 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
-											Unusual
-										</span>
-									)}
-							</div>
-							<div className="text-sm font-semibold text-text-primary">
-								{worstPerformer
-									? worstPerformer.asset_symbol.replace("USDT", "")
-									: "-"}
-							</div>
-							<div
-								className={`text-xs ${
-									worstPerformer && worstPerformer.netProfitPercent > 0
-										? "text-amber-300"
-										: "text-rose-400"
-								}`}
-							>
-								{worstPerformer
-									? `${worstPerformer.netProfitPercent.toFixed(2)}%`
-									: "0.00%"}
-							</div>
-						</div>
-
-						<div className="rounded-xl border border-white/10 bg-white/3 p-4">
-							<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-								<ShieldAlert className="w-3.5 h-3.5 text-amber-300" />
-								Concentration risk
-							</div>
-							<div className="text-sm font-semibold text-text-primary">
-								{concentrationRisk.toFixed(1)}%
-							</div>
-							<div className="text-xs text-text-secondary">
-								Largest single position share
-							</div>
-						</div>
-
-						<div className="rounded-xl border border-white/10 bg-white/3 p-4">
-							<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-								<Coins className="w-3.5 h-3.5 text-cyan-300" />
-								Cash ratio
-							</div>
-							<div className="text-sm font-semibold text-text-primary">
-								{cashRatio.toFixed(1)}%
-							</div>
-							<div className="text-xs text-text-secondary">
-								Unallocated liquidity
-							</div>
-						</div>
-					</CardContent>
-				</Card>
 			</div>
-
-			<Card className="relative overflow-hidden border border-white/10 bg-linear-to-br from-[#221510]/92 via-[#181310]/91 to-[#120f0d]/93">
-				<CardHeader className="pb-3">
-					<CardTitle className="text-xl">{t("yourAssets")}</CardTitle>
-					<CardDescription>
-						Manage positions and monitor per-asset PnL
-					</CardDescription>
-				</CardHeader>
-
-				<CardContent>
-					{!hasAssets ? (
-						<div className="flex flex-col items-center justify-center py-12 text-center gap-4">
-							<p className="text-text-secondary">{t("noAssetsYet")}</p>
-							<Button onClick={() => navigate("/markets")}>
-								{t("browseMarkets")}
-							</Button>
-						</div>
-					) : (
-						<>
-							<div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-								<input
-									type="text"
-									placeholder={t("searchAssets")}
-									value={searchAsset}
-									onChange={(e) => setSearchAsset(e.target.value)}
-									className="input md:col-span-2"
-								/>
-								<select
-									value={sortBy}
-									onChange={(e) =>
-										setSortBy(e.target.value as SortKey)
-									}
-									className="select"
-								>
-									<option value="value">{t("totalValue")}</option>
-									<option value="pnl">Net Profit</option>
-									<option value="symbol">{t("symbol")}</option>
-									<option value="amount">{t("amount")}</option>
-								</select>
-								<select
-									value={sortOrder}
-									onChange={(e) =>
-										setSortOrder(e.target.value as SortOrder)
-									}
-									className="select"
-								>
-									<option value="desc">{t("highToLow")}</option>
-									<option value="asc">{t("lowToHigh")}</option>
-								</select>
-							</div>
-
-							<div className="flex justify-end mb-4">
-								<Button variant="secondary" onClick={resetFilters}>
-									{t("reset")}
-								</Button>
-							</div>
-
-							<div className="overflow-x-auto rounded-xl border border-white/10 bg-white/2">
-								<table className="w-full border-collapse">
-									<thead>
-										<tr className="border-b border-white/10 bg-white/4">
-											<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
-												{t("asset")}
-											</th>
-											<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
-												{t("amount")}
-											</th>
-											<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
-												{t("currentPrice")}
-											</th>
-											<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
-												{t("totalValue")}
-											</th>
-											<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
-												Net Profit
-											</th>
-											<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
-												{t("actions")}
-											</th>
-										</tr>
-									</thead>
-									<tbody>
-										{paginatedAssets.map((asset) => {
-											const short = asset.asset_symbol.replace(
-												"USDT",
-												"",
-											);
-											const defaultIcon = `https://ui-avatars.com/api/?name=${short}&background=random&size=32`;
-
-											const positive = asset.netProfit > 0;
-											const negative = asset.netProfit < 0;
-
-											return (
-												<tr
-													key={asset.asset_symbol}
-													className="border-b border-white/5 hover:bg-white/3 transition-colors"
-												>
-													<td className="p-3">
-														<div className="flex items-center gap-3">
-															<img
-																src={
-																	asset.image_url ||
-																	defaultIcon
-																}
-																alt={short}
-																className="w-8 h-8 rounded-full"
-																onError={(e) => {
-																	e.currentTarget.src =
-																		defaultIcon;
-																}}
-															/>
-															<div>
-																<p className="text-sm font-semibold text-text-primary">
-																	{short}
-																</p>
-																<p className="text-xs text-text-secondary">
-																	{asset.name}
-																</p>
-															</div>
-														</div>
-													</td>
-													<td className="p-3 text-sm text-text-primary">
-														{asset.amount.toFixed(6)}
-													</td>
-													<td className="p-3 text-sm text-text-primary">
-														{formatPrice(asset.currentPrice)}
-													</td>
-													<td className="p-3 text-sm font-semibold text-text-primary">
-														{formatPrice(asset.value)}
-													</td>
-													<td className="p-3">
-														<div
-															className={
-																positive
-																	? "inline-flex items-center rounded-full border border-emerald-400/35 bg-linear-to-r from-emerald-500/20 to-green-500/18 px-2.5 py-1 text-xs font-semibold text-emerald-300 shadow-[0_0_16px_rgba(16,185,129,0.16)]"
-																	: negative
-																		? "inline-flex items-center rounded-full border border-rose-400/35 bg-linear-to-r from-rose-500/20 to-red-500/18 px-2.5 py-1 text-xs font-semibold text-rose-300 shadow-[0_0_16px_rgba(244,63,94,0.16)]"
-																		: "inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-semibold text-text-secondary"
-															}
-														>
-															{asset.netProfit > 0 ? "+" : ""}
-															{formatPrice(asset.netProfit)} (
-															{asset.netProfitPercent.toFixed(2)}
-															%)
-														</div>
-													</td>
-													<td className="p-3">
-														<Button
-															variant="outline"
-															size="sm"
-															onClick={() =>
-																navigate(
-																	`/markets/${asset.asset_symbol}`,
-																)
-															}
-														>
-															{t("trade")}
-															<ArrowUpRight className="w-4 h-4" />
-														</Button>
-													</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-							</div>
-
-							{totalPages > 1 && (
-								<div className="flex items-center justify-center gap-3 mt-5">
-									<Button
-										variant="secondary"
-										size="sm"
-										disabled={effectiveCurrentPage === 1}
-										onClick={() =>
-											handlePageChange(effectiveCurrentPage - 1)
-										}
-									>
-										{t("previous")}
-									</Button>
-									<span className="text-sm text-text-secondary">
-										{t("page")} {effectiveCurrentPage} {t("of")}{" "}
-										{totalPages}
-									</span>
-									<Button
-										variant="secondary"
-										size="sm"
-										disabled={effectiveCurrentPage === totalPages}
-										onClick={() =>
-											handlePageChange(effectiveCurrentPage + 1)
-										}
-									>
-										{t("next")}
-									</Button>
-								</div>
-							)}
-						</>
-					)}
-				</CardContent>
-			</Card>
 		</div>
 	);
 };

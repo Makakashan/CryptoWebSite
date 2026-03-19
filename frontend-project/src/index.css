@@ -486,13 +486,13 @@
 @layer base {
     html {
         overscroll-behavior: none;
-        background-color: #0b0e11;
+        background-color: #020202;
     }
 
     body {
         margin: 0;
         padding: 0;
-        background-color: #0b0e11;
+        background-color: #020202;
         color: #eaecef;
         font-family:
             -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -509,7 +509,7 @@
 
     #root {
         min-height: 100vh;
-        background-color: #0b0e11;
+        background-color: #020202;
         overscroll-behavior: none;
     }
 
@@ -941,18 +941,29 @@
 .input {
     width: 100%;
     padding: 0.75rem 1rem;
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-bg-hover);
+    background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.06),
+            rgba(255, 255, 255, 0.03)
+        ),
+        rgba(10, 10, 10, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem;
     color: var(--color-text-primary);
     font-size: 1rem;
+    backdrop-filter: blur(14px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 30px rgba(0, 0, 0, 0.24);
     transition: all 0.2s;
 }
 
 .input:focus {
-    border-color: var(--color-red);
+    border-color: rgba(255, 255, 255, 0.22);
     outline: none;
-    box-shadow: 0 0 0 1px var(--color-red);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 14px 34px rgba(0, 0, 0, 0.28);
 }
 
 .input::placeholder {
@@ -973,18 +984,24 @@
 .input-disabled {
     width: 100%;
     padding: 0.75rem 1rem;
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-bg-hover);
+    background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(255, 255, 255, 0.02)
+        ),
+        rgba(10, 10, 10, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 0.5rem;
     color: var(--color-text-primary);
     font-size: 1rem;
+    backdrop-filter: blur(12px);
     transition: all 0.2s;
 }
 
 .input-disabled:focus {
-    border-color: var(--color-red);
+    border-color: rgba(255, 255, 255, 0.18);
     outline: none;
-    box-shadow: 0 0 0 1px var(--color-red);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
 .input-disabled::placeholder {
@@ -999,22 +1016,34 @@
 .select {
     width: 100%;
     padding: 0.75rem 1rem;
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-bg-hover);
+    background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.06),
+            rgba(255, 255, 255, 0.03)
+        ),
+        rgba(10, 10, 10, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem;
     color: var(--color-text-primary);
     font-size: 1rem;
+    backdrop-filter: blur(14px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 30px rgba(0, 0, 0, 0.24);
     transition: all 0.2s;
     cursor: pointer;
 }
 
 .select:focus {
-    border-color: var(--color-red);
+    border-color: rgba(255, 255, 255, 0.22);
     outline: none;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 14px 34px rgba(0, 0, 0, 0.28);
 }
 
 .select:hover {
-    border-color: rgba(220, 38, 38, 0.5);
+    border-color: rgba(255, 255, 255, 0.16);
 }
 
 .textarea {
@@ -1413,6 +1442,312 @@
 .avatar-xl {
     width: 8rem; /* 128px */
     height: 8rem;
+}
+
+.portfolio-hero-glass {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2.25rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.085) 0%,
+            rgba(255, 255, 255, 0.028) 9%,
+            rgba(255, 255, 255, 0.012) 34%,
+            rgba(255, 255, 255, 0.006) 100%
+        ),
+        linear-gradient(135deg, rgba(12, 12, 12, 0.97), rgba(2, 2, 2, 0.995));
+    box-shadow:
+        0 28px 90px rgba(0, 0, 0, 0.52),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(32px);
+}
+
+.portfolio-glass-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.875rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.075) 0%,
+            rgba(255, 255, 255, 0.026) 8%,
+            rgba(255, 255, 255, 0.012) 32%,
+            rgba(255, 255, 255, 0.006) 100%
+        ),
+        linear-gradient(135deg, rgba(12, 12, 12, 0.97), rgba(3, 3, 3, 0.992));
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.075),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(28px);
+}
+
+.portfolio-glass-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2.125rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.078) 0%,
+            rgba(255, 255, 255, 0.028) 8%,
+            rgba(255, 255, 255, 0.012) 32%,
+            rgba(255, 255, 255, 0.006) 100%
+        ),
+        linear-gradient(135deg, rgba(12, 12, 12, 0.97), rgba(2, 2, 2, 0.994));
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.078),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(30px);
+}
+
+.portfolio-glass-panel-assets {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.06) 0%,
+            rgba(255, 255, 255, 0.022) 8%,
+            rgba(255, 255, 255, 0.01) 30%,
+            rgba(255, 255, 255, 0.004) 100%
+        ),
+        linear-gradient(135deg, rgba(10, 10, 10, 0.975), rgba(1, 1, 1, 0.996));
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.065),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.portfolio-glass-metric {
+    position: relative;
+    overflow: hidden;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.5rem;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.04),
+        rgba(255, 255, 255, 0.012)
+    );
+    box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+}
+
+.portfolio-glass-highlight__rim {
+    position: absolute;
+    top: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.portfolio-glass-highlight__rim--wide {
+    left: 2rem;
+    right: 2rem;
+}
+
+.portfolio-glass-highlight__rim--card {
+    left: 1.5rem;
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.portfolio-glass-highlight__rim--metric {
+    left: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.portfolio-glass-highlight__glow {
+    position: absolute;
+    left: 2rem;
+    top: 0.55rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.portfolio-glass-highlight__glow--wide {
+    width: 24%;
+    height: 1.6rem;
+    filter: blur(14px);
+}
+
+.portfolio-glass-highlight__glow--card {
+    left: 1.25rem;
+    width: 28%;
+    height: 1.35rem;
+    filter: blur(10px);
+}
+
+.portfolio-glass-highlight__glow--metric {
+    left: 1rem;
+    width: 24%;
+    height: 1rem;
+    background: rgba(255, 255, 255, 0.045);
+    filter: blur(10px);
+}
+
+.portfolio-glass-highlight__orb {
+    position: absolute;
+    border-radius: 9999px;
+}
+
+.portfolio-glass-highlight__orb--left {
+    left: -2rem;
+    top: 0;
+    width: 10rem;
+    height: 10rem;
+    background: rgba(255, 255, 255, 0.035);
+    filter: blur(48px);
+}
+
+.portfolio-glass-highlight__orb--right {
+    right: 0;
+    bottom: 0;
+    width: 11rem;
+    height: 11rem;
+    background: rgba(255, 255, 255, 0.025);
+    filter: blur(48px);
+}
+
+.portfolio-status-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+}
+
+.portfolio-status-chip-positive {
+    color: #dff7ef;
+    border-color: rgba(128, 204, 179, 0.3);
+    background: linear-gradient(
+        180deg,
+        rgba(104, 171, 149, 0.3),
+        rgba(104, 171, 149, 0.1)
+    );
+    box-shadow: inset 0 1px 0 rgba(227, 250, 241, 0.12);
+}
+
+.portfolio-status-chip-negative {
+    color: #f0dde4;
+    border-color: rgba(177, 116, 136, 0.3);
+    background: linear-gradient(
+        180deg,
+        rgba(157, 95, 118, 0.28),
+        rgba(157, 95, 118, 0.1)
+    );
+    box-shadow: inset 0 1px 0 rgba(248, 229, 236, 0.1);
+}
+
+.portfolio-status-chip-neutral {
+    color: rgba(234, 236, 239, 0.72);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.portfolio-status-chip-unusual {
+    color: #f6e5c8;
+    border-color: rgba(194, 153, 94, 0.3);
+    background: linear-gradient(
+        180deg,
+        rgba(182, 142, 84, 0.28),
+        rgba(182, 142, 84, 0.1)
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 244, 224, 0.12);
+}
+
+.portfolio-status-text-positive {
+    color: #9fd8c4;
+}
+
+.portfolio-status-text-negative {
+    color: #d1a0b0;
+}
+
+.portfolio-status-text-unusual {
+    color: #dec08d;
+}
+
+.portfolio-assets-table {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1.75rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.045),
+            rgba(255, 255, 255, 0.01)
+        ),
+        rgba(7, 7, 7, 0.92);
+    box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+}
+
+.portfolio-assets-table thead tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.portfolio-assets-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background-color 0.2s ease;
+}
+
+.portfolio-assets-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.portfolio-assets-action {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.09),
+            rgba(255, 255, 255, 0.02)
+        ) !important;
+}
+
+.portfolio-assets-action:hover {
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.11),
+            rgba(255, 255, 255, 0.03)
+        ) !important;
+}
+
+.portfolio-assets-reset {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.09),
+            rgba(255, 255, 255, 0.02)
+        ) !important;
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.portfolio-assets-reset:hover {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.11),
+            rgba(255, 255, 255, 0.03)
+        ) !important;
 }
 
 @theme inline {

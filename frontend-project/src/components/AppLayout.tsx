@@ -6,9 +6,9 @@ const AppLayout = () => {
 	const location = useLocation();
 
 	return (
-		<div className="flex min-h-screen bg-bg-dark">
+		<div className="flex min-h-screen bg-[#020202]">
 			<Sidebar />
-			<div className="ml-sidebar flex-1 p-6 min-h-screen w-full">
+			<div className="ml-sidebar min-h-screen w-full flex-1 bg-[#020202] p-6">
 				<Header />
 				<div
 					key={location.pathname}
