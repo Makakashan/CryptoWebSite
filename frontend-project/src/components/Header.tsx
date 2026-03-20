@@ -83,28 +83,30 @@ const Header = () => {
 	}, [location.pathname, t]);
 
 	return (
-		<div className="relative mb-6 overflow-hidden rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] px-6 py-4 shadow-[0_24px_64px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+		<div className="header-shell relative mb-6 overflow-hidden px-6 py-4">
 			<div
 				aria-hidden
-				className="pointer-events-none absolute inset-0 overflow-hidden"
+				className="header-highlight pointer-events-none absolute inset-0 overflow-hidden"
 			>
-				<div className="absolute -left-16 top-0 h-32 w-32 rounded-full bg-yellow-300/10 blur-3xl" />
-				<div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-red-500/10 blur-3xl" />
+				<div className="header-highlight__rim" />
+				<div className="header-highlight__glow" />
+				<div className="header-highlight__orb header-highlight__orb--left" />
+				<div className="header-highlight__orb header-highlight__orb--right" />
 			</div>
 
 			<div className="relative z-10 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 				<button
-					className="flex items-center gap-4 text-left"
+					className="header-brand flex items-center gap-4 text-left"
 					onClick={() => navigate("/")}
 				>
-					<div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-300/20 bg-[linear-gradient(135deg,rgba(250,204,21,0.12),rgba(239,68,68,0.12))] shadow-[0_0_24px_rgba(251,146,60,0.18)]">
+					<div className="header-brand__icon">
 						<img src="/favicon.svg" alt="MakakaTrade" className="h-5 w-5" />
 					</div>
 					<div className="flex flex-col">
 						<span className="text-base font-semibold text-text-primary">
 							MakakaTrade
 						</span>
-						<span className="text-[11px] uppercase tracking-[0.24em] text-yellow-100/70">
+						<span className="header-brand__label text-[11px] uppercase tracking-[0.24em]">
 							{pageLabel}
 						</span>
 					</div>
@@ -114,7 +116,7 @@ const Header = () => {
 					<LanguageSwitcher />
 					{isAuthenticated && user ? (
 						<>
-							<div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-2.5">
+							<div className="header-user-card flex items-center gap-3 px-3 py-2.5">
 								<Avatar
 									className="avatar-sm cursor-pointer ring-1 ring-white/10 transition-opacity hover:opacity-80"
 									onClick={() => navigate("/profile")}
@@ -122,7 +124,7 @@ const Header = () => {
 									{user.avatar ? (
 										<AvatarImage src={user.avatar} alt={user.username} />
 									) : (
-										<AvatarFallback className="bg-blue text-white font-semibold">
+										<AvatarFallback className="header-avatar-fallback font-semibold text-white">
 											{userInitials}
 										</AvatarFallback>
 									)}
@@ -132,11 +134,11 @@ const Header = () => {
 										<span className="text-sm font-semibold text-text-primary">
 											{user.username}
 										</span>
-										<span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">
+										<span className="header-badge rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em]">
 											USDT
 										</span>
 									</div>
-									<div className="text-base font-semibold text-emerald-400">
+									<div className="header-balance text-base font-semibold">
 										{formatPrice(totalBalance)}
 									</div>
 									<div className="text-[10px] leading-none text-text-secondary">
@@ -146,7 +148,7 @@ const Header = () => {
 								</div>
 							</div>
 							<button
-								className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/10 bg-white/4 px-4 text-sm font-semibold text-text-primary transition-all hover:border-red/35 hover:bg-red/10"
+								className="glass-cta-button"
 								onClick={handleLogout}
 							>
 								{t("logout")}

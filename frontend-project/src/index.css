@@ -1892,6 +1892,209 @@
     color: rgba(234, 236, 239, 0.58);
 }
 
+.header-shell {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.75rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.06),
+            rgba(255, 255, 255, 0.015)
+        ),
+        rgba(5, 5, 5, 0.95);
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(24px);
+}
+
+.header-highlight__rim {
+    position: absolute;
+    left: 1.5rem;
+    right: 1.5rem;
+    top: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.header-highlight__glow {
+    position: absolute;
+    left: 2rem;
+    top: 0.6rem;
+    width: 22%;
+    height: 1.4rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.045);
+    filter: blur(10px);
+}
+
+.header-highlight__orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(40px);
+}
+
+.header-highlight__orb--left {
+    left: -2rem;
+    top: 0;
+    width: 9rem;
+    height: 9rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.header-highlight__orb--right {
+    right: 0;
+    top: 0;
+    width: 10rem;
+    height: 10rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.header-brand__icon {
+    display: flex;
+    width: 3rem;
+    height: 3rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.09),
+            rgba(255, 255, 255, 0.02)
+        ),
+        rgba(8, 8, 8, 0.92);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.09),
+        0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.header-brand__label {
+    color: rgba(234, 236, 239, 0.58);
+}
+
+.header-language-switch {
+    display: inline-flex;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.02)
+        ),
+        rgba(8, 8, 8, 0.94);
+    color: rgba(234, 236, 239, 0.9);
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.header-language-switch:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.03)
+        ),
+        rgba(8, 8, 8, 0.94);
+    color: #fff;
+}
+
+.header-user-card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.02)
+        ),
+        rgba(8, 8, 8, 0.94);
+    box-shadow:
+        0 16px 34px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(18px);
+}
+
+.header-avatar-fallback {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.16),
+            rgba(255, 255, 255, 0.05)
+        ),
+        rgba(22, 22, 22, 0.92);
+}
+
+.header-badge {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.025)
+        );
+    color: rgba(234, 236, 239, 0.84);
+}
+
+.header-balance {
+    color: #a7d7c9;
+}
+
+.glass-cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.75rem;
+    padding: 0 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 1rem !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.09),
+            rgba(255, 255, 255, 0.02)
+        ),
+        rgba(8, 8, 8, 0.94) !important;
+    color: var(--color-text-primary) !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.glass-cta-button:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.11),
+            rgba(255, 255, 255, 0.03)
+        ),
+        rgba(8, 8, 8, 0.94) !important;
+    color: #fff !important;
+}
+
 @theme inline {
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);

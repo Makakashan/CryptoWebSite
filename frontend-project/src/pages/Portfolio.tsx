@@ -318,7 +318,7 @@ const Portfolio = () => {
 						</div>
 						<Button
 							variant="outline"
-							className="shrink-0 self-start rounded-full border-white/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.035))] text-text-primary shadow-[0_16px_40px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.16)] hover:border-white/22 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.05))] lg:self-center"
+							className="glass-cta-button shrink-0 self-start lg:self-center"
 							onClick={() => navigate("/markets")}
 						>
 							{t("tradeAssets")}

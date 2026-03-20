@@ -10,7 +10,7 @@ const LanguageSwitcher = () => {
 
 	return (
 		<button
-			className="btn-outline btn-small px-3 py-2"
+			className="header-language-switch"
 			onClick={toggleLanguage}
 		>
 			{i18n.language === "en" ? "🇬🇧 EN" : "🇵🇱 PL"}
