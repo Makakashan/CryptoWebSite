@@ -11,6 +11,7 @@ import {
 	TrendingDown,
 	ShieldAlert,
 	Coins,
+	type LucideIcon,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
@@ -33,6 +34,59 @@ import Card, {
 	CardTitle,
 } from "@/components/ui/card";
 import Button from "@/components/ui/button";
+
+const PortfolioGlassHighlight = ({
+	rimClassName,
+	glowClassName,
+	showOrbs = false,
+}: {
+	rimClassName: string;
+	glowClassName: string;
+	showOrbs?: boolean;
+}) => (
+	<div
+		aria-hidden
+		className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+	>
+		<div className={`portfolio-glass-highlight__rim ${rimClassName}`} />
+		<div className={`portfolio-glass-highlight__glow ${glowClassName}`} />
+		{showOrbs ? (
+			<>
+				<div className="portfolio-glass-highlight__orb portfolio-glass-highlight__orb--left" />
+				<div className="portfolio-glass-highlight__orb portfolio-glass-highlight__orb--right" />
+			</>
+		) : null}
+	</div>
+);
+
+const PortfolioSummaryCard = ({
+	title,
+	value,
+	description,
+	Icon,
+}: {
+	title: string;
+	value: string | number;
+	description: string;
+	Icon: LucideIcon;
+}) => (
+	<Card className="portfolio-glass-card">
+		<PortfolioGlassHighlight
+			rimClassName="portfolio-glass-highlight__rim--card"
+			glowClassName="portfolio-glass-highlight__glow--card"
+		/>
+		<CardHeader className="pb-2">
+			<CardDescription>{title}</CardDescription>
+			<CardTitle className="text-2xl">{value}</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<p className="flex items-center gap-2 text-xs text-text-secondary">
+				<Icon className="h-3.5 w-3.5" />
+				{description}
+			</p>
+		</CardContent>
+	</Card>
+);
 
 const Portfolio = () => {
 	const { t } = useTranslation();
@@ -293,19 +347,42 @@ const Portfolio = () => {
 
 	if (!portfolio) return null;
 
+	const summaryCards = [
+		{
+			title: t("totalValue"),
+			value: formatPrice(totalValue),
+			description: t("cashAndHoldings"),
+			icon: Wallet,
+		},
+		{
+			title: t("availableBalance"),
+			value: formatPrice(cashBalance),
+			description: t("available"),
+			icon: Landmark,
+		},
+		{
+			title: t("holdingsValue"),
+			value: formatPrice(holdingsValue),
+			description: `${enrichedAssets.length} ${t("assets")}`,
+			icon: PieChart,
+		},
+		{
+			title: t("totalAssets"),
+			value: enrichedAssets.length,
+			description: t("inPortfolio"),
+			icon: Layers,
+		},
+	];
+
 	return (
 		<div className="relative isolate overflow-hidden rounded-[40px] bg-[#020202]">
 			<div className="relative z-10 space-y-6 px-1 py-2">
 				<div className="portfolio-hero-glass px-6 py-5">
-					<div
-						aria-hidden
-						className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
-					>
-						<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
-						<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
-						<div className="portfolio-glass-highlight__orb portfolio-glass-highlight__orb--left" />
-						<div className="portfolio-glass-highlight__orb portfolio-glass-highlight__orb--right" />
-					</div>
+					<PortfolioGlassHighlight
+						rimClassName="portfolio-glass-highlight__rim--wide"
+						glowClassName="portfolio-glass-highlight__glow--wide"
+						showOrbs
+					/>
 					<div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 						<div className="max-w-2xl">
 							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
@@ -327,93 +404,15 @@ const Portfolio = () => {
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-					<Card className="portfolio-glass-card">
-						<div
-							aria-hidden
-							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
-						>
-							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
-							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
-						</div>
-						<CardHeader className="pb-2">
-							<CardDescription>{t("totalValue")}</CardDescription>
-							<CardTitle className="text-2xl">
-								{formatPrice(totalValue)}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-xs text-text-secondary flex items-center gap-2">
-								<Wallet className="w-3.5 h-3.5" />
-								{t("cashAndHoldings")}
-							</p>
-						</CardContent>
-					</Card>
-
-					<Card className="portfolio-glass-card">
-						<div
-							aria-hidden
-							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
-						>
-							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
-							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
-						</div>
-						<CardHeader className="pb-2">
-							<CardDescription>{t("availableBalance")}</CardDescription>
-							<CardTitle className="text-2xl">
-								{formatPrice(cashBalance)}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-xs text-text-secondary flex items-center gap-2">
-								<Landmark className="w-3.5 h-3.5" />
-								{t("available")}
-							</p>
-						</CardContent>
-					</Card>
-
-					<Card className="portfolio-glass-card">
-						<div
-							aria-hidden
-							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
-						>
-							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
-							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
-						</div>
-						<CardHeader className="pb-2">
-							<CardDescription>{t("holdingsValue")}</CardDescription>
-							<CardTitle className="text-2xl">
-								{formatPrice(holdingsValue)}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-xs text-text-secondary flex items-center gap-2">
-								<PieChart className="w-3.5 h-3.5" />
-								{enrichedAssets.length} {t("assets")}
-							</p>
-						</CardContent>
-					</Card>
-
-					<Card className="portfolio-glass-card">
-						<div
-							aria-hidden
-							className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
-						>
-							<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
-							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
-						</div>
-						<CardHeader className="pb-2">
-							<CardDescription>{t("totalAssets")}</CardDescription>
-							<CardTitle className="text-2xl">
-								{enrichedAssets.length}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-xs text-text-secondary flex items-center gap-2">
-								<Layers className="w-3.5 h-3.5" />
-								{t("inPortfolio")}
-							</p>
-						</CardContent>
-					</Card>
+					{summaryCards.map((card) => (
+						<PortfolioSummaryCard
+							key={card.title}
+							title={card.title}
+							value={card.value}
+							description={card.description}
+							Icon={card.icon}
+						/>
+					))}
 				</div>
 
 				<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

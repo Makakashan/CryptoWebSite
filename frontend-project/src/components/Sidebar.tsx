@@ -12,11 +12,9 @@ import { cn } from "@/lib/utils";
 import type { SidebarNavItem } from "@/store/types";
 
 const Sidebar = () => {
-	// Localization + current route for active link highlighting
 	const { t } = useTranslation();
 	const location = useLocation();
 
-	// Sidebar navigation config (route, label, icon)
 	const navItems: SidebarNavItem[] = [
 		{ to: "/", label: t("dashboard"), icon: FiHome },
 		{ to: "/markets", label: t("markets"), icon: FiTrendingUp },
@@ -38,17 +36,13 @@ const Sidebar = () => {
 			</div>
 
 			<div className="relative z-10 flex h-full flex-col">
-				{/* Brand header */}
 				<header className="mb-6 px-2 pt-2">
 					<div className="sidebar-brand-pill">
 						<div className="sidebar-brand-dot" />
-						<h2 className="sidebar-brand-text">
-							MakakaTrade
-						</h2>
+						<h2 className="sidebar-brand-text">MakakaTrade</h2>
 					</div>
 				</header>
 
-				{/* Navigation list */}
 				<nav className="flex flex-1 flex-col gap-1.5">
 					{navItems.map((item) => {
 						const Icon = item.icon;
@@ -70,7 +64,6 @@ const Sidebar = () => {
 									)
 								}
 							>
-								{/* Left active indicator rail */}
 								<span
 									aria-hidden
 									className={cn(
@@ -81,7 +74,6 @@ const Sidebar = () => {
 									)}
 								/>
 
-								{/* Icon container */}
 								<span
 									className={cn(
 										"sidebar-nav-icon grid h-8 w-8 place-items-center rounded-lg border transition-all duration-300",
@@ -99,7 +91,6 @@ const Sidebar = () => {
 					})}
 				</nav>
 
-				{/* Footer info card */}
 				<footer className="mt-4 border-t border-white/14 px-2 pt-4">
 					<div className="sidebar-footer-card p-3 text-xs text-slate-300/80">
 						<div className="sidebar-footer-label mb-1 text-[11px] uppercase tracking-[0.14em]">
