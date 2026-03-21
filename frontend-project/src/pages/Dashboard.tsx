@@ -38,6 +38,34 @@ type BalancePoint = {
 	value: number;
 };
 
+const DashboardMetricCard = ({
+	title,
+	value,
+	description,
+	icon: Icon,
+	valueClassName = "text-2xl",
+}: {
+	title: string;
+	value: string | number;
+	description: string;
+	icon: typeof Wallet;
+	valueClassName?: string;
+}) => (
+	<Card className="glass-metric-card">
+		<div aria-hidden className="glass-panel-highlight" />
+		<CardHeader className="pb-2">
+			<CardDescription>{title}</CardDescription>
+			<CardTitle className={valueClassName}>{value}</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<p className="text-xs text-text-secondary flex items-center gap-2">
+				<Icon className="w-3.5 h-3.5" />
+				{description}
+			</p>
+		</CardContent>
+	</Card>
+);
+
 const BALANCE_HISTORY_INTERVAL = "1h";
 const BALANCE_HISTORY_LIMIT = 7 * 24;
 const BALANCE_HISTORY_STEP_MS = 60 * 60 * 1000;
@@ -402,74 +430,57 @@ const Dashboard = () => {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("totalBalance")}</CardDescription>
-						<CardTitle className="text-2xl">
-							{formatPrice(totalBalance)}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<Wallet className="w-3.5 h-3.5" />
-							{t("cashAndHoldings")}
-						</p>
-					</CardContent>
-				</Card>
+		<div className="glass-page-shell">
+			<div className="glass-page-body">
+				<div className="glass-hero-glass px-6 py-5">
+					<div aria-hidden className="glass-panel-highlight" />
+					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+						<div className="max-w-2xl">
+							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+								{t("dashboard")}
+							</h1>
+							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+								Live balance, market pulse, and your next trading moves.
+							</p>
+						</div>
+						<Button className="glass-cta-button shrink-0 self-start lg:self-center" onClick={() => navigate("/markets")}>
+							{t("viewMarkets")}
+						</Button>
+					</div>
+				</div>
 
-				<Card>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("cashBalance")}</CardDescription>
-						<CardTitle className="text-2xl">
-							{formatPrice(cashBalance)}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<Landmark className="w-3.5 h-3.5" />
-							{t("available")}
-						</p>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("portfolioValue")}</CardDescription>
-						<CardTitle className="text-2xl">
-							{formatPrice(holdingsValue)}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<PieChart className="w-3.5 h-3.5" />
-							{portfolio?.assets.length || 0} {t("assets")}
-						</p>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardDescription>{t("balanceTrend")}</CardDescription>
-						<CardTitle
-							className={`text-2xl ${balanceChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}
-						>
-							{balanceChange >= 0 ? "+" : ""}
-							{balanceChange.toFixed(2)}%
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-xs text-text-secondary flex items-center gap-2">
-							<TrendingUp className="w-3.5 h-3.5" />
-							{t("last7DaysHourly")}
-						</p>
-					</CardContent>
-				</Card>
+			<div className="glass-metric-grid glass-metric-grid--four">
+				<DashboardMetricCard
+					title={t("totalBalance")}
+					value={formatPrice(totalBalance)}
+					description={t("cashAndHoldings")}
+					icon={Wallet}
+				/>
+				<DashboardMetricCard
+					title={t("cashBalance")}
+					value={formatPrice(cashBalance)}
+					description={t("available")}
+					icon={Landmark}
+				/>
+				<DashboardMetricCard
+					title={t("portfolioValue")}
+					value={formatPrice(holdingsValue)}
+					description={`${portfolio?.assets.length || 0} ${t("assets")}`}
+					icon={PieChart}
+				/>
+				<DashboardMetricCard
+					title={t("balanceTrend")}
+					value={`${balanceChange >= 0 ? "+" : ""}${balanceChange.toFixed(2)}%`}
+					description={t("last7DaysHourly")}
+					icon={TrendingUp}
+					valueClassName={`text-2xl ${balanceChange >= 0 ? "portfolio-status-text-positive" : "portfolio-status-text-negative"}`}
+				/>
 			</div>
 
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-				<Card className="xl:col-span-2">
+				<Card className="glass-chart-panel xl:col-span-2">
+					<div aria-hidden className="glass-panel-highlight" />
+					<div className="glass-panel-inner">
 					<CardHeader>
 						<CardTitle className="text-xl">
 							{t("balanceOverTime")}
@@ -481,6 +492,7 @@ const Dashboard = () => {
 							<Button
 								variant="outline"
 								size="sm"
+								className="glass-muted-button"
 								onClick={() => navigate("/statistics")}
 							>
 								{t("details")}
@@ -489,9 +501,9 @@ const Dashboard = () => {
 					</CardHeader>
 					<CardContent>
 						{isLoading || isBalanceHistoryLoading ? (
-							<div className="h-75 rounded-lg bg-bg-hover/40 animate-pulse" />
+							<div className="glass-chart-skeleton animate-pulse" />
 						) : balanceHistory.length > 1 ? (
-							<div className="h-75">
+							<div className="glass-chart-shell">
 								<ResponsiveContainer width="100%" height="100%">
 									<AreaChart
 										data={balanceHistory}
@@ -507,25 +519,25 @@ const Dashboard = () => {
 											>
 												<stop
 													offset="5%"
-													stopColor="#3861fb"
+													stopColor="#ffffff"
 													stopOpacity={0.45}
 												/>
 												<stop
 													offset="95%"
-													stopColor="#3861fb"
+													stopColor="#ffffff"
 													stopOpacity={0.05}
 												/>
 											</linearGradient>
 										</defs>
 										<CartesianGrid
 											strokeDasharray="3 3"
-											stroke="#2b3139"
+											stroke="rgba(255,255,255,0.08)"
 										/>
 										<XAxis
 											dataKey="ts"
 											type="number"
 											domain={["dataMin", "dataMax"]}
-											stroke="#848e9c"
+											stroke="rgba(255,255,255,0.45)"
 											tickLine={false}
 											axisLine={false}
 											tickFormatter={(value) =>
@@ -541,7 +553,7 @@ const Dashboard = () => {
 										<YAxis
 											domain={yAxisDomain}
 											width={90}
-											stroke="#848e9c"
+											stroke="rgba(255,255,255,0.45)"
 											tickLine={false}
 											axisLine={false}
 											tickFormatter={(value) =>
@@ -562,15 +574,15 @@ const Dashboard = () => {
 												item?.payload?.label || t("balance"),
 											]}
 											contentStyle={{
-												backgroundColor: "#1a1d23",
-												border: "1px solid #2b3139",
-												borderRadius: "10px",
+												backgroundColor: "#111111",
+												border: "1px solid rgba(255,255,255,0.1)",
+												borderRadius: "16px",
 											}}
 										/>
 										<Area
 											type="monotone"
 											dataKey="value"
-											stroke="#3861fb"
+											stroke="rgba(255,255,255,0.9)"
 											strokeWidth={2.5}
 											fill="url(#balanceGradient)"
 										/>
@@ -578,14 +590,17 @@ const Dashboard = () => {
 								</ResponsiveContainer>
 							</div>
 						) : (
-							<div className="h-75 flex items-center justify-center text-text-secondary text-sm">
+							<div className="glass-chart-empty">
 								{t("addMoreTradesToBuildChart")}
 							</div>
 						)}
 					</CardContent>
+					</div>
 				</Card>
 
-				<Card>
+				<Card className="glass-chart-panel">
+					<div aria-hidden className="glass-panel-highlight" />
+					<div className="glass-panel-inner">
 					<CardHeader>
 						<CardTitle className="text-xl">{t("topMovers")}</CardTitle>
 						<CardDescription>{t("strongest24hMove")}</CardDescription>
@@ -606,7 +621,7 @@ const Dashboard = () => {
 									<button
 										type="button"
 										key={asset.symbol}
-										className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-bg-hover transition-colors"
+										className="glass-inline-metric w-full flex items-center justify-between p-3 rounded-3xl transition-colors hover:bg-white/[0.04]"
 										onClick={() =>
 											navigate(`/markets/${asset.symbol}`)
 										}
@@ -630,10 +645,10 @@ const Dashboard = () => {
 											</div>
 										</div>
 										<span
-											className={`text-xs font-semibold px-2 py-1 rounded ${
+											className={`portfolio-status-chip ${
 												change >= 0
-													? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-													: "bg-rose-500/10 text-rose-400 border border-rose-500/30"
+													? "portfolio-status-chip-positive"
+													: "portfolio-status-chip-negative"
 											}`}
 										>
 											{change >= 0 ? "+" : ""}
@@ -646,36 +661,46 @@ const Dashboard = () => {
 
 						<Button
 							variant="outline"
-							className="w-full mt-2"
+							className="glass-cta-button w-full mt-2"
 							onClick={() => navigate("/markets")}
 						>
 							{t("viewMarkets")}
 							<ArrowRight className="w-4 h-4" />
 						</Button>
 					</CardContent>
+					</div>
 				</Card>
 			</div>
 
-			<Card>
+			<Card className="glass-surface-panel">
+				<div aria-hidden className="glass-panel-highlight" />
+				<div className="glass-panel-inner">
 				<CardHeader>
 					<CardTitle className="text-xl">{t("quickActions")}</CardTitle>
 					<CardDescription>{t("shortcutsForNextMove")}</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-wrap gap-3">
-					<Button onClick={() => navigate("/markets")}>
+					<Button className="glass-cta-button" onClick={() => navigate("/markets")}>
 						{t("viewMarkets")}
 					</Button>
 					<Button
 						variant="secondary"
+						className="glass-muted-button"
 						onClick={() => navigate("/portfolio")}
 					>
 						{t("myPortfolio")}
 					</Button>
-					<Button variant="secondary" onClick={() => navigate("/orders")}>
+					<Button
+						variant="secondary"
+						className="glass-muted-button"
+						onClick={() => navigate("/orders")}
+					>
 						{t("orderHistory")}
 					</Button>
 				</CardContent>
+				</div>
 			</Card>
+			</div>
 		</div>
 	);
 };
