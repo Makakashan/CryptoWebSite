@@ -75,7 +75,7 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 	return (
 		<Card
 			ref={cardRef}
-			className="cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-blue hover:shadow-[0_8px_24px_rgba(56,97,251,0.25)] overflow-hidden p-5"
+			className="glass-market-card cursor-pointer overflow-hidden p-5 transition-all duration-300 hover:-translate-y-1"
 			onClick={handleClick}
 		>
 			<div className="flex items-start justify-between gap-4 h-full">
@@ -102,9 +102,9 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 						<div
 							className={`text-xl font-bold mb-1 transition-all duration-300 ${
 								priceFlash === "up"
-									? "text-green scale-105"
+									? "portfolio-status-text-positive scale-105"
 									: priceFlash === "down"
-										? "text-red scale-105"
+										? "portfolio-status-text-negative scale-105"
 										: "text-text-primary scale-100"
 							}`}
 						>
@@ -115,10 +115,10 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 							<div className="flex flex-col gap-0.5">
 								<div className="flex items-center gap-1">
 									<div
-										className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${
+										className={`portfolio-status-chip ${
 											isPositive
-												? "bg-green/10 text-green"
-												: "bg-red/10 text-red"
+												? "portfolio-status-chip-positive"
+												: "portfolio-status-chip-negative"
 										}`}
 									>
 										{isPositive ? (
@@ -141,7 +141,7 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 
 					{asset.category && (
 						<div className="mt-auto">
-							<span className="text-xs px-2 py-1 rounded-md bg-bg-hover text-text-secondary inline-block">
+							<span className="glass-market-chip">
 								{asset.category}
 							</span>
 						</div>
@@ -153,12 +153,12 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 						chartData.length > 0 ? (
 							<MiniChart data={chartData} color={chartColor} />
 						) : (
-							<div className="w-full h-full flex items-center justify-center bg-bg-hover/30 rounded-lg">
+							<div className="glass-inline-metric w-full h-full flex items-center justify-center rounded-2xl">
 								<div className="w-4 h-4 border-2 border-text-secondary/30 border-t-text-secondary rounded-full animate-spin"></div>
 							</div>
 						)
 					) : (
-						<div className="w-full h-full bg-bg-hover/20 rounded-lg" />
+						<div className="glass-inline-metric w-full h-full rounded-2xl" />
 					)}
 				</div>
 			</div>
@@ -213,13 +213,13 @@ const AssetImage = memo(
 		return (
 			<div className="relative w-10 h-10 shrink-0">
 				{!imageLoaded && (
-					<div className="absolute inset-0 bg-bg-hover/50 animate-pulse rounded-full" />
+					<div className="absolute inset-0 animate-pulse rounded-full bg-white/6" />
 				)}
 				<img
 					ref={imgRef}
 					src={imageError ? defaultIcon : imageUrl || defaultIcon}
 					alt={shortName}
-					className={`w-10 h-10 rounded-full object-cover ring-2 ring-bg-hover transition-opacity duration-300 ${
+					className={`w-10 h-10 rounded-full object-cover ring-1 ring-white/10 transition-opacity duration-300 ${
 						imageLoaded ? "opacity-100" : "opacity-0"
 					}`}
 					loading="lazy"

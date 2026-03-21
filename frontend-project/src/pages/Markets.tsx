@@ -188,35 +188,34 @@ const Markets = () => {
 		search || category || sortBy !== "price" || sortOrder !== "desc";
 
 	return (
-		<div className="space-y-6">
-			{/* Header */}
-			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-				<div>
-					<h1 className="text-text-primary text-3xl font-bold m-0 mb-1">
-						{t("markets")}
-					</h1>
-					<p className="text-text-secondary text-sm">
-						Discover and track your favorite assets
-					</p>
+		<div className="glass-page-shell">
+			<div className="glass-page-body">
+				<div className="glass-hero-glass px-6 py-5">
+					<div aria-hidden className="glass-panel-highlight" />
+					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+						<div className="max-w-2xl">
+							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+								{t("markets")}
+							</h1>
+							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+								Discover and track your favorite assets
+							</p>
+						</div>
+						<Button
+							onClick={() => navigate("/markets/add")}
+							className="glass-cta-button gap-2 shrink-0 self-start lg:self-center"
+						>
+							<Plus className="w-4 h-4" />
+							{t("addNewAsset")}
+						</Button>
+					</div>
 				</div>
-				<div className="flex flex-wrap gap-3">
-					<Button
-						onClick={() => navigate("/markets/add")}
-						className="gap-2"
-					>
-						<Plus className="w-4 h-4" />
-						{t("addNewAsset")}
-					</Button>
-				</div>
-			</div>
 
-			{/* Compact Filters Bar */}
-			<Card>
-				<CardContent className="p-4">
-					<div className="flex flex-col gap-4">
-						{/* Quick Filter Row */}
+			<Card className="glass-filter-panel">
+				<div aria-hidden className="glass-panel-highlight" />
+				<CardContent className="glass-panel-inner p-4">
+					<div className="glass-filter-grid">
 						<div className="flex flex-col sm:flex-row gap-3">
-							{/* Search */}
 							<div className="flex-1 relative">
 								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
 								<Input
@@ -231,23 +230,24 @@ const Markets = () => {
 								/>
 							</div>
 
-							{/* Filter Toggle & Apply */}
 							<div className="flex gap-2">
 								<Button
 									variant="outline"
 									size="sm"
 									onClick={() => setShowFilters(!showFilters)}
-									className={`gap-2 ${hasActiveFilters ? "border-blue text-blue" : ""}`}
+									className={`glass-muted-button gap-2 ${hasActiveFilters ? "border-white/20 text-white" : ""}`}
 								>
 									<SlidersHorizontal className="w-4 h-4" />
 									{t("filters")}
 									{hasActiveFilters && (
-										<span className="ml-1 px-1.5 py-0.5 text-xs bg-blue text-white rounded">
-											•
-										</span>
+										<span className="ml-1 h-2 w-2 rounded-full bg-white/80" />
 									)}
 								</Button>
-								<Button size="sm" onClick={handleApplyFilters}>
+								<Button
+									size="sm"
+									className="glass-cta-button"
+									onClick={handleApplyFilters}
+								>
 									{t("apply")}
 								</Button>
 								{hasActiveFilters && (
@@ -255,7 +255,7 @@ const Markets = () => {
 										variant="ghost"
 										size="sm"
 										onClick={handleReset}
-										className="gap-1"
+										className="glass-muted-button gap-1"
 									>
 										<X className="w-4 h-4" />
 									</Button>
@@ -263,9 +263,8 @@ const Markets = () => {
 							</div>
 						</div>
 
-						{/* Expandable Advanced Filters */}
 						{showFilters && (
-							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-bg-hover animate-in fade-in slide-in-from-top-2 duration-200">
+							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-white/8 animate-in fade-in slide-in-from-top-2 duration-200">
 								<div className="flex flex-col gap-1.5">
 									<label className="text-xs font-medium text-text-secondary">
 										{t("category")}
@@ -317,16 +316,15 @@ const Markets = () => {
 				</CardContent>
 			</Card>
 
-			{/* Error State */}
 			{error && (
-				<Card className="border-red/50 bg-red/5">
-					<CardContent className="p-6 text-center">
+				<Card className="glass-empty-panel border-white/10">
+					<div aria-hidden className="glass-panel-highlight" />
+					<CardContent className="glass-panel-inner p-6 text-center">
 						<p className="text-red text-base">{error}</p>
 					</CardContent>
 				</Card>
 			)}
 
-			{/* Assets Grid */}
 			{!error && (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
 					{showSkeletons
@@ -339,18 +337,23 @@ const Markets = () => {
 				</div>
 			)}
 
-			{/* Empty State */}
 			{!error && !showSkeletons && assets.length === 0 && (
-				<Card>
-					<CardContent className="p-14 text-center">
+				<Card className="glass-empty-panel">
+					<div aria-hidden className="glass-panel-highlight" />
+					<CardContent className="glass-panel-inner p-14 text-center">
 						<div className="flex flex-col items-center gap-3">
-							<div className="w-16 h-16 rounded-full bg-bg-hover flex items-center justify-center">
+							<div className="glass-inline-metric w-16 h-16 rounded-full flex items-center justify-center">
 								<Search className="w-8 h-8 text-text-secondary" />
 							</div>
 							<p className="text-text-secondary text-lg">
 								{t("noAssetsAvailable")}
 							</p>
-							<Button variant="outline" size="sm" onClick={handleReset}>
+							<Button
+								variant="outline"
+								size="sm"
+								className="glass-muted-button"
+								onClick={handleReset}
+							>
 								{t("resetFilters")}
 							</Button>
 						</div>
@@ -358,12 +361,12 @@ const Markets = () => {
 				</Card>
 			)}
 
-			{/* Pagination */}
 			{totalPages > 1 && (
 				<div className="flex justify-center items-center gap-4 pt-6">
 					<Button
 						variant="outline"
 						size="sm"
+						className="glass-muted-button"
 						onClick={() => handlePageChange(currentPage - 1)}
 						disabled={currentPage === 1}
 					>
@@ -375,6 +378,7 @@ const Markets = () => {
 					<Button
 						variant="outline"
 						size="sm"
+						className="glass-muted-button"
 						onClick={() => handlePageChange(currentPage + 1)}
 						disabled={currentPage === totalPages}
 					>
@@ -382,6 +386,7 @@ const Markets = () => {
 					</Button>
 				</div>
 			)}
+			</div>
 		</div>
 	);
 };
