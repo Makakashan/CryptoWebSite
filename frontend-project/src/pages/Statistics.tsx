@@ -24,12 +24,18 @@ import { fetchAssets } from "../store/slices/assetsSlice";
 import { formatPrice } from "../utils/formatPrice";
 import type { Order } from "../store/types/orders.types";
 import { useIconLoader } from "../hooks/useIconLoader";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { Landmark, Layers, ShoppingBag, TrendingDown, TrendingUp } from "lucide-react";
 import {
 	ChartContainer,
 	ChartLegend,
 	ChartTooltip,
 } from "@/components/ui/chart";
+import Card, {
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 import StatsChartSkeleton from "../components/skeletons/StatsChartSkeleton";
 
@@ -61,6 +67,38 @@ interface PerformerSparkPoint {
 	ts: number;
 	pnl: number;
 }
+
+const StatisticsSummaryCard = ({
+	title,
+	value,
+	description,
+	Icon,
+}: {
+	title: string;
+	value: string | number;
+	description: string;
+	Icon: typeof ShoppingBag;
+}) => (
+	<Card className="portfolio-glass-card">
+		<div
+			aria-hidden
+			className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+		>
+			<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--card" />
+			<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--card" />
+		</div>
+		<CardHeader className="pb-2">
+			<CardDescription>{title}</CardDescription>
+			<CardTitle className="text-2xl">{value}</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<p className="flex items-center gap-2 text-xs text-text-secondary">
+				<Icon className="h-3.5 w-3.5" />
+				{description}
+			</p>
+		</CardContent>
+	</Card>
+);
 
 const collapseProfitPointsByDay = (points: ProfitPoint[]): ProfitPoint[] => {
 	const byDay = new Map<string, ProfitPoint>();
@@ -223,8 +261,8 @@ const Statistics = () => {
 		).length;
 
 		return [
-			{ name: t("buy"), value: buyCount, fill: "#0ecb81" },
-			{ name: t("sell"), value: sellCount, fill: "#f6465d" },
+			{ name: t("buy"), value: buyCount, fill: "#9fd8c4" },
+			{ name: t("sell"), value: sellCount, fill: "#d1a0b0" },
 		];
 	}, [orders, t]);
 
@@ -348,14 +386,21 @@ const Statistics = () => {
 	const hasNoData = orders.length === 0 && enrichedAssets.length === 0;
 
 	return (
-		<div className="statistics-page">
-			<div className="mb-6">
-				<h1 className="text-text-primary text-2xl font-bold m-0">
-					{t("tradingStatistics")}
-				</h1>
-			</div>
+		<div className="statistics-page glass-page-shell">
+			<div className="glass-page-body">
+				<div className="glass-hero-glass px-6 py-5">
+					<div aria-hidden className="glass-panel-highlight" />
+					<div className="glass-panel-inner max-w-2xl">
+						<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+							{t("tradingStatistics")}
+						</h1>
+						<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+							Execution quality, portfolio behavior, and realized performance.
+						</p>
+					</div>
+				</div>
 
-			<div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 mb-8">
+			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 				{showSkeletons ? (
 					<>
 						<StatCardSkeleton />
@@ -364,29 +409,24 @@ const Statistics = () => {
 					</>
 				) : (
 					<>
-						<div className="stat-card">
-							<h3 className="stat-title">{t("totalOrders")}</h3>
-							<div className="stat-value">{orders.length}</div>
-							<p className="stat-subtitle">{t("allTime")}</p>
-						</div>
-
-						<div className="stat-card">
-							<h3 className="stat-title">{t("holdingsValue")}</h3>
-							<div className="stat-value">
-								{formatPrice(currentHoldingsValue)}
-							</div>
-							<p className="stat-subtitle">
-								{enrichedAssets.length} {t("assets")}
-							</p>
-						</div>
-
-						<div className="stat-card">
-							<h3 className="stat-title">{t("totalValue")}</h3>
-							<div className="stat-value">
-								{formatPrice(totalAccountValue)}
-							</div>
-							<p className="stat-subtitle">{t("cashAndHoldings")}</p>
-						</div>
+						<StatisticsSummaryCard
+							title={t("totalOrders")}
+							value={orders.length}
+							description={t("allTime")}
+							Icon={ShoppingBag}
+						/>
+						<StatisticsSummaryCard
+							title={t("holdingsValue")}
+							value={formatPrice(currentHoldingsValue)}
+							description={`${enrichedAssets.length} ${t("assets")}`}
+							Icon={Layers}
+						/>
+						<StatisticsSummaryCard
+							title={t("totalValue")}
+							value={formatPrice(totalAccountValue)}
+							description={t("cashAndHoldings")}
+							Icon={Landmark}
+						/>
 					</>
 				)}
 			</div>
@@ -395,7 +435,7 @@ const Statistics = () => {
 				<div className="flex flex-col items-center justify-center p-14 text-center">
 					<p className="text-text-secondary mb-4">{t("noOrdersYet")}</p>
 					<button
-						className="btn-primary"
+						className="glass-cta-button"
 						onClick={() => navigate("/markets")}
 					>
 						{t("startTrading")}
@@ -412,17 +452,27 @@ const Statistics = () => {
 						) : (
 							<>
 								{orders.length > 0 && (
-									<div className="card-padded stats-chart-card">
-								<div className="stats-chart-header">
-									<h2 className="section-header">{t("ordersByType")}</h2>
-									<div className="stats-chart-meta">
-										<span className="stats-chart-pill">
-											{ordersByTypeData.reduce((sum, item) => sum + item.value, 0)}{" "}
-											{t("orders")}
-										</span>
-									</div>
-								</div>
-								<ChartContainer className="h-75 w-full aspect-auto">
+									<Card className="portfolio-glass-panel stats-chart-card">
+										<div
+											aria-hidden
+											className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+										>
+											<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
+											<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
+										</div>
+										<CardHeader className="stats-chart-header">
+											<div>
+												<CardTitle className="text-xl">{t("ordersByType")}</CardTitle>
+											</div>
+											<div className="stats-chart-meta">
+												<span className="stats-chart-pill">
+													{ordersByTypeData.reduce((sum, item) => sum + item.value, 0)}{" "}
+													{t("orders")}
+												</span>
+											</div>
+										</CardHeader>
+										<CardContent>
+								<ChartContainer className="glass-chart-shell w-full aspect-auto">
 									<ResponsiveContainer width="100%" height="100%">
 										<BarChart
 											data={ordersByTypeData}
@@ -430,22 +480,22 @@ const Statistics = () => {
 										>
 											<CartesianGrid
 												strokeDasharray="3 3"
-												stroke="#2b3139"
+												stroke="rgba(255,255,255,0.08)"
 											/>
 											<XAxis
 												dataKey="name"
-												stroke="#848e9c"
+												stroke="rgba(255,255,255,0.45)"
 												tickLine={false}
 												axisLine={false}
 											/>
 											<YAxis
-												stroke="#848e9c"
+												stroke="rgba(255,255,255,0.45)"
 												allowDecimals={false}
 												tickLine={false}
 												axisLine={false}
 											/>
 											<Tooltip
-												cursor={{ fill: "rgba(132, 142, 156, 0.14)" }}
+												cursor={{ fill: "rgba(255,255,255,0.05)" }}
 												content={
 													<ChartTooltip
 														formatter={(value) => value}
@@ -456,40 +506,48 @@ const Statistics = () => {
 											dataKey="value"
 											radius={[6, 6, 0, 0]}
 											activeBar={false}
-											isAnimationActive={true}
-											animationDuration={900}
-											animationBegin={120}
-											animationEasing="ease-out"
-										>
+										isAnimationActive={false}
+									>
 												{ordersByTypeData.map((entry, index) => (
 													<Cell key={`cell-${index}`} fill={entry.fill} />
 												))}
 											</Bar>
-										</BarChart>
+											</BarChart>
 									</ResponsiveContainer>
 								</ChartContainer>
-							</div>
+										</CardContent>
+									</Card>
 								)}
 
 								{profitOverTime.length > 0 && (
-									<div className="card-padded stats-chart-card">
-								<div className="stats-chart-header">
-									<h2 className="section-header">
-										{t("profitLossOverTime")}
-									</h2>
-									<div className="stats-chart-meta">
-										<span className="stats-chart-pill">
-											{formatPrice(
-												profitOverTime[profitOverTime.length - 1]?.profit ||
-													0,
-											)}
-										</span>
-									</div>
-								</div>
-								<p className="stats-chart-subtitle">
-									Daily closing profit from last trade of each day
-								</p>
-								<ChartContainer className="h-75 w-full aspect-auto">
+									<Card className="portfolio-glass-panel stats-chart-card">
+										<div
+											aria-hidden
+											className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+										>
+											<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
+											<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
+										</div>
+										<CardHeader className="stats-chart-header">
+											<div>
+												<CardTitle className="text-xl">
+													{t("profitLossOverTime")}
+												</CardTitle>
+												<CardDescription className="stats-chart-subtitle !mt-1 !mb-0">
+													Daily closing profit from last trade of each day
+												</CardDescription>
+											</div>
+											<div className="stats-chart-meta">
+												<span className="stats-chart-pill">
+													{formatPrice(
+														profitOverTime[profitOverTime.length - 1]?.profit ||
+															0,
+													)}
+												</span>
+											</div>
+										</CardHeader>
+										<CardContent>
+								<ChartContainer className="glass-chart-shell w-full aspect-auto">
 									<ResponsiveContainer width="100%" height="100%">
 										<AreaChart
 											data={profitOverTime}
@@ -497,13 +555,13 @@ const Statistics = () => {
 										>
 											<CartesianGrid
 												strokeDasharray="3 3"
-												stroke="#2b3139"
+												stroke="rgba(255,255,255,0.08)"
 											/>
 											<XAxis
 												dataKey="ts"
 												type="number"
 												domain={["dataMin", "dataMax"]}
-												stroke="#848e9c"
+												stroke="rgba(255,255,255,0.45)"
 												tickLine={false}
 												axisLine={false}
 												tickFormatter={(value) =>
@@ -515,7 +573,7 @@ const Statistics = () => {
 											/>
 											<YAxis
 												domain={profitYAxisDomain}
-												stroke="#848e9c"
+												stroke="rgba(255,255,255,0.45)"
 												tickLine={false}
 												axisLine={false}
 												tickFormatter={(value) =>
@@ -546,33 +604,39 @@ const Statistics = () => {
 											<Area
 												type="monotone"
 												dataKey="profit"
-												stroke="#3861fb"
+												stroke="rgba(255,255,255,0.9)"
 												strokeWidth={2.5}
 												fill="none"
 												fillOpacity={0}
 												dot={false}
 												strokeLinecap="round"
 												strokeLinejoin="round"
-												isAnimationActive={true}
-												animationDuration={1000}
-												animationBegin={120}
-												animationEasing="ease-out"
+												isAnimationActive={false}
 												name={t("netProfit")}
 											/>
 										</AreaChart>
 									</ResponsiveContainer>
 								</ChartContainer>
-							</div>
+										</CardContent>
+									</Card>
 								)}
 							</>
 						)}
 					</div>
 
 					{topPerformers.length > 0 && (
-						<div className="card-padded top-performers-card">
-							<h2 className="section-header top-performers-header">
-								{t("topPerformers")}
-							</h2>
+						<Card className="portfolio-glass-panel top-performers-card">
+							<div
+								aria-hidden
+								className="portfolio-glass-highlight pointer-events-none absolute inset-0 overflow-hidden"
+							>
+								<div className="portfolio-glass-highlight__rim portfolio-glass-highlight__rim--wide" />
+								<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
+							</div>
+							<CardHeader>
+								<CardTitle className="text-xl">{t("topPerformers")}</CardTitle>
+							</CardHeader>
+							<CardContent>
 							<div className="top-performers-grid">
 								{topPerformers.map((asset, index) => {
 									const sparkData =
@@ -618,9 +682,14 @@ const Statistics = () => {
 															<Line
 																type="monotone"
 																dataKey="pnl"
-																stroke={isPositive ? "#0ecb81" : "#f6465d"}
+																stroke={
+																	isPositive
+																		? "#9fd8c4"
+																		: "#d1a0b0"
+																}
 																strokeWidth={2}
 																dot={false}
+																isAnimationActive={false}
 															/>
 														</LineChart>
 													</ResponsiveContainer>
@@ -654,10 +723,12 @@ const Statistics = () => {
 									);
 								})}
 							</div>
-						</div>
+							</CardContent>
+						</Card>
 					)}
 				</>
 			)}
+			</div>
 		</div>
 	);
 };
