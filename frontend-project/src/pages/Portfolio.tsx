@@ -201,14 +201,17 @@ const Portfolio = () => {
 
 			const value = portfolioAsset.amount * currentPrice;
 			const pnl = pnlBySymbol[symbol];
+			const avgCost =
+				pnl && pnl.currentAmount > 0 ? pnl.invested / pnl.currentAmount : 0;
+			const effectiveInvested = avgCost * portfolioAsset.amount;
 
 			let netProfit = 0;
 			let netProfitPercent = 0;
 
 			if (pnl) {
-				const unrealized = value - pnl.invested;
-				netProfit = unrealized + pnl.realized;
-				const basis = Math.max(1e-9, pnl.invested);
+				const unrealized = value - effectiveInvested;
+				netProfit = unrealized;
+				const basis = Math.max(1e-9, effectiveInvested);
 				netProfitPercent = (netProfit / basis) * 100;
 			}
 
@@ -216,6 +219,7 @@ const Portfolio = () => {
 				...portfolioAsset,
 				currentPrice,
 				value,
+				avgBuyPrice: avgCost,
 				name: assetData?.name || portfolioAsset.asset_symbol,
 				image_url: assetData?.image_url,
 				netProfit,
@@ -694,6 +698,9 @@ const Portfolio = () => {
 													{t("currentPrice")}
 												</th>
 												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
+													{t("avgBuyPrice")}
+												</th>
+												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
 													{t("totalValue")}
 												</th>
 												<th className="p-3 text-left text-xs font-semibold uppercase text-text-secondary">
@@ -746,6 +753,9 @@ const Portfolio = () => {
 														</td>
 														<td className="p-3 text-sm text-text-primary">
 															{formatPrice(asset.currentPrice)}
+														</td>
+														<td className="p-3 text-sm text-text-primary">
+															{formatPrice(asset.avgBuyPrice)}
 														</td>
 														<td className="p-3 text-sm font-semibold text-text-primary">
 															{formatPrice(asset.value)}

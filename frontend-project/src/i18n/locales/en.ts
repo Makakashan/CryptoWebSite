@@ -134,6 +134,7 @@ export const en = {
 	asset: "Asset",
 	assets: "assets",
 	price: "Price",
+	avgBuyPrice: "Avg Buy",
 	actions: "Actions",
 	noAssetsYet: "You don't have any assets yet",
 	browseMarkets: "Browse Markets",

@@ -135,6 +135,7 @@ export const pl = {
 	asset: "Aktywa",
 	assets: "aktywa",
 	price: "Cena",
+	avgBuyPrice: "Śr. zakup",
 	actions: "Akcje",
 	noAssetsYet: "Nie masz jeszcze żadnych aktywów",
 	browseMarkets: "Przeglądaj rynki",
