@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -18,6 +18,36 @@ import Card, {
 } from "@/components/ui/card";
 import Input from "@/components/ui/input";
 import Label from "@/components/ui/label";
+import { assetsApi } from "@/api/assetsApi";
+
+const LOGIN_CHART_WIDTH = 900;
+const LOGIN_CHART_PADDING_X = 40;
+const LOGIN_CHART_TOP = 40;
+const LOGIN_CHART_BOTTOM = 240;
+
+const buildChartCurve = (points: number[]) => {
+	if (points.length < 2) return null;
+
+	const min = Math.min(...points);
+	const max = Math.max(...points);
+	const range = Math.max(max - min, 1e-9);
+	const width = LOGIN_CHART_WIDTH - LOGIN_CHART_PADDING_X * 2;
+	const height = LOGIN_CHART_BOTTOM - LOGIN_CHART_TOP;
+
+	const coordinates = points.map((value, index) => {
+		const x =
+			LOGIN_CHART_PADDING_X + (index / Math.max(points.length - 1, 1)) * width;
+		const y =
+			LOGIN_CHART_TOP +
+			(1 - (value - min) / range) * height;
+		return { x, y };
+	});
+
+	return coordinates.reduce((path, point, index) => {
+		const command = index === 0 ? "M" : "L";
+		return `${path}${command}${point.x.toFixed(2)} ${point.y.toFixed(2)} `;
+	}, "").trim();
+};
 
 const Login = () => {
 	const { t } = useTranslation();
@@ -28,6 +58,7 @@ const Login = () => {
 	const [googleReady, setGoogleReady] = useState(false);
 	const [googleLoading, setGoogleLoading] = useState(false);
 	const [googleError, setGoogleError] = useState<string | null>(null);
+	const [btcChartPoints, setBtcChartPoints] = useState<number[]>([]);
 	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 	const googlePromptStartedRef = useRef(false);
 	const googleCredentialReceivedRef = useRef(false);
@@ -47,6 +78,22 @@ const Login = () => {
 		};
 
 		fetchFearGreed();
+	}, []);
+
+	useEffect(() => {
+		const fetchLoginChart = async () => {
+			try {
+				const response = await assetsApi.getChartData(["BTCUSDT"], "1h", 48);
+				const points = response?.data?.BTCUSDT || [];
+				if (Array.isArray(points) && points.length > 1) {
+					setBtcChartPoints(points);
+				}
+			} catch (fetchError) {
+				console.error("Failed to fetch BTC chart for login:", fetchError);
+			}
+		};
+
+		fetchLoginChart();
 	}, []);
 
 	useEffect(() => {
@@ -127,8 +174,18 @@ const Login = () => {
 		},
 	});
 
-	const chartCurve =
-		"M40 190 C120 160, 150 170, 220 145 C280 120, 320 130, 385 110 C450 92, 520 112, 590 90 C670 64, 720 78, 860 40";
+	const chartCurve = useMemo(() => buildChartCurve(btcChartPoints), [btcChartPoints]);
+	const chartAreaPath = useMemo(() => {
+		if (!chartCurve) return null;
+		return `${chartCurve} L${LOGIN_CHART_WIDTH - LOGIN_CHART_PADDING_X} ${LOGIN_CHART_BOTTOM} L${LOGIN_CHART_PADDING_X} ${LOGIN_CHART_BOTTOM} Z`;
+	}, [chartCurve]);
+	const btcChartChange = useMemo(() => {
+		if (btcChartPoints.length < 2) return null;
+		const first = btcChartPoints[0];
+		const last = btcChartPoints[btcChartPoints.length - 1];
+		if (!first) return null;
+		return ((last - first) / first) * 100;
+	}, [btcChartPoints]);
 
 	const handleGoogleLogin = () => {
 		if (!googleClientId) {
@@ -217,7 +274,11 @@ const Login = () => {
 						<div className="login-screen__chart">
 							<div className="login-screen__chips">
 								<span>BTC/USDT</span>
-								<span>+2.84%</span>
+								<span>
+									{btcChartChange === null
+										? "Live"
+										: `${btcChartChange >= 0 ? "+" : ""}${btcChartChange.toFixed(2)}%`}
+								</span>
 							</div>
 							<svg
 								className="login-screen__chart-svg"
@@ -225,14 +286,18 @@ const Login = () => {
 								preserveAspectRatio="none"
 								aria-hidden="true"
 							>
-								<path
-									className="login-screen__chart-area"
-									d={`${chartCurve} L860 240 L40 240 Z`}
-								/>
-								<path
-									className="login-screen__chart-line"
-									d={chartCurve}
-								/>
+								{chartAreaPath ? (
+									<path
+										className="login-screen__chart-area"
+										d={chartAreaPath}
+									/>
+								) : null}
+								{chartCurve ? (
+									<path
+										className="login-screen__chart-line"
+										d={chartCurve}
+									/>
+								) : null}
 								<line className="login-screen__grid-line" x1="40" y1="210" x2="860" y2="210" />
 								<line className="login-screen__grid-line" x1="40" y1="155" x2="860" y2="155" />
 								<line className="login-screen__grid-line" x1="40" y1="100" x2="860" y2="100" />
