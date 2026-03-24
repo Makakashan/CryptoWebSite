@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -21,6 +21,8 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets, fetchChartData } from "../store/slices/assetsSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
 import { fetchOrders } from "../store/slices/ordersSlice";
+import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
+import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
 import Card, {
 	CardAction,
@@ -252,6 +254,7 @@ const Dashboard = () => {
 	const { orders, isLoading: ordersLoading } = useAppSelector(
 		(state) => state.orders,
 	);
+	const [priceTick, setPriceTick] = useState(0);
 
 	const initialFetchDone = useRef(false);
 
@@ -285,13 +288,35 @@ const Dashboard = () => {
 	}, [dispatch, isAuthenticated]);
 
 	const isLoading = assetsLoading || portfolioLoading || ordersLoading;
+	const wsSymbols = useMemo(
+		() => assets.map((asset) => asset.symbol),
+		[assets],
+	);
+	useBinanceWebSocket({ symbols: wsSymbols, enabled: wsSymbols.length > 0 });
+
+	useEffect(() => {
+		const handlePriceUpdate = () => {
+			setPriceTick((tick) => tick + 1);
+		};
+
+		binanceWebSocketService.subscribe(handlePriceUpdate);
+		return () => {
+			binanceWebSocketService.unsubscribe(handlePriceUpdate);
+		};
+	}, []);
 
 	const priceMap = useMemo(() => {
+		void priceTick;
+
 		return assets.reduce<Record<string, number>>((acc, asset) => {
-			acc[asset.symbol] = asset.price || asset.current_price || 0;
+			acc[asset.symbol] =
+				binanceWebSocketService.getPrice(asset.symbol) ??
+				asset.price ??
+				asset.current_price ??
+				0;
 			return acc;
 		}, {});
-	}, [assets]);
+	}, [assets, priceTick]);
 
 	const cashBalance = portfolio?.balance || 0;
 	const currentHoldings = useMemo(() => {
