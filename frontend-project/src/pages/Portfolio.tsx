@@ -141,6 +141,11 @@ const Portfolio = () => {
 	useBinanceWebSocket({ symbols: wsSymbols, enabled: wsSymbols.length > 0 });
 
 	const pnlBySymbol = useMemo<Record<string, AssetPnl>>(() => {
+		const sortedOrders = [...orders].sort(
+			(a, b) =>
+				new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+		);
+
 		const state: Record<
 			string,
 			{
@@ -150,7 +155,7 @@ const Portfolio = () => {
 			}
 		> = {};
 
-		for (const order of orders) {
+		for (const order of sortedOrders) {
 			const symbol = order.asset_symbol;
 			if (!state[symbol]) {
 				state[symbol] = { amount: 0, cost: 0, realized: 0 };
