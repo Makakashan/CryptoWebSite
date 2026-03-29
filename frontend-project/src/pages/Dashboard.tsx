@@ -646,7 +646,7 @@ const Dashboard = () => {
 									<button
 										type="button"
 										key={asset.symbol}
-										className="glass-inline-metric w-full flex items-center justify-between p-3 rounded-3xl transition-colors hover:bg-white/[0.04]"
+										className="glass-inline-metric w-full flex items-center justify-between p-3 rounded-3xl transition-colors hover:bg-white/4"
 										onClick={() =>
 											navigate(`/markets/${asset.symbol}`)
 										}
