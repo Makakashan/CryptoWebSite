@@ -533,7 +533,7 @@ const Statistics = () => {
 												<CardTitle className="text-xl">
 													{t("profitLossOverTime")}
 												</CardTitle>
-												<CardDescription className="stats-chart-subtitle !mt-1 !mb-0">
+												<CardDescription className="stats-chart-subtitle mt-1! mb-0!">
 													Daily closing profit from last trade of each day
 												</CardDescription>
 											</div>
