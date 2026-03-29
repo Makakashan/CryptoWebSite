@@ -35,18 +35,17 @@ const buildChartCurve = (points: number[]) => {
 	const height = LOGIN_CHART_BOTTOM - LOGIN_CHART_TOP;
 
 	const coordinates = points.map((value, index) => {
-		const x =
-			LOGIN_CHART_PADDING_X + (index / Math.max(points.length - 1, 1)) * width;
-		const y =
-			LOGIN_CHART_TOP +
-			(1 - (value - min) / range) * height;
+		const x = LOGIN_CHART_PADDING_X + (index / Math.max(points.length - 1, 1)) * width;
+		const y = LOGIN_CHART_TOP + (1 - (value - min) / range) * height;
 		return { x, y };
 	});
 
-	return coordinates.reduce((path, point, index) => {
-		const command = index === 0 ? "M" : "L";
-		return `${path}${command}${point.x.toFixed(2)} ${point.y.toFixed(2)} `;
-	}, "").trim();
+	return coordinates
+		.reduce((path, point, index) => {
+			const command = index === 0 ? "M" : "L";
+			return `${path}${command}${point.x.toFixed(2)} ${point.y.toFixed(2)} `;
+		}, "")
+		.trim();
 };
 
 const Login = () => {
@@ -111,8 +110,7 @@ const Login = () => {
 		script.async = true;
 		script.defer = true;
 		script.onload = () => setGoogleReady(true);
-		script.onerror = () =>
-			setGoogleError("Failed to load Google Sign-In.");
+		script.onerror = () => setGoogleError("Failed to load Google Sign-In.");
 		document.body.appendChild(script);
 	}, [googleClientId]);
 
@@ -147,16 +145,11 @@ const Login = () => {
 				}
 			},
 		});
-
 	}, [dispatch, googleClientId, googleReady, navigate]);
 
 	const validationSchema = Yup.object({
-		username: Yup.string()
-			.min(3, t("usernameMin"))
-			.required(t("usernameRequired")),
-		password: Yup.string()
-			.min(6, t("passwordMin"))
-			.required(t("passwordRequired")),
+		username: Yup.string().min(3, t("usernameMin")).required(t("usernameRequired")),
+		password: Yup.string().min(6, t("passwordMin")).required(t("passwordRequired")),
 	});
 
 	const formik = useFormik({
@@ -233,7 +226,6 @@ const Login = () => {
 		});
 	};
 
-
 	return (
 		<div className="login-screen min-h-screen flex items-center justify-center p-5">
 			<div className="login-screen__glow login-screen__glow--one" />
@@ -249,8 +241,8 @@ const Login = () => {
 					</div>
 					<h1 className="login-hero__title">Trade faster. Track smarter.</h1>
 					<p className="login-hero__text">
-						Live prices, clean analytics and portfolio control in one place. Built
-						for quick decisions in volatile markets.
+						Live prices, clean analytics and portfolio control in one place. Built for quick
+						decisions in volatile markets.
 					</p>
 				</section>
 
@@ -287,21 +279,39 @@ const Login = () => {
 								aria-hidden="true"
 							>
 								{chartAreaPath ? (
-									<path
-										className="login-screen__chart-area"
-										d={chartAreaPath}
-									/>
+									<path className="login-screen__chart-area" d={chartAreaPath} />
 								) : null}
 								{chartCurve ? (
-									<path
-										className="login-screen__chart-line"
-										d={chartCurve}
-									/>
+									<path className="login-screen__chart-line" d={chartCurve} />
 								) : null}
-								<line className="login-screen__grid-line" x1="40" y1="210" x2="860" y2="210" />
-								<line className="login-screen__grid-line" x1="40" y1="155" x2="860" y2="155" />
-								<line className="login-screen__grid-line" x1="40" y1="100" x2="860" y2="100" />
-								<line className="login-screen__grid-line" x1="40" y1="45" x2="860" y2="45" />
+								<line
+									className="login-screen__grid-line"
+									x1="40"
+									y1="210"
+									x2="860"
+									y2="210"
+								/>
+								<line
+									className="login-screen__grid-line"
+									x1="40"
+									y1="155"
+									x2="860"
+									y2="155"
+								/>
+								<line
+									className="login-screen__grid-line"
+									x1="40"
+									y1="100"
+									x2="860"
+									y2="100"
+								/>
+								<line
+									className="login-screen__grid-line"
+									x1="40"
+									y1="45"
+									x2="860"
+									y2="45"
+								/>
 							</svg>
 						</div>
 					</div>
@@ -342,9 +352,7 @@ const Login = () => {
 											onBlur={formik.handleBlur}
 										/>
 										{formik.touched.username && formik.errors.username && (
-											<div className="form-error">
-												{formik.errors.username}
-											</div>
+											<div className="form-error">{formik.errors.username}</div>
 										)}
 									</div>
 									<div className="grid gap-2">
@@ -367,9 +375,7 @@ const Login = () => {
 											onBlur={formik.handleBlur}
 										/>
 										{formik.touched.password && formik.errors.password && (
-											<div className="form-error">
-												{formik.errors.password}
-											</div>
+											<div className="form-error">{formik.errors.password}</div>
 										)}
 									</div>
 								</div>
@@ -399,12 +405,7 @@ const Login = () => {
 					</Card>
 				</div>
 			</div>
-			<button
-				type="button"
-				className="login-support"
-				aria-label="Support"
-				title="Support"
-			>
+			<button type="button" className="login-support" aria-label="Support" title="Support">
 				<Headset size={18} strokeWidth={2.1} />
 			</button>
 		</div>

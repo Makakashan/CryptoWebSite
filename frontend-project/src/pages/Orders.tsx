@@ -202,11 +202,12 @@ const Orders = () => {
 		if (fetchInProgress.current) return;
 		fetchInProgress.current = true;
 
-		Promise.all([dispatch(fetchOrders(filters)), dispatch(fetchPortfolio())]).finally(
-			() => {
-				fetchInProgress.current = false;
-			},
-		);
+		Promise.all([
+			dispatch(fetchOrders(filters)),
+			dispatch(fetchPortfolio()),
+		]).finally(() => {
+			fetchInProgress.current = false;
+		});
 	};
 
 	const handlePageChange = (page: number) => {
@@ -323,7 +324,9 @@ const Orders = () => {
 										<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
 										<Select
 											value={assetSymbol}
-											onChange={(e) => setAssetSymbol(e.target.value)}
+											onChange={(e) =>
+												setAssetSymbol(e.target.value)
+											}
 											className="pl-10"
 										>
 											<option value="">{t("allAssets")}</option>
@@ -343,7 +346,9 @@ const Orders = () => {
 									<Select
 										value={orderType}
 										onChange={(e) =>
-											setOrderType(e.target.value as "" | "BUY" | "SELL")
+											setOrderType(
+												e.target.value as "" | "BUY" | "SELL",
+											)
 										}
 									>
 										<option value="">{t("all")}</option>
@@ -385,8 +390,12 @@ const Orders = () => {
 										>
 											<option value="timestamp">{t("date")}</option>
 											<option value="amount">{t("amount")}</option>
-											<option value="asset_symbol">{t("asset")}</option>
-											<option value="price_at_transaction">{t("price")}</option>
+											<option value="asset_symbol">
+												{t("asset")}
+											</option>
+											<option value="price_at_transaction">
+												{t("price")}
+											</option>
 										</Select>
 									</div>
 									<div className="flex flex-col gap-1.5">
@@ -396,7 +405,9 @@ const Orders = () => {
 										<Select
 											value={sortOrder}
 											onChange={(e) =>
-												setSortOrder(e.target.value as "asc" | "desc")
+												setSortOrder(
+													e.target.value as "asc" | "desc",
+												)
 											}
 										>
 											<option value="desc">{t("descending")}</option>
@@ -483,7 +494,9 @@ const Orders = () => {
 							</p>
 							<div
 								className="mt-3 text-3xl font-bold"
-								style={{ color: netProfit >= 0 ? "#0ecb81" : "#f6465d" }}
+								style={{
+									color: netProfit >= 0 ? "#0ecb81" : "#f6465d",
+								}}
 							>
 								{formatPrice(netProfit)}
 							</div>
@@ -502,13 +515,17 @@ const Orders = () => {
 								{t("recentOrders")}
 							</h2>
 							{hasActiveFilters && (
-								<span className="glass-market-chip text-xs">{t("filters")}</span>
+								<span className="glass-market-chip text-xs">
+									{t("filters")}
+								</span>
 							)}
 						</div>
 
 						{orders.length === 0 ? (
 							<div className="p-14 text-center">
-								<p className="text-text-secondary mb-4">{t("noOrdersYet")}</p>
+								<p className="text-text-secondary mb-4">
+									{t("noOrdersYet")}
+								</p>
 								<Button
 									className="glass-cta-button"
 									onClick={() => navigate("/markets")}
@@ -543,9 +560,15 @@ const Orders = () => {
 									</thead>
 									<tbody>
 										{orders.map((order) => {
-											const shortName = order.asset_symbol.replace("USDT", "");
-											const total = order.amount * order.price_at_transaction;
-											const date = new Date(order.timestamp).toLocaleString();
+											const shortName = order.asset_symbol.replace(
+												"USDT",
+												"",
+											);
+											const total =
+												order.amount * order.price_at_transaction;
+											const date = new Date(
+												order.timestamp,
+											).toLocaleString();
 											const isBuy = order.order_type === "BUY";
 
 											return (
@@ -570,7 +593,9 @@ const Orders = () => {
 														{order.amount.toFixed(6)}
 													</td>
 													<td className="px-6 py-4 text-sm text-text-primary">
-														{formatPrice(order.price_at_transaction)}
+														{formatPrice(
+															order.price_at_transaction,
+														)}
 													</td>
 													<td className="px-6 py-4 text-sm font-semibold text-text-primary">
 														{formatPrice(total)}

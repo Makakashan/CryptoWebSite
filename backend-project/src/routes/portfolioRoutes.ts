@@ -8,50 +8,39 @@ import { resolveAvatarDataUrl } from "../utils/avatar.js";
 const router: Router = express.Router();
 
 // Get User Portfolio
-router.get(
-	"/",
-	authenticateToken,
-	async (req: AuthRequest, res: Response): Promise<void> => {
-		const db = getDB();
-		const userId = req.user!.id;
+router.get("/", authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+	const db = getDB();
+	const userId = req.user!.id;
 
-		try {
-			const user = await db.get(
-				"SELECT balance, avatar FROM users WHERE id = ?",
-				[userId],
-			);
+	try {
+		const user = await db.get("SELECT balance, avatar FROM users WHERE id = ?", [userId]);
 
-			if (!user) {
-				res.status(401).json({ message: "Access denied. User not found." });
-				return;
-			}
-
-			const resolvedAvatar = await resolveAvatarDataUrl(user.avatar);
-			if (resolvedAvatar && resolvedAvatar !== user.avatar) {
-				await db.run("UPDATE users SET avatar = ? WHERE id = ?", [
-					resolvedAvatar,
-					userId,
-				]);
-			}
-
-			const assets = await db.all(
-				"SELECT asset_symbol, amount FROM portfolio WHERE user_id = ?",
-				[userId],
-			);
-
-			res.json({
-				id: userId,
-				username: req.user!.username,
-				balance: user.balance,
-				avatar: resolvedAvatar,
-				assets: assets,
-			});
-		} catch (error) {
-			console.error("Error fetching portfolio:", error);
-			res.status(500).json({ message: "Internal server error." });
+		if (!user) {
+			res.status(401).json({ message: "Access denied. User not found." });
+			return;
 		}
-	},
-);
+
+		const resolvedAvatar = await resolveAvatarDataUrl(user.avatar);
+		if (resolvedAvatar && resolvedAvatar !== user.avatar) {
+			await db.run("UPDATE users SET avatar = ? WHERE id = ?", [resolvedAvatar, userId]);
+		}
+
+		const assets = await db.all("SELECT asset_symbol, amount FROM portfolio WHERE user_id = ?", [
+			userId,
+		]);
+
+		res.json({
+			id: userId,
+			username: req.user!.username,
+			balance: user.balance,
+			avatar: resolvedAvatar,
+			assets: assets,
+		});
+	} catch (error) {
+		console.error("Error fetching portfolio:", error);
+		res.status(500).json({ message: "Internal server error." });
+	}
+});
 
 // Update Asset Amount in Portfolio
 router.put(
@@ -79,10 +68,11 @@ router.put(
 				return;
 			}
 
-			await db.run(
-				"UPDATE portfolio SET amount = ? WHERE user_id = ? AND asset_symbol = ?",
-				[amount, userId, asset_symbol],
-			);
+			await db.run("UPDATE portfolio SET amount = ? WHERE user_id = ? AND asset_symbol = ?", [
+				amount,
+				userId,
+				asset_symbol,
+			]);
 
 			res.json({ message: "Asset amount updated successfully." });
 		} catch (error) {

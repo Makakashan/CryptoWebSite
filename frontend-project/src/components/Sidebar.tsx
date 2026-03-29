@@ -26,10 +26,7 @@ const Sidebar = () => {
 
 	return (
 		<aside className="sidebar-shell fixed left-0 top-0 z-100 h-screen w-sidebar p-4">
-			<div
-				aria-hidden
-				className="pointer-events-none absolute inset-0 overflow-hidden"
-			>
+			<div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
 				<div className="absolute -top-32 -left-24 h-72 w-72 rounded-full bg-white/4 blur-3xl" />
 				<div className="absolute top-1/3 -right-20 h-64 w-64 rounded-full bg-white/3 blur-3xl" />
 				<div className="absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/3 blur-3xl" />
@@ -68,9 +65,7 @@ const Sidebar = () => {
 									aria-hidden
 									className={cn(
 										"absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-linear-to-b from-white/90 to-white/25",
-										isActive
-											? "opacity-100"
-											: "opacity-0 group-hover:opacity-70",
+										isActive ? "opacity-100" : "opacity-0 group-hover:opacity-70",
 									)}
 								/>
 

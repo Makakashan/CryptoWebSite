@@ -9,10 +9,7 @@ const LanguageSwitcher = () => {
 	};
 
 	return (
-		<button
-			className="header-language-switch"
-			onClick={toggleLanguage}
-		>
+		<button className="header-language-switch" onClick={toggleLanguage}>
 			{i18n.language === "en" ? "🇬🇧 EN" : "🇵🇱 PL"}
 		</button>
 	);

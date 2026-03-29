@@ -10,10 +10,7 @@ const AppLayout = () => {
 			<Sidebar />
 			<div className="ml-sidebar min-h-screen w-full flex-1 bg-[#020202] p-6">
 				<Header />
-				<div
-					key={location.pathname}
-					className="page-transition min-h-[calc(100vh-120px)]"
-				>
+				<div key={location.pathname} className="page-transition min-h-[calc(100vh-120px)]">
 					<Outlet />
 				</div>
 			</div>

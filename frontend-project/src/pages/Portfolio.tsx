@@ -20,19 +20,10 @@ import { fetchAssets } from "../store/slices/assetsSlice";
 import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
-import type {
-	SortKey,
-	SortOrder,
-	AssetPnl,
-} from "../store/types/portfolio.types";
+import type { SortKey, SortOrder, AssetPnl } from "../store/types/portfolio.types";
 import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
-import Card, {
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import Card, { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Button from "@/components/ui/button";
 
 const PortfolioGlassHighlight = ({
@@ -94,9 +85,7 @@ const Portfolio = () => {
 	const dispatch = useAppDispatch();
 
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
-	const { portfolio, isLoading, error } = useAppSelector(
-		(state) => state.portfolio,
-	);
+	const { portfolio, isLoading, error } = useAppSelector((state) => state.portfolio);
 	const { assets } = useAppSelector((state) => state.assets);
 	const { orders } = useAppSelector((state) => state.orders);
 
@@ -134,16 +123,12 @@ const Portfolio = () => {
 		}
 	}, [dispatch, isAuthenticated, navigate, orders.length]);
 
-	const wsSymbols = useMemo(
-		() => assets.map((asset) => asset.symbol),
-		[assets],
-	);
+	const wsSymbols = useMemo(() => assets.map((asset) => asset.symbol), [assets]);
 	useBinanceWebSocket({ symbols: wsSymbols, enabled: wsSymbols.length > 0 });
 
 	const pnlBySymbol = useMemo<Record<string, AssetPnl>>(() => {
 		const sortedOrders = [...orders].sort(
-			(a, b) =>
-				new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+			(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 		);
 
 		const state: Record<
@@ -196,18 +181,14 @@ const Portfolio = () => {
 		if (!portfolio) return [];
 
 		return portfolio.assets.map((portfolioAsset) => {
-			const assetData = assets.find(
-				(a) => a.symbol === portfolioAsset.asset_symbol,
-			);
+			const assetData = assets.find((a) => a.symbol === portfolioAsset.asset_symbol);
 			const symbol = portfolioAsset.asset_symbol;
 			const livePrice = binanceWebSocketService.getPrice(symbol);
-			const currentPrice =
-				livePrice ?? assetData?.price ?? assetData?.current_price ?? 0;
+			const currentPrice = livePrice ?? assetData?.price ?? assetData?.current_price ?? 0;
 
 			const value = portfolioAsset.amount * currentPrice;
 			const pnl = pnlBySymbol[symbol];
-			const avgCost =
-				pnl && pnl.currentAmount > 0 ? pnl.invested / pnl.currentAmount : 0;
+			const avgCost = pnl && pnl.currentAmount > 0 ? pnl.invested / pnl.currentAmount : 0;
 			const effectiveInvested = avgCost * portfolioAsset.amount;
 
 			let netProfit = 0;
@@ -250,16 +231,12 @@ const Portfolio = () => {
 
 	const bestPerformer = useMemo(() => {
 		if (!enrichedAssets.length) return null;
-		return [...enrichedAssets].sort(
-			(a, b) => b.netProfitPercent - a.netProfitPercent,
-		)[0];
+		return [...enrichedAssets].sort((a, b) => b.netProfitPercent - a.netProfitPercent)[0];
 	}, [enrichedAssets]);
 
 	const worstPerformer = useMemo(() => {
 		if (!enrichedAssets.length) return null;
-		return [...enrichedAssets].sort(
-			(a, b) => a.netProfitPercent - b.netProfitPercent,
-		)[0];
+		return [...enrichedAssets].sort((a, b) => a.netProfitPercent - b.netProfitPercent)[0];
 	}, [enrichedAssets]);
 
 	const concentrationRisk = useMemo(() => {
@@ -280,15 +257,13 @@ const Portfolio = () => {
 			const q = searchAsset.toLowerCase();
 			filtered = filtered.filter(
 				(asset) =>
-					asset.asset_symbol.toLowerCase().includes(q) ||
-					asset.name.toLowerCase().includes(q),
+					asset.asset_symbol.toLowerCase().includes(q) || asset.name.toLowerCase().includes(q),
 			);
 		}
 
 		filtered.sort((a, b) => {
 			let compare = 0;
-			if (sortBy === "symbol")
-				compare = a.asset_symbol.localeCompare(b.asset_symbol);
+			if (sortBy === "symbol") compare = a.asset_symbol.localeCompare(b.asset_symbol);
 			if (sortBy === "amount") compare = a.amount - b.amount;
 			if (sortBy === "value") compare = a.value - b.value;
 			if (sortBy === "pnl") compare = a.netProfit - b.netProfit;
@@ -398,8 +373,7 @@ const Portfolio = () => {
 								{t("myPortfolio")}
 							</h1>
 							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
-								Your command center for capital, allocation, and
-								execution.
+								Your command center for capital, allocation, and execution.
 							</p>
 						</div>
 						<Button
@@ -434,28 +408,18 @@ const Portfolio = () => {
 							<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--wide" />
 						</div>
 						<CardHeader>
-							<CardTitle className="text-xl">
-								Allocation preview
-							</CardTitle>
-							<CardDescription>
-								Largest positions by portfolio value
-							</CardDescription>
+							<CardTitle className="text-xl">Allocation preview</CardTitle>
+							<CardDescription>Largest positions by portfolio value</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							{topHoldings.length > 0 ? (
 								topHoldings.map((asset) => {
 									const short = asset.asset_symbol.replace("USDT", "");
-									const share =
-										totalValue > 0
-											? (asset.value / totalValue) * 100
-											: 0;
+									const share = totalValue > 0 ? (asset.value / totalValue) * 100 : 0;
 									const defaultIcon = `https://ui-avatars.com/api/?name=${short}&background=random&size=32`;
 
 									return (
-										<div
-											key={asset.asset_symbol}
-											className="space-y-2"
-										>
+										<div key={asset.asset_symbol} className="space-y-2">
 											<div className="flex items-center justify-between">
 												<div className="flex items-center gap-2">
 													<img
@@ -491,9 +455,7 @@ const Portfolio = () => {
 									);
 								})
 							) : (
-								<p className="text-sm text-text-secondary">
-									{t("noAssetsYet")}
-								</p>
+								<p className="text-sm text-text-secondary">{t("noAssetsYet")}</p>
 							)}
 						</CardContent>
 					</Card>
@@ -522,21 +484,16 @@ const Portfolio = () => {
 									<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--metric" />
 								</div>
 								<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-									<TrendingUp
-										className={`h-3.5 w-3.5 ${bestPerformerTone}`}
-									/>
+									<TrendingUp className={`h-3.5 w-3.5 ${bestPerformerTone}`} />
 									Best performer
-									{bestPerformer &&
-										bestPerformer.netProfitPercent < 0 && (
-											<span className="portfolio-status-chip portfolio-status-chip-unusual ml-1">
-												Unusual
-											</span>
-										)}
+									{bestPerformer && bestPerformer.netProfitPercent < 0 && (
+										<span className="portfolio-status-chip portfolio-status-chip-unusual ml-1">
+											Unusual
+										</span>
+									)}
 								</div>
 								<div className="text-sm font-semibold text-text-primary">
-									{bestPerformer
-										? bestPerformer.asset_symbol.replace("USDT", "")
-										: "-"}
+									{bestPerformer ? bestPerformer.asset_symbol.replace("USDT", "") : "-"}
 								</div>
 								<div className={`text-xs ${bestPerformerTone}`}>
 									{bestPerformer
@@ -554,21 +511,16 @@ const Portfolio = () => {
 									<div className="portfolio-glass-highlight__glow portfolio-glass-highlight__glow--metric" />
 								</div>
 								<div className="text-xs text-text-secondary mb-1 flex items-center gap-2">
-									<TrendingDown
-										className={`h-3.5 w-3.5 ${worstPerformerTone}`}
-									/>
+									<TrendingDown className={`h-3.5 w-3.5 ${worstPerformerTone}`} />
 									Worst performer
-									{worstPerformer &&
-										worstPerformer.netProfitPercent > 0 && (
-											<span className="portfolio-status-chip portfolio-status-chip-unusual ml-1">
-												Unusual
-											</span>
-										)}
+									{worstPerformer && worstPerformer.netProfitPercent > 0 && (
+										<span className="portfolio-status-chip portfolio-status-chip-unusual ml-1">
+											Unusual
+										</span>
+									)}
 								</div>
 								<div className="text-sm font-semibold text-text-primary">
-									{worstPerformer
-										? worstPerformer.asset_symbol.replace("USDT", "")
-										: "-"}
+									{worstPerformer ? worstPerformer.asset_symbol.replace("USDT", "") : "-"}
 								</div>
 								<div className={`text-xs ${worstPerformerTone}`}>
 									{worstPerformer
@@ -612,9 +564,7 @@ const Portfolio = () => {
 								<div className="text-sm font-semibold text-text-primary">
 									{cashRatio.toFixed(1)}%
 								</div>
-								<div className="text-xs text-text-secondary">
-									Unallocated liquidity
-								</div>
+								<div className="text-xs text-text-secondary">Unallocated liquidity</div>
 							</div>
 						</CardContent>
 					</Card>
@@ -630,20 +580,14 @@ const Portfolio = () => {
 					</div>
 					<CardHeader className="pb-3">
 						<CardTitle className="text-xl">{t("yourAssets")}</CardTitle>
-						<CardDescription>
-							Manage positions and monitor per-asset PnL
-						</CardDescription>
+						<CardDescription>Manage positions and monitor per-asset PnL</CardDescription>
 					</CardHeader>
 
 					<CardContent>
 						{!hasAssets ? (
 							<div className="flex flex-col items-center justify-center py-12 text-center gap-4">
-								<p className="text-text-secondary">
-									{t("noAssetsYet")}
-								</p>
-								<Button onClick={() => navigate("/markets")}>
-									{t("browseMarkets")}
-								</Button>
+								<p className="text-text-secondary">{t("noAssetsYet")}</p>
+								<Button onClick={() => navigate("/markets")}>{t("browseMarkets")}</Button>
 							</div>
 						) : (
 							<>
@@ -657,9 +601,7 @@ const Portfolio = () => {
 									/>
 									<select
 										value={sortBy}
-										onChange={(e) =>
-											setSortBy(e.target.value as SortKey)
-										}
+										onChange={(e) => setSortBy(e.target.value as SortKey)}
 										className="select"
 									>
 										<option value="value">{t("totalValue")}</option>
@@ -669,9 +611,7 @@ const Portfolio = () => {
 									</select>
 									<select
 										value={sortOrder}
-										onChange={(e) =>
-											setSortOrder(e.target.value as SortOrder)
-										}
+										onChange={(e) => setSortOrder(e.target.value as SortOrder)}
 										className="select"
 									>
 										<option value="desc">{t("highToLow")}</option>
@@ -718,10 +658,7 @@ const Portfolio = () => {
 										</thead>
 										<tbody>
 											{paginatedAssets.map((asset) => {
-												const short = asset.asset_symbol.replace(
-													"USDT",
-													"",
-												);
+												const short = asset.asset_symbol.replace("USDT", "");
 												const defaultIcon = `https://ui-avatars.com/api/?name=${short}&background=random&size=32`;
 
 												const positive = asset.netProfit > 0;
@@ -732,15 +669,11 @@ const Portfolio = () => {
 														<td className="p-3">
 															<div className="flex items-center gap-3">
 																<img
-																	src={
-																		asset.image_url ||
-																		defaultIcon
-																	}
+																	src={asset.image_url || defaultIcon}
 																	alt={short}
 																	className="w-8 h-8 rounded-full"
 																	onError={(e) => {
-																		e.currentTarget.src =
-																			defaultIcon;
+																		e.currentTarget.src = defaultIcon;
 																	}}
 																/>
 																<div>
@@ -777,9 +710,7 @@ const Portfolio = () => {
 															>
 																{asset.netProfit > 0 ? "+" : ""}
 																{formatPrice(asset.netProfit)} (
-																{asset.netProfitPercent.toFixed(
-																	2,
-																)}
+																{asset.netProfitPercent.toFixed(2)}
 																%)
 															</div>
 														</td>
@@ -789,9 +720,7 @@ const Portfolio = () => {
 																size="sm"
 																className="portfolio-assets-action rounded-full text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
 																onClick={() =>
-																	navigate(
-																		`/markets/${asset.asset_symbol}`,
-																	)
+																	navigate(`/markets/${asset.asset_symbol}`)
 																}
 															>
 																{t("trade")}
@@ -812,24 +741,19 @@ const Portfolio = () => {
 											size="sm"
 											className="rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.025))] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.03))]"
 											disabled={effectiveCurrentPage === 1}
-											onClick={() =>
-												handlePageChange(effectiveCurrentPage - 1)
-											}
+											onClick={() => handlePageChange(effectiveCurrentPage - 1)}
 										>
 											{t("previous")}
 										</Button>
 										<span className="text-sm text-text-secondary">
-											{t("page")} {effectiveCurrentPage} {t("of")}{" "}
-											{totalPages}
+											{t("page")} {effectiveCurrentPage} {t("of")} {totalPages}
 										</span>
 										<Button
 											variant="secondary"
 											size="sm"
 											className="rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.025))] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.03))]"
 											disabled={effectiveCurrentPage === totalPages}
-											onClick={() =>
-												handlePageChange(effectiveCurrentPage + 1)
-											}
+											onClick={() => handlePageChange(effectiveCurrentPage + 1)}
 										>
 											{t("next")}
 										</Button>

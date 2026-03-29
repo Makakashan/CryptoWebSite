@@ -75,9 +75,7 @@ wss.on("connection", (ws: WebSocket) => {
 
 				wsSubscriptions.set(ws, new Set(symbols));
 				updateSubscribedSymbols(
-					Array.from(wsSubscriptions.values()).flatMap((set) =>
-						Array.from(set),
-					),
+					Array.from(wsSubscriptions.values()).flatMap((set) => Array.from(set)),
 				);
 
 				// Send any cached prices immediately

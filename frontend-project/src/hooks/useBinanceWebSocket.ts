@@ -4,10 +4,7 @@ import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { updateAssetPrice } from "../store/slices/assetsSlice";
 import type { UseBinanceWebSocketProps } from "../store/types";
 
-export const useBinanceWebSocket = ({
-	symbols,
-	enabled = true,
-}: UseBinanceWebSocketProps) => {
+export const useBinanceWebSocket = ({ symbols, enabled = true }: UseBinanceWebSocketProps) => {
 	const dispatch = useAppDispatch();
 	const prevSymbolsRef = useRef<string>("");
 	const sourceId = `binance-ws-${useId()}`;

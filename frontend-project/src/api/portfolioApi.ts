@@ -7,10 +7,7 @@ export const portfolioApi = {
 		return response.data;
 	},
 
-	updatePortfolioAsset: async (
-		symbol: string,
-		quantity: number,
-	): Promise<void> => {
+	updatePortfolioAsset: async (symbol: string, quantity: number): Promise<void> => {
 		await axiosInstance.put(`/portfolio/${symbol}`, { quantity });
 	},
 

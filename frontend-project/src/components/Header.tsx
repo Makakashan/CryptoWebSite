@@ -58,14 +58,9 @@ const Header = () => {
 		void priceTick;
 
 		return portfolio.assets.reduce((sum, portfolioAsset) => {
-			const assetData = assets.find(
-				(asset) => asset.symbol === portfolioAsset.asset_symbol,
-			);
-			const livePrice = binanceWebSocketService.getPrice(
-				portfolioAsset.asset_symbol,
-			);
-			const price =
-				livePrice ?? assetData?.price ?? assetData?.current_price ?? 0;
+			const assetData = assets.find((asset) => asset.symbol === portfolioAsset.asset_symbol);
+			const livePrice = binanceWebSocketService.getPrice(portfolioAsset.asset_symbol);
+			const price = livePrice ?? assetData?.price ?? assetData?.current_price ?? 0;
 			return sum + portfolioAsset.amount * price;
 		}, 0);
 	}, [portfolio, assets, priceTick]);
@@ -103,9 +98,7 @@ const Header = () => {
 						<img src="/favicon.svg" alt="MakakaTrade" className="h-5 w-5" />
 					</div>
 					<div className="flex flex-col">
-						<span className="text-base font-semibold text-text-primary">
-							MakakaTrade
-						</span>
+						<span className="text-base font-semibold text-text-primary">MakakaTrade</span>
 						<span className="header-brand__label text-[11px] uppercase tracking-[0.24em]">
 							{pageLabel}
 						</span>
@@ -129,7 +122,7 @@ const Header = () => {
 										</AvatarFallback>
 									)}
 								</Avatar>
-								<div className="min-w-[140px]">
+								<div className="min-w-35">
 									<div className="flex items-center gap-2">
 										<span className="text-sm font-semibold text-text-primary">
 											{user.username}
@@ -142,24 +135,18 @@ const Header = () => {
 										{formatPrice(totalBalance)}
 									</div>
 									<div className="text-[10px] leading-none text-text-secondary">
-										{t("cash")}: {formatPrice(cashBalance)} ·{" "}
-										{t("holdings")}: {formatPrice(holdingsValue)}
+										{t("cash")}: {formatPrice(cashBalance)} · {t("holdings")}:{" "}
+										{formatPrice(holdingsValue)}
 									</div>
 								</div>
 							</div>
-							<button
-								className="glass-cta-button"
-								onClick={handleLogout}
-							>
+							<button className="glass-cta-button" onClick={handleLogout}>
 								{t("logout")}
 								<FiArrowUpRight className="text-sm opacity-70" />
 							</button>
 						</>
 					) : (
-						<button
-							className="btn-primary btn-small"
-							onClick={() => navigate("/login")}
-						>
+						<button className="btn-primary btn-small" onClick={() => navigate("/login")}>
 							{t("login")}
 						</button>
 					)}

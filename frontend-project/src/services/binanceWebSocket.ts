@@ -17,10 +17,7 @@ class BinanceWebSocketService {
 		if (this.activeSymbols.size === 0) {
 			return;
 		}
-		if (
-			this.ws?.readyState === WebSocket.OPEN ||
-			this.ws?.readyState === WebSocket.CONNECTING
-		) {
+		if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) {
 			return;
 		}
 

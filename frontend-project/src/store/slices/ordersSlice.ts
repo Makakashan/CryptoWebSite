@@ -1,8 +1,4 @@
-import {
-	createSlice,
-	createAsyncThunk,
-	type PayloadAction,
-} from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { ordersApi } from "../../api/ordersApi";
 import type {
@@ -39,31 +35,26 @@ export const fetchOrders = createAsyncThunk<
 		};
 	} catch (error) {
 		if (error instanceof AxiosError) {
-			return rejectWithValue(
-				error.response?.data?.message || "Failed to fetch orders",
-			);
+			return rejectWithValue(error.response?.data?.message || "Failed to fetch orders");
 		}
 		return rejectWithValue("Failed to fetch orders");
 	}
 });
 
-export const placeOrder = createAsyncThunk<
-	Order,
-	PlaceOrderRequest,
-	{ rejectValue: string }
->("orders/place", async (orderData, { rejectWithValue }) => {
-	try {
-		const response = await ordersApi.placeOrder(orderData);
-		return response;
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			return rejectWithValue(
-				error.response?.data?.message || "Failed to place order",
-			);
+export const placeOrder = createAsyncThunk<Order, PlaceOrderRequest, { rejectValue: string }>(
+	"orders/place",
+	async (orderData, { rejectWithValue }) => {
+		try {
+			const response = await ordersApi.placeOrder(orderData);
+			return response;
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				return rejectWithValue(error.response?.data?.message || "Failed to place order");
+			}
+			return rejectWithValue("Failed to place order");
 		}
-		return rejectWithValue("Failed to place order");
-	}
-});
+	},
+);
 
 const ordersSlice = createSlice({
 	name: "orders",
@@ -110,6 +101,5 @@ const ordersSlice = createSlice({
 	},
 });
 
-export const { clearOrders, setOrdersFilters, clearOrdersFilters } =
-	ordersSlice.actions;
+export const { clearOrders, setOrdersFilters, clearOrdersFilters } = ordersSlice.actions;
 export default ordersSlice.reducer;

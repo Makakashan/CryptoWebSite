@@ -30,9 +30,7 @@ const Register = () => {
 			.min(3, t("usernameMin"))
 			.max(20, t("usernameMax"))
 			.required(t("usernameRequired")),
-		password: Yup.string()
-			.min(6, t("passwordMin"))
-			.required(t("passwordRequired")),
+		password: Yup.string().min(6, t("passwordMin")).required(t("passwordRequired")),
 		confirmPassword: Yup.string()
 			.oneOf([Yup.ref("password")], t("passwordsMustMatch"))
 			.required(t("pleaseConfirmPassword")),
@@ -100,9 +98,7 @@ const Register = () => {
 									onBlur={formik.handleBlur}
 								/>
 								{formik.touched.username && formik.errors.username && (
-									<div className="form-error">
-										{formik.errors.username}
-									</div>
+									<div className="form-error">{formik.errors.username}</div>
 								)}
 							</div>
 
@@ -118,16 +114,12 @@ const Register = () => {
 									onBlur={formik.handleBlur}
 								/>
 								{formik.touched.password && formik.errors.password && (
-									<div className="form-error">
-										{formik.errors.password}
-									</div>
+									<div className="form-error">{formik.errors.password}</div>
 								)}
 							</div>
 
 							<div className="grid gap-2">
-								<Label htmlFor="confirmPassword">
-									{t("confirmPassword")}
-								</Label>
+								<Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
 								<Input
 									id="confirmPassword"
 									name="confirmPassword"
@@ -137,12 +129,9 @@ const Register = () => {
 									onChange={formik.handleChange}
 									onBlur={formik.handleBlur}
 								/>
-								{formik.touched.confirmPassword &&
-									formik.errors.confirmPassword && (
-										<div className="form-error">
-											{formik.errors.confirmPassword}
-										</div>
-									)}
+								{formik.touched.confirmPassword && formik.errors.confirmPassword && (
+									<div className="form-error">{formik.errors.confirmPassword}</div>
+								)}
 							</div>
 						</div>
 					</form>

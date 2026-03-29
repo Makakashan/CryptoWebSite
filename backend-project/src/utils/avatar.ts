@@ -1,6 +1,4 @@
-export const resolveAvatarDataUrl = async (
-	avatarUrl: string | null,
-): Promise<string | null> => {
+export const resolveAvatarDataUrl = async (avatarUrl: string | null): Promise<string | null> => {
 	if (!avatarUrl) return null;
 	if (avatarUrl.startsWith("data:image/")) return avatarUrl;
 

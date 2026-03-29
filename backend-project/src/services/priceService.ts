@@ -50,9 +50,7 @@ const toUsdtPair = (symbol: string): string | null => {
 };
 
 const buildStreamUrl = (symbols: string[]): string => {
-	const streams = symbols
-		.map((symbol) => `${symbol.toLowerCase()}@ticker`)
-		.join("/");
+	const streams = symbols.map((symbol) => `${symbol.toLowerCase()}@ticker`).join("/");
 	return `${BINANCE_WS_BASE}${streams}`;
 };
 
@@ -108,10 +106,7 @@ const scheduleReconnect = () => {
 		return;
 	}
 
-	const delay = Math.min(
-		MAX_RECONNECT_DELAY_MS,
-		BASE_RECONNECT_DELAY_MS * 2 ** reconnectAttempts,
-	);
+	const delay = Math.min(MAX_RECONNECT_DELAY_MS, BASE_RECONNECT_DELAY_MS * 2 ** reconnectAttempts);
 	reconnectAttempts += 1;
 
 	clearReconnectTimer();
@@ -219,10 +214,7 @@ export function updateSubscribedSymbols(symbols: string[]): void {
 	}
 }
 
-export function getCurrentPrice(
-	symbol: string,
-	options: GetCurrentPriceOptions = {},
-): number {
+export function getCurrentPrice(symbol: string, options: GetCurrentPriceOptions = {}): number {
 	const pair = toUsdtPair(symbol);
 	if (!pair) return 0;
 

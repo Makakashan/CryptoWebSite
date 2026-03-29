@@ -43,8 +43,7 @@ const MiniChart = ({ data, color }: MiniChartProps) => {
 
 		data.forEach((value, index) => {
 			const x = padding + (index / (data.length - 1)) * chartWidth;
-			const y =
-				padding + chartHeight - ((value - minValue) / range) * chartHeight;
+			const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
 
 			if (index === 0) {
 				ctx.moveTo(x, y);
@@ -65,11 +64,7 @@ const MiniChart = ({ data, color }: MiniChartProps) => {
 	}
 
 	return (
-		<canvas
-			ref={canvasRef}
-			className="w-full h-full"
-			style={{ width: "100%", height: "100%" }}
-		/>
+		<canvas ref={canvasRef} className="w-full h-full" style={{ width: "100%", height: "100%" }} />
 	);
 };
 

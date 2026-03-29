@@ -43,9 +43,7 @@ const AssetDetail = () => {
 	const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 	const { assets, chartData } = useAppSelector((state) => state.assets);
 	const { portfolio } = useAppSelector((state) => state.portfolio);
-	const { isLoading: orderLoading, error: orderError } = useAppSelector(
-		(state) => state.orders,
-	);
+	const { isLoading: orderLoading, error: orderError } = useAppSelector((state) => state.orders);
 
 	useBinanceWebSocket({
 		symbols: symbol ? [symbol] : [],
@@ -53,9 +51,7 @@ const AssetDetail = () => {
 	});
 
 	const asset = assets.find((a) => a.symbol === symbol);
-	const portfolioAsset = portfolio?.assets.find(
-		(a) => a.asset_symbol === symbol,
-	);
+	const portfolioAsset = portfolio?.assets.find((a) => a.asset_symbol === symbol);
 
 	// Calculate values for validation
 	const currentPrice = livePrice || asset?.price || asset?.current_price || 0;
@@ -63,9 +59,7 @@ const AssetDetail = () => {
 	const balance = portfolio?.balance || user?.balance || 0;
 	const rawMaxBuyAmount = currentPrice > 0 ? balance / currentPrice : 0;
 	const maxBuyAmount =
-		rawMaxBuyAmount > 0
-			? Math.max(0, floorToDecimals(rawMaxBuyAmount - AMOUNT_EPSILON))
-			: 0;
+		rawMaxBuyAmount > 0 ? Math.max(0, floorToDecimals(rawMaxBuyAmount - AMOUNT_EPSILON)) : 0;
 	const maxSellAmount = ownedAmount;
 	const symbolChartData = useMemo(
 		() => (symbol ? chartData[symbol] || [] : []),
@@ -140,11 +134,7 @@ const AssetDetail = () => {
 
 	useEffect(() => {
 		const previousPrice = previousPriceRef.current;
-		if (
-			previousPrice > 0 &&
-			currentPrice > 0 &&
-			previousPrice !== currentPrice
-		) {
+		if (previousPrice > 0 && currentPrice > 0 && previousPrice !== currentPrice) {
 			const flash = currentPrice > previousPrice ? "up" : "down";
 			requestAnimationFrame(() => {
 				setPriceFlash(flash);
@@ -210,16 +200,9 @@ const AssetDetail = () => {
 	useEffect(() => {
 		if (!isAllAmountPinned) return;
 
-		const maxAmount =
-			selectedOrderType === "BUY" ? maxBuyAmount : maxSellAmount;
+		const maxAmount = selectedOrderType === "BUY" ? maxBuyAmount : maxSellAmount;
 		setFieldValue("amount", maxAmount > 0 ? maxAmount.toFixed(6) : "0");
-	}, [
-		isAllAmountPinned,
-		selectedOrderType,
-		maxBuyAmount,
-		maxSellAmount,
-		setFieldValue,
-	]);
+	}, [isAllAmountPinned, selectedOrderType, maxBuyAmount, maxSellAmount, setFieldValue]);
 
 	const handleEdit = () => {
 		navigate(`/markets/edit/${symbol}`);
@@ -251,10 +234,7 @@ const AssetDetail = () => {
 			<div>
 				<div className="flex flex-col items-center justify-center p-14 text-center gap-4">
 					<p className="text-red text-base">Asset not found</p>
-					<button
-						className="btn-primary"
-						onClick={() => navigate("/markets")}
-					>
+					<button className="btn-primary" onClick={() => navigate("/markets")}>
 						Back to Markets
 					</button>
 				</div>
@@ -267,37 +247,26 @@ const AssetDetail = () => {
 	const ownedValue = ownedAmount * currentPrice;
 	const canSell = ownedAmount > 0;
 	const firstChartPrice = displayChartData[0] || currentPrice;
-	const lastChartPrice =
-		displayChartData[displayChartData.length - 1] || currentPrice;
+	const lastChartPrice = displayChartData[displayChartData.length - 1] || currentPrice;
 	const chartChange =
-		firstChartPrice > 0
-			? ((lastChartPrice - firstChartPrice) / firstChartPrice) * 100
-			: 0;
+		firstChartPrice > 0 ? ((lastChartPrice - firstChartPrice) / firstChartPrice) * 100 : 0;
 	const isChartPositive = chartChange >= 0;
 	const chartStrokeColor = isChartPositive ? "#0ecb81" : "#f6465d";
 	const chartFillId = `detailPriceFill-${isChartPositive ? "up" : "down"}`;
-	const dayHigh =
-		displayChartData.length > 0 ? Math.max(...displayChartData) : currentPrice;
-	const dayLow =
-		displayChartData.length > 0 ? Math.min(...displayChartData) : currentPrice;
+	const dayHigh = displayChartData.length > 0 ? Math.max(...displayChartData) : currentPrice;
+	const dayLow = displayChartData.length > 0 ? Math.min(...displayChartData) : currentPrice;
 
 	return (
 		<div>
 			<div className="flex justify-between items-center mb-6">
-				<button
-					className="btn-secondary btn-small"
-					onClick={() => navigate("/markets")}
-				>
+				<button className="btn-secondary btn-small" onClick={() => navigate("/markets")}>
 					← {t("back")}
 				</button>
 				<div className="flex gap-3">
 					<button className="btn-outline btn-small" onClick={handleEdit}>
 						{t("edit")}
 					</button>
-					<button
-						className="btn-danger btn-small"
-						onClick={handleDeleteClick}
-					>
+					<button className="btn-danger btn-small" onClick={handleDeleteClick}>
 						{t("delete")}
 					</button>
 				</div>
@@ -308,30 +277,19 @@ const AssetDetail = () => {
 					className="fixed inset-0 bg-black/70 flex items-center justify-center z-1000"
 					onClick={handleDeleteCancel}
 				>
-					<div
-						className="card p-8 max-w-md w-full mx-4"
-						onClick={(e) => e.stopPropagation()}
-					>
+					<div className="card p-8 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
 						<h3 className="text-xl font-semibold text-text-primary mb-4">
 							{t("confirmDeleteAsset")}
 						</h3>
 						<p className="text-text-secondary mb-6">
 							{t("asset")}:{" "}
-							<strong className="text-text-primary">
-								{asset?.name || asset?.symbol}
-							</strong>
+							<strong className="text-text-primary">{asset?.name || asset?.symbol}</strong>
 						</p>
 						<div className="flex gap-3 justify-end">
-							<button
-								className="btn-outline btn-small"
-								onClick={handleDeleteCancel}
-							>
+							<button className="btn-outline btn-small" onClick={handleDeleteCancel}>
 								{t("cancel")}
 							</button>
-							<button
-								className="btn-danger btn-small"
-								onClick={handleDeleteConfirm}
-							>
+							<button className="btn-danger btn-small" onClick={handleDeleteConfirm}>
 								{t("delete")}
 							</button>
 						</div>
@@ -350,15 +308,9 @@ const AssetDetail = () => {
 						}}
 					/>
 					<div>
-						<h1 className="text-3xl font-bold text-text-primary mb-1">
-							{shortName}
-						</h1>
-						<p className="text-text-secondary text-sm mb-2">
-							{asset.name || asset.symbol}
-						</p>
-						{asset.category && (
-							<span className="badge-primary">{asset.category}</span>
-						)}
+						<h1 className="text-3xl font-bold text-text-primary mb-1">{shortName}</h1>
+						<p className="text-text-secondary text-sm mb-2">{asset.name || asset.symbol}</p>
+						{asset.category && <span className="badge-primary">{asset.category}</span>}
 					</div>
 				</div>
 
@@ -381,9 +333,7 @@ const AssetDetail = () => {
 						</span>
 						<span
 							className={
-								isChartPositive
-									? "text-green font-semibold"
-									: "text-red font-semibold"
+								isChartPositive ? "text-green font-semibold" : "text-red font-semibold"
 							}
 						>
 							{isChartPositive ? "+" : ""}
@@ -396,9 +346,7 @@ const AssetDetail = () => {
 			{asset.description && (
 				<div className="card-padded mb-6">
 					<h2 className="section-header mb-3">About {shortName}</h2>
-					<p className="text-text-secondary leading-relaxed">
-						{asset.description}
-					</p>
+					<p className="text-text-secondary leading-relaxed">{asset.description}</p>
 				</div>
 			)}
 
@@ -421,32 +369,20 @@ const AssetDetail = () => {
 							<AreaChart data={chartPoints}>
 								<defs>
 									<linearGradient id={chartFillId} x1="0" y1="0" x2="0" y2="1">
-										<stop
-											offset="5%"
-											stopColor={chartStrokeColor}
-											stopOpacity={0.4}
-										/>
-										<stop
-											offset="95%"
-											stopColor={chartStrokeColor}
-											stopOpacity={0.02}
-										/>
+										<stop offset="5%" stopColor={chartStrokeColor} stopOpacity={0.4} />
+										<stop offset="95%" stopColor={chartStrokeColor} stopOpacity={0.02} />
 									</linearGradient>
 								</defs>
 								<CartesianGrid strokeDasharray="3 3" stroke="#2b3139" />
 								<XAxis dataKey="index" hide />
 								<YAxis
 									tick={{ fill: "#9ca3af", fontSize: 12 }}
-									tickFormatter={(value: number) =>
-										`$${value.toLocaleString()}`
-									}
+									tickFormatter={(value: number) => `$${value.toLocaleString()}`}
 									width={80}
 									domain={["dataMin", "dataMax"]}
 								/>
 								<Tooltip
-									formatter={(value) =>
-										formatPrice(Number(value || 0))
-									}
+									formatter={(value) => formatPrice(Number(value || 0))}
 									contentStyle={{
 										background: "#151922",
 										border: "1px solid #2b3139",
@@ -478,28 +414,20 @@ const AssetDetail = () => {
 					<div className="grid grid-cols-2 gap-4">
 						<div className="data-item">
 							<span className="data-item-label">Amount Owned</span>
-							<span className="data-item-value">
-								{ownedAmount.toFixed(6)}
-							</span>
+							<span className="data-item-value">{ownedAmount.toFixed(6)}</span>
 						</div>
 						<div className="data-item">
 							<span className="data-item-label">Total Value</span>
-							<span className="data-item-value">
-								{formatPrice(ownedValue)}
-							</span>
+							<span className="data-item-value">{formatPrice(ownedValue)}</span>
 						</div>
 						<div className="data-item">
 							<span className="data-item-label">Available Balance</span>
-							<span className="data-item-value">
-								{formatPrice(balance)}
-							</span>
+							<span className="data-item-value">{formatPrice(balance)}</span>
 						</div>
 						<div className="data-item">
 							<span className="data-item-label">Max Buy Amount</span>
 							<span className="data-item-value">
-								{maxBuyAmount > 0
-									? maxBuyAmount.toFixed(6)
-									: "0.000000"}
+								{maxBuyAmount > 0 ? maxBuyAmount.toFixed(6) : "0.000000"}
 							</span>
 						</div>
 					</div>
@@ -508,9 +436,7 @@ const AssetDetail = () => {
 				<div className="card-padded">
 					<h2 className="section-header">Trade {shortName}</h2>
 
-					{successMessage && (
-						<div className="alert-success">{successMessage}</div>
-					)}
+					{successMessage && <div className="alert-success">{successMessage}</div>}
 
 					{orderError && <div className="alert-error">{orderError}</div>}
 
@@ -577,9 +503,7 @@ const AssetDetail = () => {
 									className={`${formik.values.orderType === "BUY" ? "btn-success" : "btn-primary"} absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs`}
 									onClick={() => {
 										const maxAmount =
-											formik.values.orderType === "BUY"
-												? maxBuyAmount
-												: maxSellAmount;
+											formik.values.orderType === "BUY" ? maxBuyAmount : maxSellAmount;
 										setIsAllAmountPinned(true);
 										formik.setFieldValue(
 											"amount",
@@ -587,15 +511,11 @@ const AssetDetail = () => {
 										);
 									}}
 								>
-									{formik.values.orderType === "BUY"
-										? "Buy All"
-										: "Sell All"}
+									{formik.values.orderType === "BUY" ? "Buy All" : "Sell All"}
 								</button>
 							</div>
 							{formik.touched.amount && formik.errors.amount && (
-								<div className="text-red text-xs mt-1">
-									{formik.errors.amount}
-								</div>
+								<div className="text-red text-xs mt-1">{formik.errors.amount}</div>
 							)}
 							<div className="text-text-secondary text-xs mt-1">
 								{formik.values.orderType === "BUY" ? (
@@ -611,8 +531,7 @@ const AssetDetail = () => {
 								<div className="flex justify-between text-sm">
 									<span className="text-text-secondary">Amount:</span>
 									<span className="text-text-primary font-medium">
-										{Number(formik.values.amount).toFixed(6)}{" "}
-										{shortName}
+										{Number(formik.values.amount).toFixed(6)} {shortName}
 									</span>
 								</div>
 								<div className="flex justify-between text-sm">
@@ -624,9 +543,7 @@ const AssetDetail = () => {
 								<div className="flex justify-between text-base font-semibold pt-2 border-t border-bg-hover">
 									<span className="text-text-primary">Total:</span>
 									<span className="text-text-primary">
-										{formatPrice(
-											Number(formik.values.amount) * currentPrice,
-										)}
+										{formatPrice(Number(formik.values.amount) * currentPrice)}
 									</span>
 								</div>
 							</div>
@@ -639,13 +556,9 @@ const AssetDetail = () => {
 									? "bg-green hover:enabled:bg-green/90"
 									: "bg-red hover:enabled:bg-red/90"
 							}`}
-							disabled={
-								orderLoading || !formik.isValid || !formik.values.amount
-							}
+							disabled={orderLoading || !formik.isValid || !formik.values.amount}
 						>
-							{orderLoading
-								? "Processing..."
-								: `${formik.values.orderType} ${shortName}`}
+							{orderLoading ? "Processing..." : `${formik.values.orderType} ${shortName}`}
 						</button>
 					</form>
 				</div>

@@ -26,11 +26,7 @@ export const ordersApi = {
 		);
 
 		// Handle both paginated response and direct array
-		if (
-			response.data &&
-			typeof response.data === "object" &&
-			"data" in response.data
-		) {
+		if (response.data && typeof response.data === "object" && "data" in response.data) {
 			return {
 				data: response.data.data || [],
 				pagination: response.data.pagination,
@@ -45,9 +41,7 @@ export const ordersApi = {
 	},
 
 	getOrderById: async (id: number): Promise<Order> => {
-		const response = await axiosInstance.get<{ order: Order }>(
-			`/orders/${id}`,
-		);
+		const response = await axiosInstance.get<{ order: Order }>(`/orders/${id}`);
 		return response.data.order;
 	},
 

@@ -25,10 +25,7 @@ router.post(
 			}
 
 			const db = getDB();
-			await db.run("UPDATE users SET avatar = ? WHERE id = ?", [
-				avatar,
-				userId,
-			]);
+			await db.run("UPDATE users SET avatar = ? WHERE id = ?", [avatar, userId]);
 
 			res.json({ message: "Avatar updated successfully" });
 		} catch (error) {

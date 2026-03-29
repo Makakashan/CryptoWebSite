@@ -6,18 +6,9 @@ export const DEFAULT_LIMIT = 12;
 export const MAX_LIMIT = 100;
 
 // Helper function to parse pagination parameters
-export const parsePagination = (
-	page: string | undefined,
-	limit: string | undefined,
-) => {
-	const parsedPage = Math.max(
-		DEFAULT_PAGE,
-		parseInt(page || "") || DEFAULT_PAGE,
-	);
-	const parsedLimit = Math.min(
-		MAX_LIMIT,
-		Math.max(1, parseInt(limit || "") || DEFAULT_LIMIT),
-	);
+export const parsePagination = (page: string | undefined, limit: string | undefined) => {
+	const parsedPage = Math.max(DEFAULT_PAGE, parseInt(page || "") || DEFAULT_PAGE);
+	const parsedLimit = Math.min(MAX_LIMIT, Math.max(1, parseInt(limit || "") || DEFAULT_LIMIT));
 	const offset = (parsedPage - 1) * parsedLimit;
 
 	return { page: parsedPage, limit: parsedLimit, offset };
@@ -33,16 +24,12 @@ export const validateSortField = (
 };
 
 // Helper function to validate and sanitize sort order
-export const validateSortOrder = (
-	order: string | undefined,
-): "asc" | "desc" => {
+export const validateSortOrder = (order: string | undefined): "asc" | "desc" => {
 	return order === "desc" ? "desc" : "asc";
 };
 
 // Helper function to parse numeric filters
-export const parseNumericFilter = (
-	value: string | undefined,
-): number | null => {
+export const parseNumericFilter = (value: string | undefined): number | null => {
 	const parsed = parseFloat(value || "");
 	return isNaN(parsed) ? null : parsed;
 };
@@ -55,9 +42,7 @@ export const parseDateFilter = (value: string | undefined): string | null => {
 };
 
 // Helper function to parse boolean filters
-export const parseBooleanFilter = (
-	value: string | undefined,
-): boolean | null => {
+export const parseBooleanFilter = (value: string | undefined): boolean | null => {
 	if (value === "true") return true;
 	if (value === "false") return false;
 	return null;

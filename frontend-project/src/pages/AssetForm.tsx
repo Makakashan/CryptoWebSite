@@ -4,11 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import {
-	createAsset,
-	updateAsset,
-	fetchAssets,
-} from "../store/slices/assetsSlice";
+import { createAsset, updateAsset, fetchAssets } from "../store/slices/assetsSlice";
 import type { CreateAssetDto } from "../store/types";
 
 const AssetForm = () => {
@@ -43,14 +39,8 @@ const AssetForm = () => {
 		name: Yup.string()
 			.required(t("nameRequired"))
 			.max(100, "Name must be less than 100 characters"),
-		image_url: Yup.string()
-			.url("Must be a valid URL")
-			.nullable()
-			.notRequired(),
-		category: Yup.string().max(
-			50,
-			"Category must be less than 50 characters",
-		),
+		image_url: Yup.string().url("Must be a valid URL").nullable().notRequired(),
+		category: Yup.string().max(50, "Category must be less than 50 characters"),
 		description: Yup.string()
 			.max(1000, "Description must be less than 1000 characters")
 			.nullable()
@@ -74,9 +64,7 @@ const AssetForm = () => {
 				if (isEditMode && symbol) {
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					const { symbol: _, ...updateData } = values;
-					const result = await dispatch(
-						updateAsset({ symbol, data: updateData }),
-					);
+					const result = await dispatch(updateAsset({ symbol, data: updateData }));
 
 					if (result.meta.requestStatus === "fulfilled") {
 						setSuccessMessage(t("assetUpdatedSuccessfully"));
@@ -112,10 +100,7 @@ const AssetForm = () => {
 
 	return (
 		<div>
-			<button
-				className="btn-secondary btn-small mb-6"
-				onClick={() => navigate("/markets")}
-			>
+			<button className="btn-secondary btn-small mb-6" onClick={() => navigate("/markets")}>
 				← {t("back")}
 			</button>
 
@@ -124,9 +109,7 @@ const AssetForm = () => {
 					{isEditMode ? t("editAsset") : t("addNewAsset")}
 				</h1>
 
-				{successMessage && (
-					<div className="alert-success">{successMessage}</div>
-				)}
+				{successMessage && <div className="alert-success">{successMessage}</div>}
 
 				{error && <div className="alert-error">{error}</div>}
 
@@ -150,9 +133,7 @@ const AssetForm = () => {
 							className="input-disabled"
 						/>
 						{formik.touched.symbol && formik.errors.symbol && (
-							<div className="text-red text-xs mt-1">
-								{formik.errors.symbol}
-							</div>
+							<div className="text-red text-xs mt-1">{formik.errors.symbol}</div>
 						)}
 					</div>
 
@@ -200,9 +181,7 @@ const AssetForm = () => {
 							))}
 						</select>
 						{formik.touched.category && formik.errors.category && (
-							<div className="text-red text-xs mt-1">
-								{formik.errors.category}
-							</div>
+							<div className="text-red text-xs mt-1">{formik.errors.category}</div>
 						)}
 					</div>
 
@@ -224,9 +203,7 @@ const AssetForm = () => {
 							className="input"
 						/>
 						{formik.touched.image_url && formik.errors.image_url && (
-							<div className="text-red text-xs mt-1">
-								{formik.errors.image_url}
-							</div>
+							<div className="text-red text-xs mt-1">{formik.errors.image_url}</div>
 						)}
 					</div>
 
@@ -248,9 +225,7 @@ const AssetForm = () => {
 							className="textarea"
 						/>
 						{formik.touched.description && formik.errors.description && (
-							<div className="text-red text-xs mt-1">
-								{formik.errors.description}
-							</div>
+							<div className="text-red text-xs mt-1">{formik.errors.description}</div>
 						)}
 					</div>
 
@@ -264,9 +239,7 @@ const AssetForm = () => {
 								onChange={formik.handleChange}
 								className="checkbox"
 							/>
-							<span className="text-text-primary font-medium text-sm">
-								{t("isActive")}
-							</span>
+							<span className="text-text-primary font-medium text-sm">{t("isActive")}</span>
 						</label>
 					</div>
 
@@ -284,11 +257,7 @@ const AssetForm = () => {
 							className="btn-primary"
 							disabled={isLoading || !formik.isValid || !formik.dirty}
 						>
-							{isLoading
-								? t("loading")
-								: isEditMode
-									? t("updateAsset")
-									: t("createAsset")}
+							{isLoading ? t("loading") : isEditMode ? t("updateAsset") : t("createAsset")}
 						</button>
 					</div>
 				</form>

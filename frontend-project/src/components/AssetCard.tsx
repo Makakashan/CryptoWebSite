@@ -1,21 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { memo, useEffect, useRef, useState } from "react";
-import type {
-	AssetCardProps,
-	PriceFlash,
-} from "../store/types/components.types";
+import type { AssetCardProps, PriceFlash } from "../store/types/components.types";
 import { formatPrice } from "../utils/formatPrice";
 import Card from "./ui/card";
 import MiniChart from "./MiniChart";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { useAppSelector } from "../store/hooks";
 import { useIconLoader } from "../hooks/useIconLoader";
-import {
-	EMPTY_CHART_DATA,
-	INTERSECTION_OBSERVER_OPTIONS,
-	CHART_COLORS,
-} from "../constants";
+import { EMPTY_CHART_DATA, INTERSECTION_OBSERVER_OPTIONS, CHART_COLORS } from "../constants";
 
 const AssetCard = memo(({ asset }: AssetCardProps) => {
 	const { t } = useTranslation();
@@ -64,9 +57,7 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 		prevPriceRef.current = price;
 	}, [price]);
 
-	const chartColor = isPositive
-		? CHART_COLORS.POSITIVE
-		: CHART_COLORS.NEGATIVE;
+	const chartColor = isPositive ? CHART_COLORS.POSITIVE : CHART_COLORS.NEGATIVE;
 
 	const handleClick = () => {
 		navigate(`/markets/${asset.symbol}`);
@@ -92,9 +83,7 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 							<h3 className="text-base font-bold text-text-primary m-0 truncate">
 								{shortName}
 							</h3>
-							<div className="text-xs text-text-secondary truncate">
-								{asset.symbol}
-							</div>
+							<div className="text-xs text-text-secondary truncate">{asset.symbol}</div>
 						</div>
 					</div>
 
@@ -141,9 +130,7 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 
 					{asset.category && (
 						<div className="mt-auto">
-							<span className="glass-market-chip">
-								{asset.category}
-							</span>
+							<span className="glass-market-chip">{asset.category}</span>
 						</div>
 					)}
 				</div>
@@ -201,11 +188,7 @@ const AssetImage = memo(
 		}
 
 		useEffect(() => {
-			if (
-				imageUrl &&
-				imgRef.current?.complete &&
-				imgRef.current?.naturalHeight > 0
-			) {
+			if (imageUrl && imgRef.current?.complete && imgRef.current?.naturalHeight > 0) {
 				queueMicrotask(() => setImageLoaded(true));
 			}
 		}, [imageUrl]);
@@ -224,10 +207,7 @@ const AssetImage = memo(
 					}`}
 					loading="lazy"
 					onLoad={(e) => {
-						if (
-							e.currentTarget.complete &&
-							e.currentTarget.naturalHeight > 0
-						) {
+						if (e.currentTarget.complete && e.currentTarget.naturalHeight > 0) {
 							setImageLoaded(true);
 						}
 					}}

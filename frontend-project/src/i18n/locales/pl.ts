@@ -24,8 +24,7 @@ export const pl = {
 	forgotYourPassword: "Zapomniałeś hasła?",
 	loginWithGoogle: "Zaloguj się przez Google",
 	createAnAccount: "Utwórz konto",
-	enterYourInformationBelowToCreateYourAccount:
-		"Wprowadź swoje dane poniżej, aby utworzyć konto",
+	enterYourInformationBelowToCreateYourAccount: "Wprowadź swoje dane poniżej, aby utworzyć konto",
 	signUpWithGoogle: "Zarejestruj się przez Google",
 
 	// Wspólne
@@ -85,8 +84,7 @@ export const pl = {
 	myPortfolio: "Moje portfolio",
 	orderHistory: "Historia zamówień",
 	welcomeToMakakaTrade: "Witaj w MakakaTrade",
-	loginToViewPortfolio:
-		"Zaloguj się, aby zobaczyć portfolio i rozpocząć handel",
+	loginToViewPortfolio: "Zaloguj się, aby zobaczyć portfolio i rozpocząć handel",
 	noAssetsAvailable: "Brak dostępnych aktywów",
 	topMovers: "Największe ruchy",
 	strongest24hMove: "Aktywa z najsilniejszym ruchem 24h",
@@ -99,8 +97,7 @@ export const pl = {
 		"Ostatnie 7 dni, odtworzone na podstawie transakcji i godzinowych cen rynkowych",
 	details: "Szczegóły",
 	shortcutsForNextMove: "Szybkie akcje dla następnego ruchu",
-	addMoreTradesToBuildChart:
-		"Dodaj więcej transakcji, aby zbudować wykres trendu salda.",
+	addMoreTradesToBuildChart: "Dodaj więcej transakcji, aby zbudować wykres trendu salda.",
 
 	// Rynki
 	allAssets: "Wszystkie aktywa",
@@ -188,8 +185,7 @@ export const pl = {
 	confirmDeleteAsset: "Czy na pewno chcesz usunąć ten aktyw?",
 	symbolRequired: "Symbol jest wymagany",
 	nameRequired: "Nazwa jest wymagana",
-	symbolFormat:
-		"Symbol musi być wielkimi literami i kończyć się na USDT (np. BTCUSDT)",
+	symbolFormat: "Symbol musi być wielkimi literami i kończyć się na USDT (np. BTCUSDT)",
 
 	// Filtry i sortowanie
 	orderType: "Typ zamówienia",

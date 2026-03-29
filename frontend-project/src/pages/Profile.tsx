@@ -46,10 +46,7 @@ const Profile = () => {
 			console.error("Error uploading avatar:", error);
 			setMessage({
 				type: "error",
-				text:
-					error instanceof Error
-						? error.message
-						: "Failed to upload avatar",
+				text: error instanceof Error ? error.message : "Failed to upload avatar",
 			});
 		} finally {
 			setIsUploading(false);
@@ -76,10 +73,7 @@ const Profile = () => {
 			console.error("Error deleting avatar:", error);
 			setMessage({
 				type: "error",
-				text:
-					error instanceof Error
-						? error.message
-						: "Failed to delete avatar",
+				text: error instanceof Error ? error.message : "Failed to delete avatar",
 			});
 		} finally {
 			setIsUploading(false);
@@ -99,20 +93,12 @@ const Profile = () => {
 
 	return (
 		<div className="p-6">
-			<h1 className="text-2xl font-bold text-text-primary mb-6">
-				{t("profile")}
-			</h1>
+			<h1 className="text-2xl font-bold text-text-primary mb-6">{t("profile")}</h1>
 
 			<div className="card-padded max-w-2xl">
 				<div className="mb-8">
 					{message && (
-						<div
-							className={
-								message.type === "success"
-									? "alert-success"
-									: "alert-error"
-							}
-						>
+						<div className={message.type === "success" ? "alert-success" : "alert-error"}>
 							{message.text}
 						</div>
 					)}
@@ -127,10 +113,7 @@ const Profile = () => {
 
 						{hasChanges && (
 							<div className="flex gap-3">
-								<Button
-									onClick={handleSaveAvatar}
-									disabled={isUploading}
-								>
+								<Button onClick={handleSaveAvatar} disabled={isUploading}>
 									{isUploading ? t("saving") : t("saveChanges")}
 								</Button>
 								<Button
@@ -168,9 +151,7 @@ const Profile = () => {
 
 						<div className="data-item">
 							<span className="data-item-label">{t("balance")}</span>
-							<span className="data-item-value text-green">
-								${user.balance.toFixed(2)}
-							</span>
+							<span className="data-item-value text-green">${user.balance.toFixed(2)}</span>
 						</div>
 
 						<div className="data-item">

@@ -10,13 +10,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import {
-	ArrowRight,
-	TrendingUp,
-	Wallet,
-	PieChart,
-	Landmark,
-} from "lucide-react";
+import { ArrowRight, TrendingUp, Wallet, PieChart, Landmark } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchAssets, fetchChartData } from "../store/slices/assetsSlice";
 import { fetchPortfolio } from "../store/slices/portfolioSlice";
@@ -159,9 +153,7 @@ const getHistoricalPrice = (
 	}
 
 	const mappedIndex =
-		totalPoints <= 1
-			? 0
-			: Math.round((pointIndex * (series.length - 1)) / (totalPoints - 1));
+		totalPoints <= 1 ? 0 : Math.round((pointIndex * (series.length - 1)) / (totalPoints - 1));
 
 	return series[mappedIndex] || currentPrice;
 };
@@ -178,12 +170,10 @@ const buildBalanceHistory = (
 	}
 
 	const sortedOrdersAsc = [...orders].sort(
-		(a, b) =>
-			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+		(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 	);
 	const endTime = Date.now();
-	const startTime =
-		endTime - (BALANCE_HISTORY_LIMIT - 1) * BALANCE_HISTORY_STEP_MS;
+	const startTime = endTime - (BALANCE_HISTORY_LIMIT - 1) * BALANCE_HISTORY_STEP_MS;
 	const ordersInRange = sortedOrdersAsc.filter(
 		(order) => new Date(order.timestamp).getTime() >= startTime,
 	);
@@ -243,17 +233,9 @@ const Dashboard = () => {
 	const dispatch = useAppDispatch();
 
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
-	const {
-		assets,
-		isLoading: assetsLoading,
-		chartData,
-	} = useAppSelector((state) => state.assets);
-	const { portfolio, isLoading: portfolioLoading } = useAppSelector(
-		(state) => state.portfolio,
-	);
-	const { orders, isLoading: ordersLoading } = useAppSelector(
-		(state) => state.orders,
-	);
+	const { assets, isLoading: assetsLoading, chartData } = useAppSelector((state) => state.assets);
+	const { portfolio, isLoading: portfolioLoading } = useAppSelector((state) => state.portfolio);
+	const { orders, isLoading: ordersLoading } = useAppSelector((state) => state.orders);
 	const [priceTick, setPriceTick] = useState(0);
 
 	const initialFetchDone = useRef(false);
@@ -263,9 +245,7 @@ const Dashboard = () => {
 		initialFetchDone.current = true;
 
 		if (assets.length === 0) {
-			dispatch(
-				fetchAssets({ limit: 12, sortBy: "price", sortOrder: "desc" }),
-			);
+			dispatch(fetchAssets({ limit: 12, sortBy: "price", sortOrder: "desc" }));
 		}
 
 		if (isAuthenticated) {
@@ -288,10 +268,7 @@ const Dashboard = () => {
 	}, [dispatch, isAuthenticated]);
 
 	const isLoading = assetsLoading || portfolioLoading || ordersLoading;
-	const wsSymbols = useMemo(
-		() => assets.map((asset) => asset.symbol),
-		[assets],
-	);
+	const wsSymbols = useMemo(() => assets.map((asset) => asset.symbol), [assets]);
 	useBinanceWebSocket({ symbols: wsSymbols, enabled: wsSymbols.length > 0 });
 
 	useEffect(() => {
@@ -334,21 +311,15 @@ const Dashboard = () => {
 		if (!portfolio) return 0;
 
 		return portfolio.assets.reduce((sum, portfolioAsset) => {
-			return (
-				sum +
-				portfolioAsset.amount * (priceMap[portfolioAsset.asset_symbol] || 0)
-			);
+			return sum + portfolioAsset.amount * (priceMap[portfolioAsset.asset_symbol] || 0);
 		}, 0);
 	}, [portfolio, priceMap]);
 
 	const totalBalance = cashBalance + holdingsValue;
 
 	const recentOrders = useMemo(() => {
-		const sevenDaysAgo =
-			Date.now() - BALANCE_HISTORY_LIMIT * BALANCE_HISTORY_STEP_MS;
-		return orders.filter(
-			(order) => new Date(order.timestamp).getTime() >= sevenDaysAgo,
-		);
+		const sevenDaysAgo = Date.now() - BALANCE_HISTORY_LIMIT * BALANCE_HISTORY_STEP_MS;
+		return orders.filter((order) => new Date(order.timestamp).getTime() >= sevenDaysAgo);
 	}, [orders]);
 
 	const balanceHistorySymbols = useMemo(() => {
@@ -367,9 +338,7 @@ const Dashboard = () => {
 			return;
 		}
 
-		const symbolsToFetch = balanceHistorySymbols.filter(
-			(symbol) => !(symbol in chartData),
-		);
+		const symbolsToFetch = balanceHistorySymbols.filter((symbol) => !(symbol in chartData));
 
 		if (symbolsToFetch.length === 0) {
 			return;
@@ -389,13 +358,7 @@ const Dashboard = () => {
 		balanceHistorySymbols.some((symbol) => !(symbol in chartData));
 
 	const balanceHistory = useMemo(() => {
-		return buildBalanceHistory(
-			recentOrders,
-			priceMap,
-			cashBalance,
-			currentHoldings,
-			chartData,
-		);
+		return buildBalanceHistory(recentOrders, priceMap, cashBalance, currentHoldings, chartData);
 	}, [recentOrders, priceMap, cashBalance, currentHoldings, chartData]);
 
 	const balanceChange = useMemo(() => {
@@ -427,11 +390,7 @@ const Dashboard = () => {
 	const topMovers = useMemo(() => {
 		return [...assets]
 			.filter((asset) => typeof asset.price_change_24h === "number")
-			.sort(
-				(a, b) =>
-					Math.abs(b.price_change_24h || 0) -
-					Math.abs(a.price_change_24h || 0),
-			)
+			.sort((a, b) => Math.abs(b.price_change_24h || 0) - Math.abs(a.price_change_24h || 0))
 			.slice(0, 5);
 	}, [assets]);
 
@@ -439,9 +398,7 @@ const Dashboard = () => {
 		return (
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-3xl">
-						{t("welcomeToMakakaTrade")}
-					</CardTitle>
+					<CardTitle className="text-3xl">{t("welcomeToMakakaTrade")}</CardTitle>
 					<CardDescription>{t("loginToViewPortfolio")}</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-wrap gap-3">
@@ -468,263 +425,251 @@ const Dashboard = () => {
 								Live balance, market pulse, and your next trading moves.
 							</p>
 						</div>
-						<Button className="glass-cta-button shrink-0 self-start lg:self-center" onClick={() => navigate("/markets")}>
-							{t("viewMarkets")}
-						</Button>
-					</div>
-				</div>
-
-			<div className="glass-metric-grid glass-metric-grid--four">
-				<DashboardMetricCard
-					title={t("totalBalance")}
-					value={formatPrice(totalBalance)}
-					description={t("cashAndHoldings")}
-					icon={Wallet}
-				/>
-				<DashboardMetricCard
-					title={t("cashBalance")}
-					value={formatPrice(cashBalance)}
-					description={t("available")}
-					icon={Landmark}
-				/>
-				<DashboardMetricCard
-					title={t("portfolioValue")}
-					value={formatPrice(holdingsValue)}
-					description={`${portfolio?.assets.length || 0} ${t("assets")}`}
-					icon={PieChart}
-				/>
-				<DashboardMetricCard
-					title={t("balanceTrend")}
-					value={`${balanceChange >= 0 ? "+" : ""}${balanceChange.toFixed(2)}%`}
-					description={t("last7DaysHourly")}
-					icon={TrendingUp}
-					valueClassName={`text-2xl ${balanceChange >= 0 ? "portfolio-status-text-positive" : "portfolio-status-text-negative"}`}
-				/>
-			</div>
-
-			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-				<Card className="glass-chart-panel xl:col-span-2">
-					<div aria-hidden className="glass-panel-highlight" />
-					<div className="glass-panel-inner">
-					<CardHeader>
-						<CardTitle className="text-xl">
-							{t("balanceOverTime")}
-						</CardTitle>
-						<CardDescription>
-							{t("balanceOverTimeDescription")}
-						</CardDescription>
-						<CardAction>
-							<Button
-								variant="outline"
-								size="sm"
-								className="glass-muted-button"
-								onClick={() => navigate("/statistics")}
-							>
-								{t("details")}
-							</Button>
-						</CardAction>
-					</CardHeader>
-					<CardContent>
-						{isLoading || isBalanceHistoryLoading ? (
-							<div className="glass-chart-skeleton animate-pulse" />
-						) : balanceHistory.length > 1 ? (
-							<div className="glass-chart-shell">
-								<ResponsiveContainer width="100%" height="100%">
-									<AreaChart
-										data={balanceHistory}
-										margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
-									>
-										<defs>
-											<linearGradient
-												id="balanceGradient"
-												x1="0"
-												y1="0"
-												x2="0"
-												y2="1"
-											>
-												<stop
-													offset="5%"
-													stopColor="#ffffff"
-													stopOpacity={0.45}
-												/>
-												<stop
-													offset="95%"
-													stopColor="#ffffff"
-													stopOpacity={0.05}
-												/>
-											</linearGradient>
-										</defs>
-										<CartesianGrid
-											strokeDasharray="3 3"
-											stroke="rgba(255,255,255,0.08)"
-										/>
-										<XAxis
-											dataKey="ts"
-											type="number"
-											domain={["dataMin", "dataMax"]}
-											stroke="rgba(255,255,255,0.45)"
-											tickLine={false}
-											axisLine={false}
-											tickFormatter={(value) =>
-												new Date(Number(value)).toLocaleDateString(
-													[],
-													{
-														day: "2-digit",
-														month: "2-digit",
-													},
-												)
-											}
-										/>
-										<YAxis
-											domain={yAxisDomain}
-											width={90}
-											stroke="rgba(255,255,255,0.45)"
-											tickLine={false}
-											axisLine={false}
-											tickFormatter={(value) =>
-												formatAxisPrice(Number(value))
-											}
-										/>
-										<Tooltip
-											labelFormatter={(label) =>
-												new Date(Number(label)).toLocaleString([], {
-													day: "2-digit",
-													month: "2-digit",
-													hour: "2-digit",
-													minute: "2-digit",
-												})
-											}
-											formatter={(value, _name, item) => [
-												formatPrice(Number(value)),
-												item?.payload?.label || t("balance"),
-											]}
-											contentStyle={{
-												backgroundColor: "#111111",
-												border: "1px solid rgba(255,255,255,0.1)",
-												borderRadius: "16px",
-											}}
-										/>
-										<Area
-											type="monotone"
-											dataKey="value"
-											stroke="rgba(255,255,255,0.9)"
-											strokeWidth={2.5}
-											fill="url(#balanceGradient)"
-										/>
-									</AreaChart>
-								</ResponsiveContainer>
-							</div>
-						) : (
-							<div className="glass-chart-empty">
-								{t("addMoreTradesToBuildChart")}
-							</div>
-						)}
-					</CardContent>
-					</div>
-				</Card>
-
-				<Card className="glass-chart-panel">
-					<div aria-hidden className="glass-panel-highlight" />
-					<div className="glass-panel-inner">
-					<CardHeader>
-						<CardTitle className="text-xl">{t("topMovers")}</CardTitle>
-						<CardDescription>{t("strongest24hMove")}</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-3">
-						{topMovers.length === 0 ? (
-							<p className="text-sm text-text-secondary">
-								{t("noMarketDataYet")}
-							</p>
-						) : (
-							topMovers.map((asset) => {
-								const shortName = asset.symbol.replace("USDT", "");
-								const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=32`;
-								const price = asset.price || asset.current_price || 0;
-								const change = asset.price_change_24h || 0;
-
-								return (
-									<button
-										type="button"
-										key={asset.symbol}
-										className="glass-inline-metric w-full flex items-center justify-between p-3 rounded-3xl transition-colors hover:bg-white/4"
-										onClick={() =>
-											navigate(`/markets/${asset.symbol}`)
-										}
-									>
-										<div className="flex items-center gap-3 text-left">
-											<img
-												src={asset.image_url || defaultIcon}
-												alt={shortName}
-												className="w-8 h-8 rounded-full"
-												onError={(e) => {
-													e.currentTarget.src = defaultIcon;
-												}}
-											/>
-											<div>
-												<p className="text-sm font-semibold text-text-primary">
-													{shortName}
-												</p>
-												<p className="text-xs text-text-secondary">
-													{formatPrice(price)}
-												</p>
-											</div>
-										</div>
-										<span
-											className={`portfolio-status-chip ${
-												change >= 0
-													? "portfolio-status-chip-positive"
-													: "portfolio-status-chip-negative"
-											}`}
-										>
-											{change >= 0 ? "+" : ""}
-											{change.toFixed(2)}%
-										</span>
-									</button>
-								);
-							})
-						)}
-
 						<Button
-							variant="outline"
-							className="glass-cta-button w-full mt-2"
+							className="glass-cta-button shrink-0 self-start lg:self-center"
 							onClick={() => navigate("/markets")}
 						>
 							{t("viewMarkets")}
-							<ArrowRight className="w-4 h-4" />
 						</Button>
-					</CardContent>
+					</div>
+				</div>
+
+				<div className="glass-metric-grid glass-metric-grid--four">
+					<DashboardMetricCard
+						title={t("totalBalance")}
+						value={formatPrice(totalBalance)}
+						description={t("cashAndHoldings")}
+						icon={Wallet}
+					/>
+					<DashboardMetricCard
+						title={t("cashBalance")}
+						value={formatPrice(cashBalance)}
+						description={t("available")}
+						icon={Landmark}
+					/>
+					<DashboardMetricCard
+						title={t("portfolioValue")}
+						value={formatPrice(holdingsValue)}
+						description={`${portfolio?.assets.length || 0} ${t("assets")}`}
+						icon={PieChart}
+					/>
+					<DashboardMetricCard
+						title={t("balanceTrend")}
+						value={`${balanceChange >= 0 ? "+" : ""}${balanceChange.toFixed(2)}%`}
+						description={t("last7DaysHourly")}
+						icon={TrendingUp}
+						valueClassName={`text-2xl ${balanceChange >= 0 ? "portfolio-status-text-positive" : "portfolio-status-text-negative"}`}
+					/>
+				</div>
+
+				<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+					<Card className="glass-chart-panel xl:col-span-2">
+						<div aria-hidden className="glass-panel-highlight" />
+						<div className="glass-panel-inner">
+							<CardHeader>
+								<CardTitle className="text-xl">{t("balanceOverTime")}</CardTitle>
+								<CardDescription>{t("balanceOverTimeDescription")}</CardDescription>
+								<CardAction>
+									<Button
+										variant="outline"
+										size="sm"
+										className="glass-muted-button"
+										onClick={() => navigate("/statistics")}
+									>
+										{t("details")}
+									</Button>
+								</CardAction>
+							</CardHeader>
+							<CardContent>
+								{isLoading || isBalanceHistoryLoading ? (
+									<div className="glass-chart-skeleton animate-pulse" />
+								) : balanceHistory.length > 1 ? (
+									<div className="glass-chart-shell">
+										<ResponsiveContainer width="100%" height="100%">
+											<AreaChart
+												data={balanceHistory}
+												margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+											>
+												<defs>
+													<linearGradient
+														id="balanceGradient"
+														x1="0"
+														y1="0"
+														x2="0"
+														y2="1"
+													>
+														<stop
+															offset="5%"
+															stopColor="#ffffff"
+															stopOpacity={0.45}
+														/>
+														<stop
+															offset="95%"
+															stopColor="#ffffff"
+															stopOpacity={0.05}
+														/>
+													</linearGradient>
+												</defs>
+												<CartesianGrid
+													strokeDasharray="3 3"
+													stroke="rgba(255,255,255,0.08)"
+												/>
+												<XAxis
+													dataKey="ts"
+													type="number"
+													domain={["dataMin", "dataMax"]}
+													stroke="rgba(255,255,255,0.45)"
+													tickLine={false}
+													axisLine={false}
+													tickFormatter={(value) =>
+														new Date(Number(value)).toLocaleDateString([], {
+															day: "2-digit",
+															month: "2-digit",
+														})
+													}
+												/>
+												<YAxis
+													domain={yAxisDomain}
+													width={90}
+													stroke="rgba(255,255,255,0.45)"
+													tickLine={false}
+													axisLine={false}
+													tickFormatter={(value) => formatAxisPrice(Number(value))}
+												/>
+												<Tooltip
+													labelFormatter={(label) =>
+														new Date(Number(label)).toLocaleString([], {
+															day: "2-digit",
+															month: "2-digit",
+															hour: "2-digit",
+															minute: "2-digit",
+														})
+													}
+													formatter={(value, _name, item) => [
+														formatPrice(Number(value)),
+														item?.payload?.label || t("balance"),
+													]}
+													contentStyle={{
+														backgroundColor: "#111111",
+														border: "1px solid rgba(255,255,255,0.1)",
+														borderRadius: "16px",
+													}}
+												/>
+												<Area
+													type="monotone"
+													dataKey="value"
+													stroke="rgba(255,255,255,0.9)"
+													strokeWidth={2.5}
+													fill="url(#balanceGradient)"
+												/>
+											</AreaChart>
+										</ResponsiveContainer>
+									</div>
+								) : (
+									<div className="glass-chart-empty">{t("addMoreTradesToBuildChart")}</div>
+								)}
+							</CardContent>
+						</div>
+					</Card>
+
+					<Card className="glass-chart-panel">
+						<div aria-hidden className="glass-panel-highlight" />
+						<div className="glass-panel-inner">
+							<CardHeader>
+								<CardTitle className="text-xl">{t("topMovers")}</CardTitle>
+								<CardDescription>{t("strongest24hMove")}</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-3">
+								{topMovers.length === 0 ? (
+									<p className="text-sm text-text-secondary">{t("noMarketDataYet")}</p>
+								) : (
+									topMovers.map((asset) => {
+										const shortName = asset.symbol.replace("USDT", "");
+										const defaultIcon = `https://ui-avatars.com/api/?name=${shortName}&background=random&size=32`;
+										const price = asset.price || asset.current_price || 0;
+										const change = asset.price_change_24h || 0;
+
+										return (
+											<button
+												type="button"
+												key={asset.symbol}
+												className="glass-inline-metric w-full flex items-center justify-between p-3 rounded-3xl transition-colors hover:bg-white/4"
+												onClick={() => navigate(`/markets/${asset.symbol}`)}
+											>
+												<div className="flex items-center gap-3 text-left">
+													<img
+														src={asset.image_url || defaultIcon}
+														alt={shortName}
+														className="w-8 h-8 rounded-full"
+														onError={(e) => {
+															e.currentTarget.src = defaultIcon;
+														}}
+													/>
+													<div>
+														<p className="text-sm font-semibold text-text-primary">
+															{shortName}
+														</p>
+														<p className="text-xs text-text-secondary">
+															{formatPrice(price)}
+														</p>
+													</div>
+												</div>
+												<span
+													className={`portfolio-status-chip ${
+														change >= 0
+															? "portfolio-status-chip-positive"
+															: "portfolio-status-chip-negative"
+													}`}
+												>
+													{change >= 0 ? "+" : ""}
+													{change.toFixed(2)}%
+												</span>
+											</button>
+										);
+									})
+								)}
+
+								<Button
+									variant="outline"
+									className="glass-cta-button w-full mt-2"
+									onClick={() => navigate("/markets")}
+								>
+									{t("viewMarkets")}
+									<ArrowRight className="w-4 h-4" />
+								</Button>
+							</CardContent>
+						</div>
+					</Card>
+				</div>
+
+				<Card className="glass-surface-panel">
+					<div aria-hidden className="glass-panel-highlight" />
+					<div className="glass-panel-inner">
+						<CardHeader>
+							<CardTitle className="text-xl">{t("quickActions")}</CardTitle>
+							<CardDescription>{t("shortcutsForNextMove")}</CardDescription>
+						</CardHeader>
+						<CardContent className="flex flex-wrap gap-3">
+							<Button className="glass-cta-button" onClick={() => navigate("/markets")}>
+								{t("viewMarkets")}
+							</Button>
+							<Button
+								variant="secondary"
+								className="glass-muted-button"
+								onClick={() => navigate("/portfolio")}
+							>
+								{t("myPortfolio")}
+							</Button>
+							<Button
+								variant="secondary"
+								className="glass-muted-button"
+								onClick={() => navigate("/orders")}
+							>
+								{t("orderHistory")}
+							</Button>
+						</CardContent>
 					</div>
 				</Card>
-			</div>
-
-			<Card className="glass-surface-panel">
-				<div aria-hidden className="glass-panel-highlight" />
-				<div className="glass-panel-inner">
-				<CardHeader>
-					<CardTitle className="text-xl">{t("quickActions")}</CardTitle>
-					<CardDescription>{t("shortcutsForNextMove")}</CardDescription>
-				</CardHeader>
-				<CardContent className="flex flex-wrap gap-3">
-					<Button className="glass-cta-button" onClick={() => navigate("/markets")}>
-						{t("viewMarkets")}
-					</Button>
-					<Button
-						variant="secondary"
-						className="glass-muted-button"
-						onClick={() => navigate("/portfolio")}
-					>
-						{t("myPortfolio")}
-					</Button>
-					<Button
-						variant="secondary"
-						className="glass-muted-button"
-						onClick={() => navigate("/orders")}
-					>
-						{t("orderHistory")}
-					</Button>
-				</CardContent>
-				</div>
-			</Card>
 			</div>
 		</div>
 	);

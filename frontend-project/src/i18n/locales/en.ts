@@ -19,8 +19,7 @@ export const en = {
 	registerHere: "Register here",
 	signUp: "Sign Up",
 	loginToYourAccount: "Login to your account",
-	enterYourEmailBelowToLoginToYourAccount:
-		"Enter your email below to login to your account",
+	enterYourEmailBelowToLoginToYourAccount: "Enter your email below to login to your account",
 	forgotYourPassword: "Forgot your password?",
 	loginWithGoogle: "Login with Google",
 	createAnAccount: "Create an account",
@@ -98,8 +97,7 @@ export const en = {
 		"Last 7 days, reconstructed from your trades and hourly market prices",
 	details: "Details",
 	shortcutsForNextMove: "Shortcuts for your next move",
-	addMoreTradesToBuildChart:
-		"Add more trades to build your balance trend chart.",
+	addMoreTradesToBuildChart: "Add more trades to build your balance trend chart.",
 
 	// Markets
 	allAssets: "All Assets",

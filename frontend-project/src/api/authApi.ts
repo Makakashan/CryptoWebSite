@@ -1,9 +1,5 @@
 import api from "./axiosConfig";
-import {
-	type LoginRequest,
-	type RegisterRequest,
-	type AuthResponse,
-} from "../store/types";
+import { type LoginRequest, type RegisterRequest, type AuthResponse } from "../store/types";
 import type { Portfolio } from "../store/types";
 
 export const authApi = {
@@ -13,10 +9,7 @@ export const authApi = {
 	},
 
 	register: async (credentials: RegisterRequest): Promise<AuthResponse> => {
-		const response = await api.post<AuthResponse>(
-			"/auth/register",
-			credentials,
-		);
+		const response = await api.post<AuthResponse>("/auth/register", credentials);
 		return response.data;
 	},
 

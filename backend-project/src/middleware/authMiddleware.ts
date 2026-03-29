@@ -4,11 +4,7 @@ import { Response, NextFunction } from "express";
 import { AuthRequest, JWTPayload } from "../types/types.js";
 
 // Middleware to authenticate JWT token from cookies
-export const authenticateToken = (
-	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
-): void => {
+export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
 	const token = req.cookies.token;
 
 	if (!token) {

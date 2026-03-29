@@ -9,23 +9,20 @@ const initialState: PortfolioState = {
 	error: null,
 };
 
-export const fetchPortfolio = createAsyncThunk<
-	Portfolio,
-	void,
-	{ rejectValue: string }
->("portfolio/fetch", async (_, { rejectWithValue }) => {
-	try {
-		const response = await portfolioApi.getPortfolio();
-		return response;
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			return rejectWithValue(
-				error.response?.data?.message || "Failed to fetch portfolio",
-			);
+export const fetchPortfolio = createAsyncThunk<Portfolio, void, { rejectValue: string }>(
+	"portfolio/fetch",
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await portfolioApi.getPortfolio();
+			return response;
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				return rejectWithValue(error.response?.data?.message || "Failed to fetch portfolio");
+			}
+			return rejectWithValue("Failed to fetch portfolio");
 		}
-		return rejectWithValue("Failed to fetch portfolio");
-	}
-});
+	},
+);
 
 const portfolioSlice = createSlice({
 	name: "portfolio",
@@ -48,8 +45,7 @@ const portfolioSlice = createSlice({
 			})
 			.addCase(fetchPortfolio.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error =
-					(action.payload as string) || "Failed to fetch portfolio";
+				state.error = (action.payload as string) || "Failed to fetch portfolio";
 			});
 	},
 });

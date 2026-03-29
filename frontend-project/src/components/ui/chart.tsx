@@ -2,18 +2,17 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 // Chart container component
-const ChartContainer = React.forwardRef<
-	HTMLDivElement,
-	React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-	return (
-		<div
-			ref={ref}
-			className={cn("flex aspect-video justify-center text-xs", className)}
-			{...props}
-		/>
-	);
-});
+const ChartContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+	({ className, ...props }, ref) => {
+		return (
+			<div
+				ref={ref}
+				className={cn("flex aspect-video justify-center text-xs", className)}
+				{...props}
+			/>
+		);
+	},
+);
 ChartContainer.displayName = "ChartContainer";
 
 // Chart tooltip types
@@ -33,13 +32,7 @@ interface ChartTooltipProps {
 }
 
 // Chart tooltip wrapper
-const ChartTooltip = ({
-	active,
-	payload,
-	label,
-	labelFormatter,
-	formatter,
-}: ChartTooltipProps) => {
+const ChartTooltip = ({ active, payload, label, labelFormatter, formatter }: ChartTooltipProps) => {
 	if (!active || !payload || !payload.length) {
 		return null;
 	}
@@ -51,24 +44,15 @@ const ChartTooltip = ({
 			</div>
 			<div className="space-y-1">
 				{payload.map((entry: TooltipPayloadEntry, index: number) => {
-					const value = formatter
-						? formatter(entry.value, entry.name)
-						: entry.value;
+					const value = formatter ? formatter(entry.value, entry.name) : entry.value;
 					return (
-						<div
-							key={`item-${index}`}
-							className="flex items-center gap-2"
-						>
+						<div key={`item-${index}`} className="flex items-center gap-2">
 							<div
 								className="w-2 h-2 rounded-full"
 								style={{ backgroundColor: entry.color }}
 							/>
-							<span className="text-xs text-text-secondary">
-								{entry.name}:
-							</span>
-							<span className="text-xs font-medium text-text-primary">
-								{value}
-							</span>
+							<span className="text-xs text-text-secondary">{entry.name}:</span>
+							<span className="text-xs font-medium text-text-primary">{value}</span>
 						</div>
 					);
 				})}
@@ -99,13 +83,8 @@ const ChartLegend = ({ payload }: ChartLegendProps) => {
 		<div className="flex flex-wrap gap-4 justify-center pt-4">
 			{payload.map((entry: LegendPayloadEntry, index: number) => (
 				<div key={`legend-${index}`} className="flex items-center gap-2">
-					<div
-						className="w-3 h-3 rounded"
-						style={{ backgroundColor: entry.color }}
-					/>
-					<span className="text-xs text-text-secondary">
-						{entry.value}
-					</span>
+					<div className="w-3 h-3 rounded" style={{ backgroundColor: entry.color }} />
+					<span className="text-xs text-text-secondary">{entry.value}</span>
 				</div>
 			))}
 		</div>

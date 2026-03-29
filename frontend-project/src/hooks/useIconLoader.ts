@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { iconLoaderService } from "../services/iconLoader";
-import type {
-	UseIconLoaderProps,
-	UseIconLoaderResult,
-} from "../store/types";
+import type { UseIconLoaderProps, UseIconLoaderResult } from "../store/types";
 
 export const useIconLoader = ({
 	symbol,

@@ -32,16 +32,12 @@ const buildUniqueUsername = async (db: DB, base: string): Promise<string> => {
 	let suffix = 1;
 
 	while (true) {
-		const existing = await db.get<User>(
-			"SELECT * FROM users WHERE username = ?",
-			[username],
-		);
+		const existing = await db.get<User>("SELECT * FROM users WHERE username = ?", [username]);
 		if (!existing) return username;
 		username = `${safeBase}${suffix}`;
 		suffix += 1;
 	}
 };
-
 
 // User Registration Endpoint
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
@@ -54,20 +50,18 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
 	}
 
 	try {
-		const existingUser = await db.get<User>(
-			"SELECT * FROM users WHERE username = ?",
-			[username],
-		);
+		const existingUser = await db.get<User>("SELECT * FROM users WHERE username = ?", [username]);
 		if (existingUser) {
 			res.status(400).json({ message: "Username already exists." });
 			return;
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10);
-		await db.run(
-			"INSERT INTO users (username, password, avatar) VALUES (?, ?, ?)",
-			[username, hashedPassword, avatar],
-		);
+		await db.run("INSERT INTO users (username, password, avatar) VALUES (?, ?, ?)", [
+			username,
+			hashedPassword,
+			avatar,
+		]);
 
 		res.json({ message: "User registered successfully." });
 	} catch (error) {
@@ -87,9 +81,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
 	}
 
 	try {
-		const user = await db.get("SELECT * FROM users WHERE username = ?", [
-			username,
-		]);
+		const user = await db.get("SELECT * FROM users WHERE username = ?", [username]);
 		if (!user) {
 			res.status(400).json({ message: "Invalid Username." });
 			return;
@@ -102,13 +94,9 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
 		}
 
 		// Generate JWT token
-		const token = jwt.sign(
-			{ id: user.id, username: user.username },
-			SECRET_KEY,
-			{
-				expiresIn: "1h",
-			},
-		);
+		const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, {
+			expiresIn: "1h",
+		});
 
 		// Set token in HTTP-only cookie
 		res.cookie("token", token, {
@@ -172,13 +160,12 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 		const email = payload.email || null;
 		const avatar = await resolveAvatarDataUrl(payload.picture || null);
 		const baseUsername =
-			(email ? email.split("@")[0] : payload.name) ||
-			`user_${googleId.slice(0, 6)}`;
+			(email ? email.split("@")[0] : payload.name) || `user_${googleId.slice(0, 6)}`;
 
-		let user = await db.get<User>(
-			"SELECT * FROM users WHERE google_id = ? OR email = ?",
-			[googleId, email],
-		);
+		let user = await db.get<User>("SELECT * FROM users WHERE google_id = ? OR email = ?", [
+			googleId,
+			email,
+		]);
 
 		if (!user) {
 			const username = await buildUniqueUsername(db, baseUsername);
@@ -186,9 +173,7 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 				"INSERT INTO users (username, password, avatar, google_id, email) VALUES (?, ?, ?, ?, ?)",
 				[username, null, avatar, googleId, email],
 			);
-			user = await db.get<User>("SELECT * FROM users WHERE google_id = ?", [
-				googleId,
-			]);
+			user = await db.get<User>("SELECT * FROM users WHERE google_id = ?", [googleId]);
 		} else {
 			await db.run(
 				"UPDATE users SET avatar = COALESCE(?, avatar), email = COALESCE(?, email), google_id = COALESCE(?, google_id) WHERE id = ?",
@@ -201,13 +186,9 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 			return;
 		}
 
-		const token = jwt.sign(
-			{ id: user.id, username: user.username },
-			SECRET_KEY,
-			{
-				expiresIn: "1h",
-			},
-		);
+		const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, {
+			expiresIn: "1h",
+		});
 
 		res.cookie("token", token, {
 			httpOnly: true,

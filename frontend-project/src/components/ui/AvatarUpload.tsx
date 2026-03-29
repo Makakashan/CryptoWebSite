@@ -68,10 +68,7 @@ export function AvatarUpload({
 					className="hidden"
 					id="avatar-upload"
 				/>
-				<label
-					htmlFor="avatar-upload"
-					className="btn-outline btn-small cursor-pointer"
-				>
+				<label htmlFor="avatar-upload" className="btn-outline btn-small cursor-pointer">
 					{preview ? "Change" : "Upload"}
 				</label>
 				{preview && (

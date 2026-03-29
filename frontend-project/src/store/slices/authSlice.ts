@@ -1,8 +1,4 @@
-import {
-	createSlice,
-	createAsyncThunk,
-	type PayloadAction,
-} from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { authApi } from "../../api/authApi";
 import type { User, LoginRequest, RegisterRequest, AuthState } from "../types";
@@ -14,108 +10,96 @@ const initialState: AuthState = {
 	error: null,
 };
 
-export const login = createAsyncThunk<
-	User,
-	LoginRequest,
-	{ rejectValue: string }
->("auth/login", async (credentials, { rejectWithValue }) => {
-	try {
-		await authApi.login(credentials);
-		const profile = await authApi.getProfile();
-		return {
-			id: profile.id,
-			username: profile.username,
-			balance: profile.balance,
-			avatar: profile.avatar,
-		};
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			return rejectWithValue(
-				error.response?.data?.message || "Login failed",
-			);
+export const login = createAsyncThunk<User, LoginRequest, { rejectValue: string }>(
+	"auth/login",
+	async (credentials, { rejectWithValue }) => {
+		try {
+			await authApi.login(credentials);
+			const profile = await authApi.getProfile();
+			return {
+				id: profile.id,
+				username: profile.username,
+				balance: profile.balance,
+				avatar: profile.avatar,
+			};
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				return rejectWithValue(error.response?.data?.message || "Login failed");
+			}
+			return rejectWithValue("Login failed");
 		}
-		return rejectWithValue("Login failed");
-	}
-});
+	},
+);
 
-export const loginWithGoogle = createAsyncThunk<
-	User,
-	string,
-	{ rejectValue: string }
->("auth/loginWithGoogle", async (credential, { rejectWithValue }) => {
-	try {
-		await authApi.googleLogin(credential);
-		const profile = await authApi.getProfile();
-		return {
-			id: profile.id,
-			username: profile.username,
-			balance: profile.balance,
-			avatar: profile.avatar,
-		};
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			return rejectWithValue(
-				error.response?.data?.message || "Google login failed",
-			);
+export const loginWithGoogle = createAsyncThunk<User, string, { rejectValue: string }>(
+	"auth/loginWithGoogle",
+	async (credential, { rejectWithValue }) => {
+		try {
+			await authApi.googleLogin(credential);
+			const profile = await authApi.getProfile();
+			return {
+				id: profile.id,
+				username: profile.username,
+				balance: profile.balance,
+				avatar: profile.avatar,
+			};
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				return rejectWithValue(error.response?.data?.message || "Google login failed");
+			}
+			return rejectWithValue("Google login failed");
 		}
-		return rejectWithValue("Google login failed");
-	}
-});
+	},
+);
 
-export const register = createAsyncThunk<
-	User,
-	RegisterRequest,
-	{ rejectValue: string }
->("auth/register", async (credentials, { rejectWithValue }) => {
-	try {
-		await authApi.register(credentials);
-		await authApi.login({
-			username: credentials.username,
-			password: credentials.password,
-		});
-		const profile = await authApi.getProfile();
-		return {
-			id: profile.id,
-			username: profile.username,
-			balance: profile.balance,
-			avatar: profile.avatar,
-		};
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			return rejectWithValue(
-				error.response?.data?.message || "Registration failed",
-			);
+export const register = createAsyncThunk<User, RegisterRequest, { rejectValue: string }>(
+	"auth/register",
+	async (credentials, { rejectWithValue }) => {
+		try {
+			await authApi.register(credentials);
+			await authApi.login({
+				username: credentials.username,
+				password: credentials.password,
+			});
+			const profile = await authApi.getProfile();
+			return {
+				id: profile.id,
+				username: profile.username,
+				balance: profile.balance,
+				avatar: profile.avatar,
+			};
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				return rejectWithValue(error.response?.data?.message || "Registration failed");
+			}
+			return rejectWithValue("Registration failed");
 		}
-		return rejectWithValue("Registration failed");
-	}
-});
+	},
+);
 
 export const logout = createAsyncThunk("auth/logout", async () => {
 	await authApi.logout();
 });
 
-export const fetchProfile = createAsyncThunk<
-	User,
-	void,
-	{ rejectValue: string }
->("auth/fetchProfile", async (_, { rejectWithValue }) => {
-	try {
-		const response = await authApi.getProfile();
-		return {
-			id: response.id,
-			username: response.username,
-			balance: response.balance,
-			avatar: response.avatar,
-		};
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			return rejectWithValue(
-				error.response?.data?.message || "Failed to fetch profile",
-			);
+export const fetchProfile = createAsyncThunk<User, void, { rejectValue: string }>(
+	"auth/fetchProfile",
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await authApi.getProfile();
+			return {
+				id: response.id,
+				username: response.username,
+				balance: response.balance,
+				avatar: response.avatar,
+			};
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				return rejectWithValue(error.response?.data?.message || "Failed to fetch profile");
+			}
+			return rejectWithValue("Failed to fetch profile");
 		}
-		return rejectWithValue("Failed to fetch profile");
-	}
-});
+	},
+);
 
 const authSlice = createSlice({
 	name: "auth",

@@ -1,11 +1,5 @@
 // Asset constants
-export const ALLOWED_ASSET_CATEGORIES = [
-	"currency",
-	"defi",
-	"nft",
-	"meme",
-	"other",
-];
+export const ALLOWED_ASSET_CATEGORIES = ["currency", "defi", "nft", "meme", "other"];
 
 // CoinGecko category mapping
 export const COINGECKO_CATEGORY_MAP: Record<string, string> = {
@@ -42,13 +36,7 @@ export function mapCoinGeckoCategory(categories?: string[]): string {
 	return "other";
 }
 
-export const ALLOWED_ASSET_SORT_FIELDS = [
-	"symbol",
-	"name",
-	"category",
-	"created_at",
-	"price",
-];
+export const ALLOWED_ASSET_SORT_FIELDS = ["symbol", "name", "category", "created_at", "price"];
 
 // Order constants
 export const ALLOWED_ORDER_TYPES = ["BUY", "SELL"];

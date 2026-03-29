@@ -19,9 +19,7 @@ export const assetsApi = {
 				}
 			});
 		}
-		const response = await api.get<AssetsResponse>(
-			`/assets?${params.toString()}`,
-		);
+		const response = await api.get<AssetsResponse>(`/assets?${params.toString()}`);
 		return response.data;
 	},
 
@@ -35,10 +33,7 @@ export const assetsApi = {
 		return response.data.asset;
 	},
 
-	updateAsset: async (
-		symbol: string,
-		asset: UpdateAssetDto,
-	): Promise<Asset> => {
+	updateAsset: async (symbol: string, asset: UpdateAssetDto): Promise<Asset> => {
 		const response = await api.put(`/assets/${symbol}`, asset);
 		return response.data.asset;
 	},

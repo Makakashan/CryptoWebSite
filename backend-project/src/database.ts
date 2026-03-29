@@ -1,11 +1,6 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
-import {
-	DB,
-	BinanceTicker,
-	CoinGeckoListItem,
-	CoinGeckoDetail,
-} from "./types/types.js";
+import { DB, BinanceTicker, CoinGeckoListItem, CoinGeckoDetail } from "./types/types.js";
 import { mapCoinGeckoCategory } from "./utils/constants.js";
 
 let dbinstance: DB | null = null; // Store the database instance
@@ -116,43 +111,26 @@ export async function initializeDB(): Promise<DB> {
 // Auto-populate assets from Binance and CoinGecko if database is empty
 async function autoPopulateAssets(db: DB): Promise<void> {
 	try {
-		const assetCount = await db.get<{ count: number }>(
-			"SELECT COUNT(*) as count FROM assets",
-		);
+		const assetCount = await db.get<{ count: number }>("SELECT COUNT(*) as count FROM assets");
 
 		if (assetCount && assetCount.count > 0) {
-			console.log(
-				`Database already has ${assetCount.count} assets. Skipping auto-population.`,
-			);
+			console.log(`Database already has ${assetCount.count} assets. Skipping auto-population.`);
 			return;
 		}
 
 		console.log("No assets found in database. Starting auto-population...");
 
 		const limit = 100;
-		const response = await fetch(
-			"https://api.binance.com/api/v3/ticker/24hr",
-		);
+		const response = await fetch("https://api.binance.com/api/v3/ticker/24hr");
 
 		if (!response.ok) {
-			console.error(
-				"Failed to fetch data from Binance for auto-population.",
-			);
+			console.error("Failed to fetch data from Binance for auto-population.");
 			return;
 		}
 
 		const tickers = (await response.json()) as BinanceTicker[];
 
-		const stablecoins = [
-			"USDT",
-			"USDC",
-			"BUSD",
-			"TUSD",
-			"USDP",
-			"DAI",
-			"FDUSD",
-			"USD1",
-		];
+		const stablecoins = ["USDT", "USDC", "BUSD", "TUSD", "USDP", "DAI", "FDUSD", "USD1"];
 
 		const usdtPairs = tickers
 			.filter((ticker) => {
@@ -160,10 +138,7 @@ async function autoPopulateAssets(db: DB): Promise<void> {
 				const baseAsset = ticker.symbol.replace("USDT", "");
 				return !stablecoins.includes(baseAsset);
 			})
-			.sort(
-				(a: any, b: any) =>
-					parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume),
-			)
+			.sort((a: any, b: any) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
 			.slice(0, limit);
 
 		let addedCount = 0;
@@ -171,22 +146,16 @@ async function autoPopulateAssets(db: DB): Promise<void> {
 		// Fetch CoinGecko list once for all assets
 		let coinsListMap: Map<string, string> = new Map();
 		try {
-			const coinsListResponse = await fetch(
-				"https://api.coingecko.com/api/v3/coins/list",
-			);
+			const coinsListResponse = await fetch("https://api.coingecko.com/api/v3/coins/list");
 			if (coinsListResponse.ok) {
-				const coinsList =
-					(await coinsListResponse.json()) as CoinGeckoListItem[];
+				const coinsList = (await coinsListResponse.json()) as CoinGeckoListItem[];
 				coinsList.forEach((coin) => {
 					coinsListMap.set(coin.symbol.toLowerCase(), coin.id);
 				});
 				console.log(`Loaded ${coinsListMap.size} coins from CoinGecko`);
 			}
 		} catch (error) {
-			console.log(
-				"Could not fetch CoinGecko list, continuing without it:",
-				error,
-			);
+			console.log("Could not fetch CoinGecko list, continuing without it:", error);
 		}
 
 		for (const ticker of usdtPairs) {
@@ -206,10 +175,8 @@ async function autoPopulateAssets(db: DB): Promise<void> {
 					);
 
 					if (coinDetailResponse.ok) {
-						const coinDetail =
-							(await coinDetailResponse.json()) as CoinGeckoDetail;
-						image_url =
-							coinDetail.image?.large || coinDetail.image?.small || null;
+						const coinDetail = (await coinDetailResponse.json()) as CoinGeckoDetail;
+						image_url = coinDetail.image?.large || coinDetail.image?.small || null;
 
 						if (coinDetail.description?.en) {
 							description = coinDetail.description.en

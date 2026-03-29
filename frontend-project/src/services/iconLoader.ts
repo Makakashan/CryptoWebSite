@@ -104,14 +104,10 @@ class IconLoaderService {
 		for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
 			const batch = symbols.slice(i, i + BATCH_SIZE);
 
-			await Promise.allSettled(
-				batch.map((symbol) => this.getIconUrl(symbol)),
-			);
+			await Promise.allSettled(batch.map((symbol) => this.getIconUrl(symbol)));
 
 			if (i + BATCH_SIZE < symbols.length) {
-				await new Promise((resolve) =>
-					setTimeout(resolve, DELAY_BETWEEN_BATCHES),
-				);
+				await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
 			}
 		}
 	}

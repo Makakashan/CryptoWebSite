@@ -51,12 +51,8 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 	const search = req.query.search as string | undefined;
 	const category = req.query.category as string | undefined;
 	const isActive = req.query.isActive as string | undefined;
-	const minPrice = parseNumericFilter(
-		req.query.minPrice as string | undefined,
-	);
-	const maxPrice = parseNumericFilter(
-		req.query.maxPrice as string | undefined,
-	);
+	const minPrice = parseNumericFilter(req.query.minPrice as string | undefined);
+	const maxPrice = parseNumericFilter(req.query.maxPrice as string | undefined);
 
 	try {
 		// Build WHERE clause
@@ -79,8 +75,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 		}
 
 		// Price filtering will be handled after fetching data since price is not stored in DB
-		const whereClause =
-			conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+		const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
 		// Get total count for pagination
 		const countResult = await db.get(
@@ -102,9 +97,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 		// Fetch 24h price change data from Binance for all assets at once
 		let priceChangeMap: Record<string, number> = {};
 		try {
-			const binanceResponse = await fetch(
-				"https://api.binance.com/api/v3/ticker/24hr",
-			);
+			const binanceResponse = await fetch("https://api.binance.com/api/v3/ticker/24hr");
 			if (binanceResponse.ok) {
 				const tickers = (await binanceResponse.json()) as Array<{
 					symbol: string;
@@ -112,9 +105,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 				}>;
 				tickers.forEach((ticker) => {
 					if (ticker.symbol && ticker.priceChangePercent) {
-						priceChangeMap[ticker.symbol] = parseFloat(
-							ticker.priceChangePercent,
-						);
+						priceChangeMap[ticker.symbol] = parseFloat(ticker.priceChangePercent);
 					}
 				});
 			}
@@ -125,9 +116,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 		// Map assets with price and price_change_24h
 		let assetsWithPrice = assets.map((asset) => {
 			const assetWithPrice = assetToAssetWithPrice(asset);
-			const binanceSymbol = asset.symbol.endsWith("USDT")
-				? asset.symbol
-				: `${asset.symbol}USDT`;
+			const binanceSymbol = asset.symbol.endsWith("USDT") ? asset.symbol : `${asset.symbol}USDT`;
 			return {
 				...assetWithPrice,
 				price_change_24h: priceChangeMap[binanceSymbol] || 0,
@@ -173,156 +162,121 @@ router.get("/categories", (_req: Request, res: Response): void => {
 });
 
 // POST /assets/sync - Synchronize Assets from External API with CoinGecko data
-router.post(
-	"/sync",
-	authenticateToken,
-	async (req: AuthRequest, res: Response): Promise<void> => {
-		const db = getDB();
-		const limit = Math.min(
-			100,
-			Math.max(1, Number(req.body.limit as string) || 20),
-		);
+router.post("/sync", authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+	const db = getDB();
+	const limit = Math.min(100, Math.max(1, Number(req.body.limit as string) || 20));
 
+	try {
+		const response = await fetch("https://api.binance.com/api/v3/ticker/24hr");
+
+		if (!response.ok) {
+			res.status(500).json({
+				message: "Failed to fetch data from Binance.",
+			});
+			return;
+		}
+
+		const tickers: BinanceTicker[] = (await response.json()) as BinanceTicker[];
+
+		const stablecoins = ["USDT", "USDC", "BUSD", "TUSD", "USDP", "DAI", "FDUSD", "USD1"];
+
+		const usdtPairs = tickers
+			.filter((ticker) => {
+				if (!ticker.symbol.endsWith("USDT")) return false;
+
+				const baseAsset = ticker.symbol.replace("USDT", "");
+				// Exclude if base asset is a stablecoin
+				return !stablecoins.includes(baseAsset);
+			})
+			.sort((a: any, b: any) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+			.slice(0, limit);
+
+		let addedCount = 0;
+		let skippedCount = 0;
+
+		// Fetch CoinGecko list once for all assets
+		let coinsListMap: Map<string, string> = new Map();
 		try {
-			const response = await fetch(
-				"https://api.binance.com/api/v3/ticker/24hr",
-			);
-
-			if (!response.ok) {
-				res.status(500).json({
-					message: "Failed to fetch data from Binance.",
+			const coinsListResponse = await fetch("https://api.coingecko.com/api/v3/coins/list");
+			if (coinsListResponse.ok) {
+				const coinsList = (await coinsListResponse.json()) as CoinGeckoListItem[];
+				coinsList.forEach((coin) => {
+					coinsListMap.set(coin.symbol.toLowerCase(), coin.id);
 				});
-				return;
+				console.log(`Loaded ${coinsListMap.size} coins from CoinGecko`);
+			}
+		} catch (error) {
+			console.log("Could not fetch CoinGecko list, continuing without it:", error);
+		}
+
+		for (const ticker of usdtPairs) {
+			const symbol = ticker.symbol;
+
+			const existingAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
+
+			if (existingAsset) {
+				skippedCount++;
+				continue;
 			}
 
-			const tickers: BinanceTicker[] =
-				(await response.json()) as BinanceTicker[];
+			// Try to get CoinGecko data for this asset
+			let image_url: string | null = null;
+			let description: string | null = null;
+			let category = "other";
 
-			const stablecoins = [
-				"USDT",
-				"USDC",
-				"BUSD",
-				"TUSD",
-				"USDP",
-				"DAI",
-				"FDUSD",
-				"USD1",
-			];
-
-			const usdtPairs = tickers
-				.filter((ticker) => {
-					if (!ticker.symbol.endsWith("USDT")) return false;
-
-					const baseAsset = ticker.symbol.replace("USDT", "");
-					// Exclude if base asset is a stablecoin
-					return !stablecoins.includes(baseAsset);
-				})
-				.sort(
-					(a: any, b: any) =>
-						parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume),
-				)
-				.slice(0, limit);
-
-			let addedCount = 0;
-			let skippedCount = 0;
-
-			// Fetch CoinGecko list once for all assets
-			let coinsListMap: Map<string, string> = new Map();
 			try {
-				const coinsListResponse = await fetch(
-					"https://api.coingecko.com/api/v3/coins/list",
-				);
-				if (coinsListResponse.ok) {
-					const coinsList =
-						(await coinsListResponse.json()) as CoinGeckoListItem[];
-					coinsList.forEach((coin) => {
-						coinsListMap.set(coin.symbol.toLowerCase(), coin.id);
-					});
-					console.log(`Loaded ${coinsListMap.size} coins from CoinGecko`);
-				}
-			} catch (error) {
-				console.log(
-					"Could not fetch CoinGecko list, continuing without it:",
-					error,
-				);
-			}
+				const baseAsset = symbol.replace(/USDT$/, "").toLowerCase();
+				const coinId = coinsListMap.get(baseAsset);
 
-			for (const ticker of usdtPairs) {
-				const symbol = ticker.symbol;
+				if (coinId) {
+					const coinDetailResponse = await fetch(
+						`https://api.coingecko.com/api/v3/coins/${coinId}`,
+					);
 
-				const existingAsset = await db.get(
-					"SELECT * FROM assets WHERE symbol = ?",
-					[symbol],
-				);
+					if (coinDetailResponse.ok) {
+						const coinDetail = (await coinDetailResponse.json()) as CoinGeckoDetail;
+						image_url = coinDetail.image?.large || coinDetail.image?.small || null;
 
-				if (existingAsset) {
-					skippedCount++;
-					continue;
-				}
-
-				// Try to get CoinGecko data for this asset
-				let image_url: string | null = null;
-				let description: string | null = null;
-				let category = "other";
-
-				try {
-					const baseAsset = symbol.replace(/USDT$/, "").toLowerCase();
-					const coinId = coinsListMap.get(baseAsset);
-
-					if (coinId) {
-						const coinDetailResponse = await fetch(
-							`https://api.coingecko.com/api/v3/coins/${coinId}`,
-						);
-
-						if (coinDetailResponse.ok) {
-							const coinDetail =
-								(await coinDetailResponse.json()) as CoinGeckoDetail;
-							image_url =
-								coinDetail.image?.large ||
-								coinDetail.image?.small ||
-								null;
-
-							// Get description and remove HTML tags
-							if (coinDetail.description?.en) {
-								description = coinDetail.description.en
-									.replace(/<[^>]*>/g, "") // Remove HTML tags
-									.substring(0, 500);
-							}
-
-							// Map CoinGecko categories to our categories
-							category = mapCoinGeckoCategory(coinDetail.categories);
+						// Get description and remove HTML tags
+						if (coinDetail.description?.en) {
+							description = coinDetail.description.en
+								.replace(/<[^>]*>/g, "") // Remove HTML tags
+								.substring(0, 500);
 						}
 
-						// Small delay to avoid rate limiting
-						await new Promise((resolve) => setTimeout(resolve, 100));
+						// Map CoinGecko categories to our categories
+						category = mapCoinGeckoCategory(coinDetail.categories);
 					}
-				} catch (error) {
-					console.log(`Could not fetch CoinGecko data for ${symbol}`);
-					// Continue without CoinGecko data
+
+					// Small delay to avoid rate limiting
+					await new Promise((resolve) => setTimeout(resolve, 100));
 				}
-
-				await db.run(
-					`INSERT INTO assets (symbol, name, image_url, category, description, is_active)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-					[symbol, symbol, image_url, category, description, 1],
-				);
-
-				addedCount++;
-				console.log(`Added ${symbol} (category: ${category})`);
+			} catch (error) {
+				console.log(`Could not fetch CoinGecko data for ${symbol}`);
+				// Continue without CoinGecko data
 			}
 
-			res.json({
-				message: "Asset synchronization completed.",
-				added: addedCount,
-				skipped: skippedCount,
-				total: limit,
-			});
-		} catch (error) {
-			console.error("Error synchronizing assets:", error);
-			res.status(500).json({ message: "Internal server error." });
+			await db.run(
+				`INSERT INTO assets (symbol, name, image_url, category, description, is_active)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+				[symbol, symbol, image_url, category, description, 1],
+			);
+
+			addedCount++;
+			console.log(`Added ${symbol} (category: ${category})`);
 		}
-	},
-);
+
+		res.json({
+			message: "Asset synchronization completed.",
+			added: addedCount,
+			skipped: skippedCount,
+			total: limit,
+		});
+	} catch (error) {
+		console.error("Error synchronizing assets:", error);
+		res.status(500).json({ message: "Internal server error." });
+	}
+});
 
 // GET /assets/search/:symbol - Search for asset (auto-create if not exists)
 router.get(
@@ -338,10 +292,7 @@ router.get(
 
 		try {
 			// Check if asset exists in DB
-			const existingAsset = await db.get(
-				"SELECT * FROM assets WHERE symbol = ?",
-				[symbol],
-			);
+			const existingAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
 
 			// If asset exists, return it with price
 			if (existingAsset) {
@@ -373,10 +324,7 @@ router.get(
 				[symbol, symbol, "crypto", 1],
 			);
 
-			const newAsset = await db.get(
-				"SELECT * FROM assets WHERE symbol = ?",
-				[symbol],
-			);
+			const newAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
 
 			const assetWithPrice = assetToAssetWithPrice(newAsset);
 
@@ -415,9 +363,7 @@ router.get(
 
 		try {
 			// Check if asset exists
-			const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
-				symbol,
-			]);
+			const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
 
 			if (!asset) {
 				res.status(404).json({ message: "Asset not found." });
@@ -446,14 +392,7 @@ router.get(
 
 			const assetWithPrice = assetToAssetWithPrice(asset);
 
-			const response = buildPaginationResponse(
-				orders,
-				page,
-				limit,
-				total,
-				sortBy,
-				sortOrder,
-			);
+			const response = buildPaginationResponse(orders, page, limit, total, sortBy, sortOrder);
 
 			res.json({
 				asset: assetWithPrice,
@@ -485,9 +424,7 @@ router.get(
 
 		try {
 			// Check if asset exists
-			const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
-				symbol,
-			]);
+			const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
 
 			if (!asset) {
 				res.status(404).json({ message: "Asset not found." });
@@ -555,9 +492,7 @@ router.get("/:symbol", async (req: Request, res: Response): Promise<void> => {
 	}
 
 	try {
-		const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
-			symbol,
-		]);
+		const asset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
 
 		if (!asset) {
 			res.status(404).json({ message: "Asset not found." });
@@ -603,67 +538,58 @@ router.get("/:symbol", async (req: Request, res: Response): Promise<void> => {
 });
 
 // POST /api/assets - Create New Asset
-router.post(
-	"/",
-	authenticateToken,
-	async (req: AuthRequest, res: Response): Promise<void> => {
-		const db = getDB();
-		const { symbol, name, image_url, category, description, is_active } =
-			req.body;
+router.post("/", authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+	const db = getDB();
+	const { symbol, name, image_url, category, description, is_active } = req.body;
 
-		if (!symbol || !name) {
-			res.status(400).json({ message: "Symbol and name are required." });
-			return;
-		}
+	if (!symbol || !name) {
+		res.status(400).json({ message: "Symbol and name are required." });
+		return;
+	}
 
-		if (category && !ALLOWED_ASSET_CATEGORIES.includes(category)) {
-			res.status(400).json({ message: "Invalid category." });
-			return;
-		}
+	if (category && !ALLOWED_ASSET_CATEGORIES.includes(category)) {
+		res.status(400).json({ message: "Invalid category." });
+		return;
+	}
 
-		const normalizedSymbol = symbol.toUpperCase();
+	const normalizedSymbol = symbol.toUpperCase();
 
-		try {
-			const existingAsset = await db.get(
-				"SELECT * FROM assets WHERE symbol = ?",
-				[normalizedSymbol],
-			);
+	try {
+		const existingAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [
+			normalizedSymbol,
+		]);
 
-			if (existingAsset) {
-				res.status(400).json({
-					message: "Asset with this symbol already exists.",
-				});
-				return;
-			}
-
-			await db.run(
-				`INSERT INTO assets (symbol, name, image_url, category, description, is_active)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-				[
-					normalizedSymbol,
-					name,
-					image_url || null,
-					category || "other",
-					description || null,
-					is_active != false ? 1 : 0,
-				],
-			);
-
-			const newAsset = await db.get(
-				"SELECT * FROM assets WHERE symbol = ?",
-				[normalizedSymbol],
-			);
-
-			res.status(201).json({
-				message: "Asset created successfully.",
-				asset: assetToAssetWithPrice(newAsset),
+		if (existingAsset) {
+			res.status(400).json({
+				message: "Asset with this symbol already exists.",
 			});
-		} catch (error) {
-			console.error("Error creating asset:", error);
-			res.status(500).json({ message: "Internal server error." });
+			return;
 		}
-	},
-);
+
+		await db.run(
+			`INSERT INTO assets (symbol, name, image_url, category, description, is_active)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+			[
+				normalizedSymbol,
+				name,
+				image_url || null,
+				category || "other",
+				description || null,
+				is_active != false ? 1 : 0,
+			],
+		);
+
+		const newAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [normalizedSymbol]);
+
+		res.status(201).json({
+			message: "Asset created successfully.",
+			asset: assetToAssetWithPrice(newAsset),
+		});
+	} catch (error) {
+		console.error("Error creating asset:", error);
+		res.status(500).json({ message: "Internal server error." });
+	}
+});
 
 // PUT /api/assets/:symbol - Update Existing Asset
 router.put(
@@ -673,10 +599,7 @@ router.put(
 		const db = getDB();
 		const symbol = req.params.symbol.toUpperCase();
 
-		if (
-			req.body.category &&
-			!ALLOWED_ASSET_CATEGORIES.includes(req.body.category)
-		) {
+		if (req.body.category && !ALLOWED_ASSET_CATEGORIES.includes(req.body.category)) {
 			res.status(400).json({
 				message: `Invalid category. Allowed: ${ALLOWED_ASSET_CATEGORIES.join(", ")}`,
 			});
@@ -684,10 +607,7 @@ router.put(
 		}
 
 		try {
-			const existingAsset = await db.get(
-				"SELECT * FROM assets WHERE symbol = ?",
-				[symbol],
-			);
+			const existingAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
 
 			if (!existingAsset) {
 				res.status(404).json({ message: "Asset not found." });
@@ -724,15 +644,9 @@ router.put(
 			}
 
 			params.push(symbol);
-			await db.run(
-				`UPDATE assets SET ${updates.join(", ")} WHERE symbol = ?`,
-				params,
-			);
+			await db.run(`UPDATE assets SET ${updates.join(", ")} WHERE symbol = ?`, params);
 
-			const updatedAsset = await db.get(
-				"SELECT * FROM assets WHERE symbol = ?",
-				[symbol],
-			);
+			const updatedAsset = await db.get("SELECT * FROM assets WHERE symbol = ?", [symbol]);
 
 			res.json({
 				message: "Asset updated successfully.",
@@ -754,9 +668,7 @@ router.delete(
 		const symbol = req.params.symbol.toUpperCase();
 
 		try {
-			const result = await db.run("DELETE FROM assets WHERE symbol = ?", [
-				symbol,
-			]);
+			const result = await db.run("DELETE FROM assets WHERE symbol = ?", [symbol]);
 
 			if (result.changes === 0) {
 				res.status(404).json({ message: "Asset not found." });
@@ -811,9 +723,7 @@ router.post("/chart", async (req: Request, res: Response): Promise<void> => {
 						return;
 					}
 
-					const binanceSymbol = symbol.endsWith("USDT")
-						? symbol
-						: `${symbol}USDT`;
+					const binanceSymbol = symbol.endsWith("USDT") ? symbol : `${symbol}USDT`;
 					const response = await fetch(
 						`https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=${interval}&limit=${limit}`,
 					);
@@ -821,9 +731,7 @@ router.post("/chart", async (req: Request, res: Response): Promise<void> => {
 					if (response.ok) {
 						const data = (await response.json()) as BinanceKline[];
 						// Extract closing prices (index 4 in klines array)
-						const prices = data.map((candle: BinanceKline) =>
-							parseFloat(candle[4]),
-						);
+						const prices = data.map((candle: BinanceKline) => parseFloat(candle[4]));
 						chartDataMap[symbol] = prices;
 
 						// Store in cache
@@ -854,185 +762,160 @@ router.post("/chart", async (req: Request, res: Response): Promise<void> => {
 });
 
 // POST /assets/update-metadata - Update missing images and descriptions for specific assets
-router.post(
-	"/update-metadata",
-	async (req: Request, res: Response): Promise<void> => {
-		try {
-			const db = getDB();
-			const { symbols } = req.body;
+router.post("/update-metadata", async (req: Request, res: Response): Promise<void> => {
+	try {
+		const db = getDB();
+		const { symbols } = req.body;
 
-			if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
-				res.status(400).json({ message: "Symbols array is required." });
-				return;
-			}
-
-			// Get only the requested assets that need updating
-			const placeholders = symbols.map(() => "?").join(",");
-			const assetsToUpdate = await db.all(
-				`SELECT * FROM assets WHERE symbol IN (${placeholders}) AND (image_url IS NULL OR description IS NULL OR description = '')`,
-				symbols,
-			);
-
-			if (assetsToUpdate.length === 0) {
-				res.json({
-					message:
-						"All requested assets already have images and descriptions",
-					updated: 0,
-				});
-				return;
-			}
-
-			let updatedCount = 0;
-			let failedCount = 0;
-
-			// Fetch CoinGecko list once for all assets
-			let coinsListMap: Map<string, string> = new Map();
-			try {
-				const coinsListResponse = await fetch(
-					"https://api.coingecko.com/api/v3/coins/list",
-				);
-				if (coinsListResponse.ok) {
-					const coinsList =
-						(await coinsListResponse.json()) as CoinGeckoListItem[];
-					coinsList.forEach((coin) => {
-						coinsListMap.set(coin.symbol.toLowerCase(), coin.id);
-					});
-					console.log(
-						`Loaded ${coinsListMap.size} coins from CoinGecko for metadata update`,
-					);
-				}
-			} catch (error) {
-				console.log(
-					"Could not fetch CoinGecko list for metadata update, continuing without it:",
-					error,
-				);
-			}
-
-			// Process all assets in parallel with Promise.allSettled
-			const updatePromises = assetsToUpdate.map(async (asset) => {
-				try {
-					const baseAsset = asset.symbol.replace(/USDT$/, "");
-
-					let image_url = asset.image_url;
-					let description = asset.description;
-					let category = asset.category || "other";
-
-					// Try to get CoinGecko data if image is missing
-					if (!asset.image_url) {
-						try {
-							const baseAssetLower = baseAsset.toLowerCase();
-							const coinId = coinsListMap.get(baseAssetLower);
-
-							if (coinId) {
-								const coinDetailResponse = await fetch(
-									`https://api.coingecko.com/api/v3/coins/${coinId}`,
-								);
-
-								if (coinDetailResponse.ok) {
-									const coinDetail =
-										(await coinDetailResponse.json()) as CoinGeckoDetail;
-									image_url =
-										coinDetail.image?.large ||
-										coinDetail.image?.small ||
-										null;
-
-									// Get description if also missing
-									if (
-										(!asset.description ||
-											asset.description === "") &&
-										coinDetail.description?.en
-									) {
-										description = coinDetail.description.en
-											.replace(/<[^>]*>/g, "")
-											.substring(0, 500);
-									}
-
-									// Map CoinGecko categories
-									if (category === "other" && coinDetail.categories) {
-										category = mapCoinGeckoCategory(
-											coinDetail.categories,
-										);
-									}
-
-									console.log(
-										`Got CoinGecko data for ${asset.symbol}: ${image_url ? "✓ image" : "✗ no image"}`,
-									);
-								}
-
-								// Small delay to avoid rate limiting
-								await new Promise((resolve) =>
-									setTimeout(resolve, 1200),
-								);
-							} else {
-								console.log(
-									`No CoinGecko ID found for ${asset.symbol} (${baseAsset})`,
-								);
-							}
-						} catch (error) {
-							console.log(
-								`CoinGecko failed for ${asset.symbol}:`,
-								error,
-							);
-						}
-					}
-
-					// For description, try CryptoCompare API if still missing
-					if (!description || description === "") {
-						try {
-							const ccResponse = await fetch(
-								`https://min-api.cryptocompare.com/data/coin/generalinfo?fsyms=${baseAsset}&tsym=USD`,
-							);
-
-							if (ccResponse.ok) {
-								const ccData = (await ccResponse.json()) as any;
-								if (ccData.Data && ccData.Data.length > 0) {
-									const coinData = ccData.Data[0].CoinInfo;
-									description = coinData.Description || null;
-
-									// Also try to get category
-									if (category === "other" && coinData.Type) {
-										category = coinData.Type;
-									}
-								}
-							}
-						} catch (e) {
-							console.log(
-								`CryptoCompare failed for ${asset.symbol}, using fallback`,
-							);
-						}
-					}
-
-					// Update the asset in database
-					await db.run(
-						`UPDATE assets SET image_url = ?, description = ?, category = ? WHERE symbol = ?`,
-						[image_url, description, category, asset.symbol],
-					);
-
-					updatedCount++;
-					console.log(`Updated metadata for ${asset.symbol}`);
-					return { success: true, symbol: asset.symbol };
-				} catch (error) {
-					failedCount++;
-					console.error(`Error updating ${asset.symbol}:`, error);
-					return { success: false, symbol: asset.symbol };
-				}
-			});
-
-			// Wait for all updates to complete
-			await Promise.allSettled(updatePromises);
-
-			res.json({
-				message: "Metadata update completed",
-				updated: updatedCount,
-				failed: failedCount,
-				total: assetsToUpdate.length,
-			});
-		} catch (error) {
-			console.error("Error updating metadata:", error);
-			res.status(500).json({ message: "Internal server error." });
+		if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
+			res.status(400).json({ message: "Symbols array is required." });
+			return;
 		}
-	},
-);
+
+		// Get only the requested assets that need updating
+		const placeholders = symbols.map(() => "?").join(",");
+		const assetsToUpdate = await db.all(
+			`SELECT * FROM assets WHERE symbol IN (${placeholders}) AND (image_url IS NULL OR description IS NULL OR description = '')`,
+			symbols,
+		);
+
+		if (assetsToUpdate.length === 0) {
+			res.json({
+				message: "All requested assets already have images and descriptions",
+				updated: 0,
+			});
+			return;
+		}
+
+		let updatedCount = 0;
+		let failedCount = 0;
+
+		// Fetch CoinGecko list once for all assets
+		let coinsListMap: Map<string, string> = new Map();
+		try {
+			const coinsListResponse = await fetch("https://api.coingecko.com/api/v3/coins/list");
+			if (coinsListResponse.ok) {
+				const coinsList = (await coinsListResponse.json()) as CoinGeckoListItem[];
+				coinsList.forEach((coin) => {
+					coinsListMap.set(coin.symbol.toLowerCase(), coin.id);
+				});
+				console.log(`Loaded ${coinsListMap.size} coins from CoinGecko for metadata update`);
+			}
+		} catch (error) {
+			console.log(
+				"Could not fetch CoinGecko list for metadata update, continuing without it:",
+				error,
+			);
+		}
+
+		// Process all assets in parallel with Promise.allSettled
+		const updatePromises = assetsToUpdate.map(async (asset) => {
+			try {
+				const baseAsset = asset.symbol.replace(/USDT$/, "");
+
+				let image_url = asset.image_url;
+				let description = asset.description;
+				let category = asset.category || "other";
+
+				// Try to get CoinGecko data if image is missing
+				if (!asset.image_url) {
+					try {
+						const baseAssetLower = baseAsset.toLowerCase();
+						const coinId = coinsListMap.get(baseAssetLower);
+
+						if (coinId) {
+							const coinDetailResponse = await fetch(
+								`https://api.coingecko.com/api/v3/coins/${coinId}`,
+							);
+
+							if (coinDetailResponse.ok) {
+								const coinDetail = (await coinDetailResponse.json()) as CoinGeckoDetail;
+								image_url = coinDetail.image?.large || coinDetail.image?.small || null;
+
+								// Get description if also missing
+								if (
+									(!asset.description || asset.description === "") &&
+									coinDetail.description?.en
+								) {
+									description = coinDetail.description.en
+										.replace(/<[^>]*>/g, "")
+										.substring(0, 500);
+								}
+
+								// Map CoinGecko categories
+								if (category === "other" && coinDetail.categories) {
+									category = mapCoinGeckoCategory(coinDetail.categories);
+								}
+
+								console.log(
+									`Got CoinGecko data for ${asset.symbol}: ${image_url ? "✓ image" : "✗ no image"}`,
+								);
+							}
+
+							// Small delay to avoid rate limiting
+							await new Promise((resolve) => setTimeout(resolve, 1200));
+						} else {
+							console.log(`No CoinGecko ID found for ${asset.symbol} (${baseAsset})`);
+						}
+					} catch (error) {
+						console.log(`CoinGecko failed for ${asset.symbol}:`, error);
+					}
+				}
+
+				// For description, try CryptoCompare API if still missing
+				if (!description || description === "") {
+					try {
+						const ccResponse = await fetch(
+							`https://min-api.cryptocompare.com/data/coin/generalinfo?fsyms=${baseAsset}&tsym=USD`,
+						);
+
+						if (ccResponse.ok) {
+							const ccData = (await ccResponse.json()) as any;
+							if (ccData.Data && ccData.Data.length > 0) {
+								const coinData = ccData.Data[0].CoinInfo;
+								description = coinData.Description || null;
+
+								// Also try to get category
+								if (category === "other" && coinData.Type) {
+									category = coinData.Type;
+								}
+							}
+						}
+					} catch (e) {
+						console.log(`CryptoCompare failed for ${asset.symbol}, using fallback`);
+					}
+				}
+
+				// Update the asset in database
+				await db.run(
+					`UPDATE assets SET image_url = ?, description = ?, category = ? WHERE symbol = ?`,
+					[image_url, description, category, asset.symbol],
+				);
+
+				updatedCount++;
+				console.log(`Updated metadata for ${asset.symbol}`);
+				return { success: true, symbol: asset.symbol };
+			} catch (error) {
+				failedCount++;
+				console.error(`Error updating ${asset.symbol}:`, error);
+				return { success: false, symbol: asset.symbol };
+			}
+		});
+
+		// Wait for all updates to complete
+		await Promise.allSettled(updatePromises);
+
+		res.json({
+			message: "Metadata update completed",
+			updated: updatedCount,
+			failed: failedCount,
+			total: assetsToUpdate.length,
+		});
+	} catch (error) {
+		console.error("Error updating metadata:", error);
+		res.status(500).json({ message: "Internal server error." });
+	}
+});
 
 // Cleanup old cache entries every minute
 setInterval(() => {
