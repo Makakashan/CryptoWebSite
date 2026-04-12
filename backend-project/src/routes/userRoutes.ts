@@ -99,6 +99,182 @@ router.put("/update", authenticateToken, async (req: AuthRequest, res: Response)
 	}
 });
 
+// Delete User Account Endpoint
+router.delete(
+	"/delete",
+	authenticateToken,
+	async (req: AuthRequest, res: Response): Promise<void> => {
+		const db = getDB();
+		const userId = req.user!.id;
+
+		try {
+			await db.run("DELETE FROM portfolio WHERE user_id = ?", [userId]);
+			await db.run("DELETE FROM orders WHERE user_id = ?", [userId]);
+			await db.run("DELETE FROM users WHERE id = ?", [userId]);
+
+			res.clearCookie("token");
+			res.json({ message: "User account deleted successfully." });
+		} catch (error) {
+			console.error("Error deleting user account:", error);
+			res.status(500).json({ message: "Internal server error." });
+		}
+	},
+);
+
+// GET /api/users/me/preferences
+router.get(
+	"/me/preferences",
+	authenticateToken,
+	async (req: AuthRequest, res: Response): Promise<void> => {
+		const db = getDB();
+		const userId = req.user!.id;
+
+		try {
+			let prefs = await db.get(
+				`SELECT user_id, language, theme, notifications_enabled, email_verified, two_factor_enabled, updated_at
+         FROM user_preferences
+         WHERE user_id = ?`,
+				[userId],
+			);
+
+			if (!prefs) {
+				await db.run(
+					`INSERT INTO user_preferences (user_id, language, theme, notifications_enabled, email_verified, two_factor_enabled)
+           VALUES (?, 'en', 'dark', 1, 1, 0)`,
+					[userId],
+				);
+
+				prefs = await db.get(
+					`SELECT user_id, language, theme, notifications_enabled, email_verified, two_factor_enabled, updated_at
+           FROM user_preferences
+           WHERE user_id = ?`,
+					[userId],
+				);
+			}
+
+			res.json({
+				...prefs,
+				notifications_enabled: Boolean(prefs.notifications_enabled),
+				email_verified: Boolean(prefs.email_verified),
+				two_factor_enabled: Boolean(prefs.two_factor_enabled),
+			});
+		} catch (error) {
+			console.error("Error fetching preferences:", error);
+			res.status(500).json({ message: "Internal server error." });
+		}
+	},
+);
+
+// PATCH /api/users/me/preferences
+router.patch(
+	"/me/preferences",
+	authenticateToken,
+	async (req: AuthRequest, res: Response): Promise<void> => {
+		const db = getDB();
+		const userId = req.user!.id;
+		const { language, theme, notifications_enabled } = req.body as {
+			language?: "en" | "ru";
+			theme?: "dark" | "light";
+			notifications_enabled?: boolean;
+		};
+
+		if (
+			language !== undefined &&
+			!["en", "ru"].includes(language)
+		) {
+			res.status(400).json({ message: "Invalid language." });
+			return;
+		}
+
+		if (theme !== undefined && !["dark", "light"].includes(theme)) {
+			res.status(400).json({ message: "Invalid theme." });
+			return;
+		}
+
+		try {
+			await db.run(
+				`INSERT INTO user_preferences (user_id, language, theme, notifications_enabled)
+         VALUES (?, 'en', 'dark', 1)
+         ON CONFLICT(user_id) DO NOTHING`,
+				[userId],
+			);
+
+			const current = await db.get(
+				`SELECT language, theme, notifications_enabled
+         FROM user_preferences
+         WHERE user_id = ?`,
+				[userId],
+			);
+
+			const nextLanguage = language ?? current.language;
+			const nextTheme = theme ?? current.theme;
+			const nextNotifications =
+				notifications_enabled !== undefined
+					? (notifications_enabled ? 1 : 0)
+					: current.notifications_enabled;
+
+			await db.run(
+				`UPDATE user_preferences
+         SET language = ?, theme = ?, notifications_enabled = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = ?`,
+				[nextLanguage, nextTheme, nextNotifications, userId],
+			);
+
+			await db.run(
+				`INSERT INTO profile_activity (user_id, event_type, title, meta)
+         VALUES (?, 'preferences_updated', 'Preferences updated', ?)`,
+				[userId, JSON.stringify({ language, theme, notifications_enabled })],
+			);
+
+			const updated = await db.get(
+				`SELECT user_id, language, theme, notifications_enabled, email_verified, two_factor_enabled, updated_at
+         FROM user_preferences
+         WHERE user_id = ?`,
+				[userId],
+			);
+
+			res.json({
+				...updated,
+				notifications_enabled: Boolean(updated.notifications_enabled),
+				email_verified: Boolean(updated.email_verified),
+				two_factor_enabled: Boolean(updated.two_factor_enabled),
+			});
+		} catch (error) {
+			console.error("Error updating preferences:", error);
+			res.status(500).json({ message: "Internal server error." });
+		}
+	},
+);
+
+// GET /api/users/me/activity?limit=20
+router.get(
+	"/me/activity",
+	authenticateToken,
+	async (req: AuthRequest, res: Response): Promise<void> => {
+		const db = getDB();
+		const userId = req.user!.id;
+
+		const rawLimit = Number(req.query.limit ?? 20);
+		const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 20;
+
+		try {
+			const activity = await db.all(
+				`SELECT id, user_id, event_type, title, meta, created_at
+         FROM profile_activity
+         WHERE user_id = ?
+         ORDER BY datetime(created_at) DESC
+         LIMIT ?`,
+				[userId, limit],
+			);
+
+			res.json({ data: activity });
+		} catch (error) {
+			console.error("Error fetching profile activity:", error);
+			res.status(500).json({ message: "Internal server error." });
+		}
+	},
+);
+
 // GET /api/users/:id - Get Specific User Details with Portfolio and Statistics
 router.get("/:id", authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
 	const db = getDB();
@@ -223,51 +399,5 @@ router.get("/:id", authenticateToken, async (req: AuthRequest, res: Response): P
 	}
 });
 
-// Update User Balance Endpoint
-router.put("/update", authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
-	const db = getDB();
-	const { amount } = req.body;
-
-	if (!amount || isNaN(amount)) {
-		res.status(400).json({ message: "Valid amount is required." });
-		return;
-	}
-
-	try {
-		await db.run("UPDATE users SET balance = balance + ? WHERE id = ?", [amount, req.user!.id]);
-
-		const user = await db.get("SELECT balance FROM users WHERE id = ?", [req.user!.id]);
-
-		res.json({
-			message: "Balance updated successfully.",
-			balance: user.balance,
-		});
-	} catch (error) {
-		console.error("Error updating balance:", error);
-		res.status(500).json({ message: "Internal server error." });
-	}
-});
-
-// Delete User Account Endpoint
-router.delete(
-	"/delete",
-	authenticateToken,
-	async (req: AuthRequest, res: Response): Promise<void> => {
-		const db = getDB();
-		const userId = req.user!.id;
-
-		try {
-			await db.run("DELETE FROM portfolio WHERE user_id = ?", [userId]);
-			await db.run("DELETE FROM orders WHERE user_id = ?", [userId]);
-			await db.run("DELETE FROM users WHERE id = ?", [userId]);
-
-			res.clearCookie("token");
-			res.json({ message: "User account deleted successfully." });
-		} catch (error) {
-			console.error("Error deleting user account:", error);
-			res.status(500).json({ message: "Internal server error." });
-		}
-	},
-);
 
 export default router;

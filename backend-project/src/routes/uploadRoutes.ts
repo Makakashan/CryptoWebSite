@@ -1,7 +1,8 @@
-import express, { Router, Request, Response } from "express";
+import express, { Response } from "express";
 import { getDB } from "../database.js";
-import { authenticateToken } from "../middleware/authMiddleware";
-import { AuthRequest } from "../types/types";
+import { authenticateToken } from "../middleware/authMiddleware.js";
+import { AuthRequest } from "../types/types.js";
+
 
 const router = express.Router();
 
@@ -27,6 +28,12 @@ router.post(
 			const db = getDB();
 			await db.run("UPDATE users SET avatar = ? WHERE id = ?", [avatar, userId]);
 
+			await db.run(
+				`INSERT INTO profile_activity (user_id, event_type, title, meta)
+				VALUES (?, 'avatar_updated', 'Avatar updated', NULL)`,
+				[userId],
+			);
+
 			res.json({ message: "Avatar updated successfully" });
 		} catch (error) {
 			console.error(error);
@@ -44,6 +51,12 @@ router.delete(
 
 			const db = getDB();
 			await db.run("UPDATE users SET avatar = NULL WHERE id = ?", [userId]);
+
+			await db.run(
+				`INSERT INTO profile_activity (user_id, event_type, title, meta)
+				VALUES (?, 'avatar_removed', 'Avatar removed', NULL)`,
+				[userId],
+			);
 
 			res.json({ message: "Avatar deleted successfully" });
 		} catch (error) {

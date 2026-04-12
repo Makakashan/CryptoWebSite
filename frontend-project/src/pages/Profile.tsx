@@ -19,11 +19,8 @@ import Button from "@/components/ui/button";
 import Card, { CardContent } from "@/components/ui/card";
 import api from "@/api/axiosConfig";
 import { fetchProfile } from "../store/slices/authSlice";
+import { type UiMessage } from "../store/types";
 
-type UiMessage = {
-	type: "success" | "error";
-	text: string;
-} | null;
 
 const Profile = () => {
 	const { t, i18n } = useTranslation();

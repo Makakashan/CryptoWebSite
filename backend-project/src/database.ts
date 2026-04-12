@@ -62,6 +62,32 @@ export async function initializeDB(): Promise<DB> {
     );
   `);
 
+	await db.exec(`
+    CREATE TABLE IF NOT EXISTS user_preferences (
+      user_id INTEGER PRIMARY KEY,
+      language TEXT DEFAULT 'en',
+      theme TEXT DEFAULT 'dark',
+      notifications_enabled INTEGER DEFAULT 1,
+      email_verified INTEGER DEFAULT 1,
+      two_factor_enabled INTEGER DEFAULT 0,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+  `);
+
+	await db.exec(`
+    CREATE TABLE IF NOT EXISTS profile_activity (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      event_type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      meta TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+  `);
+
+
 	console.log("Database tables are set up.");
 
 	// Add avatar column to users table if it doesn't exist

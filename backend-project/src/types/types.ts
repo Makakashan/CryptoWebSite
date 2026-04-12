@@ -178,6 +178,25 @@ export interface PairMap {
 	[binanceSymbol: string]: string;
 }
 
+export interface UserPreferences {
+	user_id: number;
+	language: "en" | "ru";
+	theme: "dark" | "light";
+	notifications_enabled: number; // 0 | 1
+	email_verified: number; // 0 | 1
+	two_factor_enabled: number; // 0 | 1
+	updated_at: string;
+}
+
+export interface ProfileActivity {
+	id: number;
+	user_id: number;
+	event_type: string;
+	title: string;
+	meta: string | null;
+	created_at: string;
+}
+
 export type PriceUpdateCallback = (symbol: string, price: number) => void;
 
 export type DB = Database<sqlite3.Database, sqlite3.Statement>;

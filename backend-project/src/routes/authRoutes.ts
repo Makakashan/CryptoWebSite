@@ -106,6 +106,12 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
 			maxAge: 3600000, // 1 hour
 		});
 
+		await db.run(
+			`INSERT INTO profile_activity (user_id, event_type, title, meta)
+			VALUES (?, 'login', 'Signed in', ?)`,
+			[user.id, JSON.stringify({ method: "password" })],
+		);
+
 		res.json({
 			message: "Login successful.",
 			user: {
@@ -196,6 +202,12 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 			sameSite: "strict",
 			maxAge: 3600000,
 		});
+
+		await db.run(
+			`INSERT INTO profile_activity (user_id, event_type, title, meta)
+			VALUES (?, 'login', 'Signed in with Google', ?)`,
+			[user.id, JSON.stringify({ method: "google" })],
+		);
 
 		res.json({
 			message: "Login successful.",
