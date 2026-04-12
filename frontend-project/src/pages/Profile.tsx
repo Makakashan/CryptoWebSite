@@ -11,7 +11,7 @@ import {
 	Languages,
 	Moon,
 	Sparkles,
-	Clock3,
+	ChevronRight,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AvatarUpload } from "../components/ui/AvatarUpload";
@@ -19,8 +19,14 @@ import Button from "@/components/ui/button";
 import Card, { CardContent } from "@/components/ui/card";
 import api from "@/api/axiosConfig";
 import { fetchProfile } from "../store/slices/authSlice";
-import { type UiMessage } from "../store/types";
-
+import { profileApi } from "@/api/profileApi";
+import type {
+	ProfileActivityItem,
+	ProfilePreferences,
+	UiMessage,
+} from "../store/types/profile.types";
+import { formatRelativeTime } from "../utils/dateTime";
+import { mapProfileActivityIcon } from "@/utils/profileActivity";
 
 const Profile = () => {
 	const { t, i18n } = useTranslation();
@@ -31,10 +37,60 @@ const Profile = () => {
 	const [isUploading, setIsUploading] = useState(false);
 	const [message, setMessage] = useState<UiMessage>(null);
 
+	const [preferences, setPreferences] = useState<ProfilePreferences | null>(null);
+	const [activity, setActivity] = useState<ProfileActivityItem[]>([]);
+	const [loadingMeta, setLoadingMeta] = useState(true);
+	const [savingPrefs, setSavingPrefs] = useState(false);
+
 	useEffect(() => {
 		if (!user) return;
 		setAvatar(user.avatar || null);
 	}, [user]);
+
+	useEffect(() => {
+		let mounted = true;
+
+		const loadMeta = async () => {
+			try {
+				setLoadingMeta(true);
+				const [prefs, logs] = await Promise.all([
+					profileApi.getPreferences(),
+					profileApi.getActivity(20),
+				]);
+				if (!mounted) return;
+				setPreferences(prefs);
+				setActivity(logs);
+
+				// Apply stored language to i18n immediately on profile load.
+				if (prefs?.language && i18n.language !== prefs.language) {
+					await i18n.changeLanguage(prefs.language);
+				}
+			} catch (error) {
+				if (!mounted) return;
+				setMessage({
+					type: "error",
+					text: error instanceof Error ? error.message : "Failed to load profile data",
+				});
+			} finally {
+				if (mounted) setLoadingMeta(false);
+			}
+		};
+
+		void loadMeta();
+
+		return () => {
+			mounted = false;
+		};
+	}, [i18n]);
+
+	const refreshActivity = async () => {
+		try {
+			const logs = await profileApi.getActivity(20);
+			setActivity(logs);
+		} catch {
+			// noop
+		}
+	};
 
 	const handleAvatarChange = async (newAvatar: string | null) => {
 		setAvatar(newAvatar);
@@ -54,6 +110,7 @@ const Profile = () => {
 					text: "Avatar updated successfully!",
 				});
 				dispatch(fetchProfile());
+				await refreshActivity();
 			}
 		} catch (error) {
 			console.error("Error uploading avatar:", error);
@@ -80,6 +137,7 @@ const Profile = () => {
 					text: "Avatar removed successfully!",
 				});
 				dispatch(fetchProfile());
+				await refreshActivity();
 			}
 		} catch (error) {
 			console.error("Error deleting avatar:", error);
@@ -92,32 +150,38 @@ const Profile = () => {
 		}
 	};
 
+	const updatePreferences = async (payload: {
+		language?: "en" | "pl";
+		theme?: "dark" | "light";
+		notifications_enabled?: boolean;
+	}) => {
+		if (!preferences) return;
+
+		try {
+			setSavingPrefs(true);
+			const next = await profileApi.updatePreferences(payload);
+			setPreferences(next);
+
+			// Apply language instantly in UI after successful save.
+			if (next.language && i18n.language !== next.language) {
+				await i18n.changeLanguage(next.language);
+			}
+
+			await refreshActivity();
+		} catch (error) {
+			setMessage({
+				type: "error",
+				text: error instanceof Error ? error.message : "Failed to update preferences",
+			});
+		} finally {
+			setSavingPrefs(false);
+		}
+	};
+
 	const hasChanges = avatar !== user?.avatar;
-	const balanceText = useMemo(() => `$${(user?.balance ?? 0).toFixed(2)}`, [user?.balance]);
-
-	const accountCreatedLabel = useMemo(() => {
-		return "Active account";
-	}, []);
-
-	const recentActivity = useMemo(
-		() => [
-			{
-				title: "Profile opened",
-				time: "Just now",
-				icon: Clock3,
-			},
-			{
-				title: avatar ? "Avatar is set" : "Avatar removed",
-				time: "Current session",
-				icon: ImageIcon,
-			},
-			{
-				title: "Account verified",
-				time: "Trusted status",
-				icon: ShieldCheck,
-			},
-		],
-		[avatar],
+	const balanceText = useMemo(
+		() => `$${(user?.balance ?? 0).toFixed(2)}`,
+		[user?.balance],
 	);
 
 	if (!user) {
@@ -145,7 +209,11 @@ const Profile = () => {
 						</div>
 						<div className="hidden md:flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-2">
 							<ShieldCheck className="h-4 w-4 text-emerald-300" />
-							<span className="text-xs text-text-secondary">Account verified</span>
+							<span className="text-xs text-text-secondary">
+								{preferences?.email_verified
+									? "Account verified"
+									: "Verification pending"}
+							</span>
 						</div>
 					</div>
 				</div>
@@ -224,24 +292,32 @@ const Profile = () => {
 									</h2>
 								</div>
 
-								<div className="space-y-3">
-									{recentActivity.map((item) => {
-										const Icon = item.icon;
-										return (
-											<div
-												key={item.title}
-												className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5"
-											>
-												<div className="flex items-center gap-2.5">
-													<div className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/4">
-														<Icon className="h-4 w-4 text-text-secondary" />
+								<div className="space-y-3 max-h-120 overflow-y-auto pr-1">
+									{loadingMeta ? (
+										<p className="text-sm text-text-secondary">Loading activity...</p>
+									) : activity.length === 0 ? (
+										<p className="text-sm text-text-secondary">No recent activity yet.</p>
+									) : (
+										activity.map((item) => {
+											const Icon = mapProfileActivityIcon(item.event_type);
+											return (
+												<div
+													key={item.id}
+													className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5"
+												>
+													<div className="flex items-center gap-2.5">
+														<div className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/4">
+															<Icon className="h-4 w-4 text-text-secondary" />
+														</div>
+														<span className="text-sm text-text-primary">{item.title}</span>
 													</div>
-													<span className="text-sm text-text-primary">{item.title}</span>
+													<span className="text-xs text-text-secondary">
+														{formatRelativeTime(item.created_at)}
+													</span>
 												</div>
-												<span className="text-xs text-text-secondary">{item.time}</span>
-											</div>
-										);
-									})}
+											);
+										})
+									)}
 								</div>
 							</CardContent>
 						</Card>
@@ -291,49 +367,109 @@ const Profile = () => {
 									Preferences
 								</h2>
 
-								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5">
+								<button
+									type="button"
+									disabled={savingPrefs || !preferences}
+									onClick={() =>
+										updatePreferences({
+											language: preferences?.language === "en" ? "pl" : "en",
+										})
+									}
+									className="w-full flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-60 disabled:cursor-not-allowed"
+								>
 									<div className="flex items-center gap-2 text-sm text-text-primary">
 										<Languages className="h-4 w-4 text-text-secondary" />
 										<span>Language</span>
 									</div>
-									<span className="text-xs text-text-secondary uppercase">
-										{i18n.language || "en"}
-									</span>
-								</div>
+									<div className="flex items-center gap-2">
+										<span className="text-xs text-text-secondary uppercase">
+											{preferences?.language || i18n.language || "en"}
+										</span>
+										<ChevronRight className="h-3.5 w-3.5 text-text-secondary" />
+									</div>
+								</button>
 
-								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5">
+								<button
+									type="button"
+									disabled={savingPrefs || !preferences}
+									onClick={() =>
+										updatePreferences({
+											notifications_enabled: !preferences?.notifications_enabled,
+										})
+									}
+									className="w-full flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-60 disabled:cursor-not-allowed"
+								>
 									<div className="flex items-center gap-2 text-sm text-text-primary">
 										<Bell className="h-4 w-4 text-text-secondary" />
 										<span>Notifications</span>
 									</div>
-									<span className="text-xs text-emerald-300">Enabled</span>
-								</div>
+									<div className="flex items-center gap-2">
+										<span
+											className={`text-xs ${
+												preferences?.notifications_enabled
+													? "text-emerald-300"
+													: "text-text-secondary"
+											}`}
+										>
+											{preferences?.notifications_enabled ? "Enabled" : "Disabled"}
+										</span>
+										<ChevronRight className="h-3.5 w-3.5 text-text-secondary" />
+									</div>
+								</button>
 
-								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5">
+								<button
+									type="button"
+									disabled={savingPrefs || !preferences}
+									onClick={() =>
+										updatePreferences({
+											theme: preferences?.theme === "dark" ? "light" : "dark",
+										})
+									}
+									className="w-full flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-60 disabled:cursor-not-allowed"
+								>
 									<div className="flex items-center gap-2 text-sm text-text-primary">
 										<Moon className="h-4 w-4 text-text-secondary" />
 										<span>Theme</span>
 									</div>
-									<span className="text-xs text-text-secondary">Dark</span>
-								</div>
+									<div className="flex items-center gap-2">
+										<span className="text-xs text-text-secondary">
+											{preferences?.theme || "dark"}
+										</span>
+										<ChevronRight className="h-3.5 w-3.5 text-text-secondary" />
+									</div>
+								</button>
 
-								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5">
+								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 opacity-85">
 									<div className="flex items-center gap-2 text-sm text-text-primary">
 										<Mail className="h-4 w-4 text-text-secondary" />
 										<span>Email status</span>
 									</div>
-									<span className="text-xs text-emerald-300">Verified</span>
+									<span
+										className={`text-xs ${
+											preferences?.email_verified
+												? "text-emerald-300"
+												: "text-amber-300"
+										}`}
+									>
+										{preferences?.email_verified ? "Verified" : "Unverified"}
+									</span>
 								</div>
 
-								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5">
+								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 opacity-85">
 									<div className="flex items-center gap-2 text-sm text-text-primary">
 										<Lock className="h-4 w-4 text-text-secondary" />
 										<span>2FA</span>
 									</div>
-									<span className="text-xs text-amber-300">Not configured</span>
+									<span
+										className={`text-xs ${
+											preferences?.two_factor_enabled
+												? "text-emerald-300"
+												: "text-amber-300"
+										}`}
+									>
+										{preferences?.two_factor_enabled ? "Enabled" : "Not configured"}
+									</span>
 								</div>
-
-								<p className="pt-1 text-xs text-text-secondary">{accountCreatedLabel}</p>
 							</CardContent>
 						</Card>
 					</div>

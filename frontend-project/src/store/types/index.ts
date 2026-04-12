@@ -9,3 +9,4 @@ export * from "./components.types";
 export * from "./hooks.types";
 export * from "./realtime.types";
 export * from "./iconLoader.types";
+export * from "./profile.types";

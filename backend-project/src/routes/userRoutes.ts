@@ -180,7 +180,7 @@ router.patch(
 
 		if (
 			language !== undefined &&
-			!["en", "ru"].includes(language)
+			!["en", "pl"].includes(language)
 		) {
 			res.status(400).json({ message: "Invalid language." });
 			return;
@@ -259,7 +259,13 @@ router.get(
 
 		try {
 			const activity = await db.all(
-				`SELECT id, user_id, event_type, title, meta, created_at
+				`SELECT
+           id,
+           user_id,
+           event_type,
+           title,
+           meta,
+           strftime('%Y-%m-%dT%H:%M:%fZ', created_at) as created_at
          FROM profile_activity
          WHERE user_id = ?
          ORDER BY datetime(created_at) DESC
