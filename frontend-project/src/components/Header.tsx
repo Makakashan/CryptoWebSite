@@ -5,7 +5,7 @@ import { FiArrowUpRight } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/slices/authSlice";
 import { formatPrice, getInitials } from "../utils/formatPrice";
-import LanguageSwitcher from "./LanguageSwitcher";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 
@@ -106,7 +106,7 @@ const Header = () => {
 				</button>
 
 				<div className="flex flex-wrap items-center justify-end gap-3">
-					<LanguageSwitcher />
+
 					{isAuthenticated && user ? (
 						<>
 							<div className="header-user-card flex items-center gap-3 px-3 py-2.5">

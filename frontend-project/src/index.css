@@ -2377,44 +2377,6 @@
 	color: rgba(234, 236, 239, 0.58);
 }
 
-.header-language-switch {
-	display: inline-flex;
-	height: 2.75rem;
-	align-items: center;
-	justify-content: center;
-	gap: 0.5rem;
-	padding: 0 1rem;
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	border-radius: 1rem;
-	background:
-		linear-gradient(
-			180deg,
-			rgba(255, 255, 255, 0.08),
-			rgba(255, 255, 255, 0.02)
-		),
-		rgba(8, 8, 8, 0.94);
-	color: rgba(234, 236, 239, 0.9);
-	font-size: 0.875rem;
-	font-weight: 600;
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-	transition:
-		border-color 0.2s ease,
-		background 0.2s ease,
-		color 0.2s ease;
-}
-
-.header-language-switch:hover {
-	border-color: rgba(255, 255, 255, 0.16);
-	background:
-		linear-gradient(
-			180deg,
-			rgba(255, 255, 255, 0.1),
-			rgba(255, 255, 255, 0.03)
-		),
-		rgba(8, 8, 8, 0.94);
-	color: #fff;
-}
-
 .header-user-card {
 	border: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: 1rem;
