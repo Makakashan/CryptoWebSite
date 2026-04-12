@@ -8,4 +8,4 @@ export * from "./portfolio.types";
 export * from "./components.types";
 export * from "./hooks.types";
 export * from "./realtime.types";
-export * from "./services.types";
+export * from "./iconLoader.types";
