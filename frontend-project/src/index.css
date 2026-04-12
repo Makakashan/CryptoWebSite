@@ -1654,39 +1654,34 @@
 	right: 1rem;
 	background: rgba(255, 255, 255, 0.09);
 }
-
 .portfolio-glass-highlight__glow {
 	position: absolute;
 	left: 2rem;
 	top: 0.55rem;
 	border-radius: 9999px;
-	background: rgba(255, 255, 255, 0.055);
+	background: rgba(255, 255, 255, 0.022);
+	opacity: 0.45;
 }
 
 .portfolio-glass-highlight__glow--wide {
 	width: 24%;
 	height: 1.6rem;
-	filter: blur(8px);
+	filter: blur(3px);
 }
 
 .portfolio-glass-highlight__glow--card {
 	left: 1.25rem;
 	width: 28%;
 	height: 1.35rem;
-	filter: blur(6px);
+	filter: blur(3px);
 }
 
 .portfolio-glass-highlight__glow--metric {
 	left: 1rem;
 	width: 24%;
 	height: 1rem;
-	background: rgba(255, 255, 255, 0.045);
-	filter: blur(5px);
-}
-
-.portfolio-glass-highlight__orb {
-	position: absolute;
-	border-radius: 9999px;
+	background: rgba(255, 255, 255, 0.018);
+	filter: blur(2px);
 }
 
 .portfolio-glass-highlight__orb--left {
@@ -1694,8 +1689,9 @@
 	top: 0;
 	width: 10rem;
 	height: 10rem;
-	background: rgba(255, 255, 255, 0.02);
-	filter: blur(28px);
+	background: rgba(255, 255, 255, 0.008);
+	filter: blur(14px);
+	opacity: 0.5;
 }
 
 .portfolio-glass-highlight__orb--right {
@@ -1703,8 +1699,13 @@
 	bottom: 0;
 	width: 11rem;
 	height: 11rem;
-	background: rgba(255, 255, 255, 0.016);
-	filter: blur(28px);
+	background: rgba(255, 255, 255, 0.007);
+	filter: blur(14px);
+	opacity: 0.5;
+}
+
+.portfolio-glass-highlight {
+	opacity: 0.45;
 }
 
 .portfolio-status-chip {
@@ -1943,26 +1944,9 @@
 	overflow: hidden;
 }
 
-.glass-panel-highlight::before {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: 1.5rem;
-	right: 1.5rem;
-	height: 1px;
-	background: rgba(255, 255, 255, 0.1);
-}
-
-.glass-panel-highlight::after {
-	content: "";
-	position: absolute;
-	top: 0.55rem;
-	left: 1.25rem;
-	width: 28%;
-	height: 1.15rem;
-	border-radius: 9999px;
-	background: rgba(255, 255, 255, 0.045);
-	filter: blur(6px);
+.glass-hero-glass .glass-panel-highlight::before,
+.glass-hero-glass .glass-panel-highlight::after {
+	opacity: 0.35;
 }
 
 .glass-panel-inner {
@@ -2334,35 +2318,39 @@
 
 .header-highlight__glow {
 	position: absolute;
-	left: 2rem;
-	top: 0.6rem;
+	left: 2.5rem;
+	top: 0.7rem;
 	width: 22%;
-	height: 1.4rem;
+	height: 1.1rem;
 	border-radius: 9999px;
-	background: rgba(255, 255, 255, 0.045);
-	filter: blur(10px);
+	background: rgba(255, 255, 255, 0.018);
+	filter: blur(3px);
+	opacity: 0.45;
 }
 
 .header-highlight__orb {
 	position: absolute;
 	border-radius: 9999px;
-	filter: blur(40px);
+	pointer-events: none;
+	opacity: 0.45;
 }
 
 .header-highlight__orb--left {
 	left: -2rem;
-	top: 0;
-	width: 9rem;
-	height: 9rem;
-	background: rgba(255, 255, 255, 0.03);
+	top: -1.5rem;
+	width: 8rem;
+	height: 8rem;
+	background: rgba(255, 255, 255, 0.008);
+	filter: blur(14px);
 }
 
 .header-highlight__orb--right {
-	right: 0;
-	top: 0;
-	width: 10rem;
-	height: 10rem;
-	background: rgba(255, 255, 255, 0.02);
+	right: -2rem;
+	bottom: -2rem;
+	width: 9rem;
+	height: 9rem;
+	background: rgba(255, 255, 255, 0.007);
+	filter: blur(14px);
 }
 
 .header-brand__icon {
