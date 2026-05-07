@@ -1,13 +1,19 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import { AxiosError } from "axios";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { ordersApi } from "../../api/ordersApi";
-import type {
-	Order,
-	PlaceOrderRequest,
-	OrdersState,
-	OrdersFilters,
-	OrdersResponse,
-} from "../types";
+import type { Order, OrdersFilters, PlaceOrderRequest } from "../types";
+
+interface OrdersState {
+	orders: Order[];
+	isLoading: boolean;
+	error: string | null;
+	filters: OrdersFilters;
+	pagination: {
+		page: number;
+		limit: number;
+		total: number;
+		totalPages: number;
+	} | null;
+}
 
 const initialState: OrdersState = {
 	orders: [],
@@ -22,36 +28,26 @@ const initialState: OrdersState = {
 	pagination: null,
 };
 
-export const fetchOrders = createAsyncThunk<
-	OrdersResponse,
-	OrdersFilters | undefined,
-	{ rejectValue: string }
->("orders/fetch", async (filters, { rejectWithValue }) => {
-	try {
-		const response = await ordersApi.getOrders(filters);
-		return {
-			data: response.data,
-			pagination: response.pagination,
-		};
-	} catch (error) {
-		if (error instanceof AxiosError) {
+export const fetchOrders = createAsyncThunk(
+	"orders/fetchOrders",
+	async (filters: OrdersFilters | undefined, { rejectWithValue }) => {
+		try {
+			const response = await ordersApi.getOrders(filters);
+			return response;
+		} catch (error: any) {
 			return rejectWithValue(error.response?.data?.message || "Failed to fetch orders");
 		}
-		return rejectWithValue("Failed to fetch orders");
-	}
-});
+	},
+);
 
-export const placeOrder = createAsyncThunk<Order, PlaceOrderRequest, { rejectValue: string }>(
-	"orders/place",
-	async (orderData, { rejectWithValue }) => {
+export const placeOrder = createAsyncThunk(
+	"orders/placeOrder",
+	async (orderData: PlaceOrderRequest, { rejectWithValue }) => {
 		try {
 			const response = await ordersApi.placeOrder(orderData);
 			return response;
-		} catch (error) {
-			if (error instanceof AxiosError) {
-				return rejectWithValue(error.response?.data?.message || "Failed to place order");
-			}
-			return rejectWithValue("Failed to place order");
+		} catch (error: any) {
+			return rejectWithValue(error.response?.data?.message || "Failed to place order");
 		}
 	},
 );
@@ -60,15 +56,8 @@ const ordersSlice = createSlice({
 	name: "orders",
 	initialState,
 	reducers: {
-		clearOrders: (state) => {
-			state.orders = [];
-			state.error = null;
-		},
-		setOrdersFilters: (state, action: PayloadAction<OrdersFilters>) => {
+		setOrdersFilters: (state, action) => {
 			state.filters = { ...state.filters, ...action.payload };
-		},
-		clearOrdersFilters: (state) => {
-			state.filters = initialState.filters;
 		},
 	},
 	extraReducers: (builder) => {
@@ -79,27 +68,18 @@ const ordersSlice = createSlice({
 			})
 			.addCase(fetchOrders.fulfilled, (state, action) => {
 				state.isLoading = false;
-				state.orders = action.payload.data;
+				state.orders = action.payload.data || [];
 				state.pagination = action.payload.pagination || null;
 			})
 			.addCase(fetchOrders.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error = action.payload || "Failed to fetch orders";
-			})
-			.addCase(placeOrder.pending, (state) => {
-				state.isLoading = true;
-				state.error = null;
+				state.error = action.payload as string;
 			})
 			.addCase(placeOrder.fulfilled, (state, action) => {
-				state.isLoading = false;
-				state.orders.unshift(action.payload);
-			})
-			.addCase(placeOrder.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.payload || "Failed to place order";
+				state.orders.unshift(action.payload as Order);
 			});
 	},
 });
 
-export const { clearOrders, setOrdersFilters, clearOrdersFilters } = ordersSlice.actions;
+export const { setOrdersFilters } = ordersSlice.actions;
 export default ordersSlice.reducer;

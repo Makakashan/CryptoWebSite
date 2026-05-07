@@ -1,7 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { AxiosError } from "axios";
 import { portfolioApi } from "../../api/portfolioApi";
-import type { Portfolio, PortfolioState } from "../types";
+import type { Portfolio } from "../types";
+
+interface PortfolioState {
+	portfolio: Portfolio | null;
+	isLoading: boolean;
+	error: string | null;
+}
 
 const initialState: PortfolioState = {
 	portfolio: null,
@@ -9,17 +14,14 @@ const initialState: PortfolioState = {
 	error: null,
 };
 
-export const fetchPortfolio = createAsyncThunk<Portfolio, void, { rejectValue: string }>(
-	"portfolio/fetch",
+export const fetchPortfolio = createAsyncThunk(
+	"portfolio/fetchPortfolio",
 	async (_, { rejectWithValue }) => {
 		try {
 			const response = await portfolioApi.getPortfolio();
 			return response;
-		} catch (error) {
-			if (error instanceof AxiosError) {
-				return rejectWithValue(error.response?.data?.message || "Failed to fetch portfolio");
-			}
-			return rejectWithValue("Failed to fetch portfolio");
+		} catch (error: any) {
+			return rejectWithValue(error.response?.data?.message || "Failed to fetch portfolio");
 		}
 	},
 );
@@ -27,12 +29,7 @@ export const fetchPortfolio = createAsyncThunk<Portfolio, void, { rejectValue: s
 const portfolioSlice = createSlice({
 	name: "portfolio",
 	initialState,
-	reducers: {
-		clearPortfolio: (state) => {
-			state.portfolio = null;
-			state.error = null;
-		},
-	},
+	reducers: {},
 	extraReducers: (builder) => {
 		builder
 			.addCase(fetchPortfolio.pending, (state) => {
@@ -41,14 +38,13 @@ const portfolioSlice = createSlice({
 			})
 			.addCase(fetchPortfolio.fulfilled, (state, action) => {
 				state.isLoading = false;
-				state.portfolio = action.payload;
+				state.portfolio = action.payload as Portfolio;
 			})
 			.addCase(fetchPortfolio.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error = (action.payload as string) || "Failed to fetch portfolio";
+				state.error = action.payload as string;
 			});
 	},
 });
 
-export const { clearPortfolio } = portfolioSlice.actions;
 export default portfolioSlice.reducer;
