@@ -1,481 +1,217 @@
-import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import {
-	User,
-	Wallet,
-	ShieldCheck,
-	Image as ImageIcon,
-	Mail,
-	Lock,
-	Bell,
-	Languages,
-	Moon,
-	Sparkles,
-	ChevronRight,
-} from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { AvatarUpload } from "../components/ui/AvatarUpload";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { motion } from "framer-motion";
+import { UserCircle, Bell, Shield, Activity, Settings, LogOut, Save } from "lucide-react";
+import type { RootState } from "../store/store";
+import { logout } from "../store/slices/authSlice";
+import { profileApi } from "../api/profileApi";
+import type { ProfilePreferences, ProfileActivityItem, UiMessage } from "../store/types/profile.types";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
+import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
-import Card, { CardContent } from "@/components/ui/card";
-import api from "@/api/axiosConfig";
-import { fetchProfile } from "../store/slices/authSlice";
-import { profileApi } from "@/api/profileApi";
-import type {
-	ProfileActivityItem,
-	ProfilePreferences,
-	UiMessage,
-} from "../store/types/profile.types";
-import { formatRelativeTime } from "../utils/dateTime";
-import { mapProfileActivityIcon } from "@/utils/profileActivity";
+import Select from "@/components/ui/select";
+
+const ActivityIcon = ({ type }: { type: string }) => {
+	const icons: Record<string, React.ComponentType<{ className?: string }>> = {
+		order: Activity,
+		login: UserCircle,
+		profile: Settings,
+		settings: Settings,
+		notification: Bell,
+	};
+	const Icon = icons[type] || Activity;
+	return <Icon className="w-4 h-4 text-white/40" />;
+};
 
 const Profile = () => {
-	const { t, i18n } = useTranslation();
-	const dispatch = useAppDispatch();
-	const { user } = useAppSelector((state) => state.auth);
-
-	const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
-	const [isUploading, setIsUploading] = useState(false);
-	const [message, setMessage] = useState<UiMessage>(null);
-
-	const [preferences, setPreferences] = useState<ProfilePreferences | null>(null);
+	const dispatch = useDispatch();
+	const { user } = useSelector((state: RootState) => state.auth);
+	const [preferences, setPreferences] = useState<ProfilePreferences>({
+		language: "en",
+		theme: "dark",
+		notifications_enabled: true,
+		email_verified: false,
+		two_factor_enabled: false,
+	});
 	const [activity, setActivity] = useState<ProfileActivityItem[]>([]);
-	const [loadingMeta, setLoadingMeta] = useState(true);
-	const [savingPrefs, setSavingPrefs] = useState(false);
+	const [message, setMessage] = useState<UiMessage>(null);
+	const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
 
 	useEffect(() => {
-		if (!user) return;
-		setAvatar(user.avatar || null);
-	}, [user]);
-
-	useEffect(() => {
-		let mounted = true;
-
-		const loadMeta = async () => {
+		const load = async () => {
 			try {
-				setLoadingMeta(true);
-				const [prefs, logs] = await Promise.all([
-					profileApi.getPreferences(),
-					profileApi.getActivity(20),
-				]);
-				if (!mounted) return;
+				const prefs = await profileApi.getPreferences();
 				setPreferences(prefs);
-				setActivity(logs);
-
-				// Apply stored language to i18n immediately on profile load.
-				if (prefs?.language && i18n.language !== prefs.language) {
-					await i18n.changeLanguage(prefs.language);
-				}
-			} catch (error) {
-				if (!mounted) return;
-				setMessage({
-					type: "error",
-					text: error instanceof Error ? error.message : "Failed to load profile data",
-				});
-			} finally {
-				if (mounted) setLoadingMeta(false);
+				const acts = await profileApi.getActivity(10);
+				setActivity(acts);
+			} catch {
+				// silently fail
 			}
 		};
+		load();
+	}, []);
 
-		void loadMeta();
-
-		return () => {
-			mounted = false;
-		};
-	}, [i18n]);
-
-	const refreshActivity = async () => {
+	const handleSavePreferences = async () => {
 		try {
-			const logs = await profileApi.getActivity(20);
-			setActivity(logs);
+			await profileApi.updatePreferences({
+				language: preferences.language,
+				theme: preferences.theme,
+				notifications_enabled: preferences.notifications_enabled,
+			});
+			setMessage({ type: "success", text: "Preferences saved successfully" });
+			setTimeout(() => setMessage(null), 3000);
 		} catch {
-			// noop
+			setMessage({ type: "error", text: "Failed to save preferences" });
+			setTimeout(() => setMessage(null), 3000);
 		}
 	};
 
-	const handleAvatarChange = async (newAvatar: string | null) => {
-		setAvatar(newAvatar);
-		setMessage(null);
+	const handleLogout = () => {
+		dispatch(logout() as any);
 	};
 
-	const handleSaveAvatar = async () => {
-		try {
-			setIsUploading(true);
-			setMessage(null);
-
-			const response = await api.post("/upload/avatar", { avatar });
-
-			if (response.status === 200) {
-				setMessage({
-					type: "success",
-					text: "Avatar updated successfully!",
-				});
-				dispatch(fetchProfile());
-				await refreshActivity();
-			}
-		} catch (error) {
-			console.error("Error uploading avatar:", error);
-			setMessage({
-				type: "error",
-				text: error instanceof Error ? error.message : "Failed to upload avatar",
-			});
-		} finally {
-			setIsUploading(false);
-		}
+	const formatDate = (dateStr: string) => {
+		return new Date(dateStr).toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
+		});
 	};
-
-	const handleDeleteAvatar = async () => {
-		try {
-			setIsUploading(true);
-			setMessage(null);
-
-			const response = await api.delete("/upload/avatar");
-
-			if (response.status === 200) {
-				setAvatar(null);
-				setMessage({
-					type: "success",
-					text: "Avatar removed successfully!",
-				});
-				dispatch(fetchProfile());
-				await refreshActivity();
-			}
-		} catch (error) {
-			console.error("Error deleting avatar:", error);
-			setMessage({
-				type: "error",
-				text: error instanceof Error ? error.message : "Failed to delete avatar",
-			});
-		} finally {
-			setIsUploading(false);
-		}
-	};
-
-	const updatePreferences = async (payload: {
-		language?: "en" | "pl";
-		theme?: "dark" | "light";
-		notifications_enabled?: boolean;
-	}) => {
-		if (!preferences) return;
-
-		try {
-			setSavingPrefs(true);
-			const next = await profileApi.updatePreferences(payload);
-			setPreferences(next);
-
-			// Apply language instantly in UI after successful save.
-			if (next.language && i18n.language !== next.language) {
-				await i18n.changeLanguage(next.language);
-			}
-
-			await refreshActivity();
-		} catch (error) {
-			setMessage({
-				type: "error",
-				text: error instanceof Error ? error.message : "Failed to update preferences",
-			});
-		} finally {
-			setSavingPrefs(false);
-		}
-	};
-
-	const hasChanges = avatar !== user?.avatar;
-	const balanceText = useMemo(
-		() => `$${(user?.balance ?? 0).toFixed(2)}`,
-		[user?.balance],
-	);
-
-	if (!user) {
-		return (
-			<div className="loading-container">
-				<div className="loading-spinner" />
-				<p className="mt-4 text-text-secondary">{t("loading")}</p>
-			</div>
-		);
-	}
 
 	return (
-		<div className="glass-page-shell">
-			<div className="glass-page-body space-y-5">
-				<div className="glass-hero-glass px-6 py-5">
-					<div aria-hidden className="glass-panel-highlight" />
-					<div className="glass-panel-inner flex items-center justify-between gap-4">
-						<div>
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-								{t("profile")}
-							</h1>
-							<p className="mt-1.5 text-sm text-text-secondary">
-								Manage your identity, security and account preferences
-							</p>
-						</div>
-						<div className="hidden md:flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-2">
-							<ShieldCheck className="h-4 w-4 text-emerald-300" />
-							<span className="text-xs text-text-secondary">
-								{preferences?.email_verified
-									? "Account verified"
-									: "Verification pending"}
-							</span>
-						</div>
-					</div>
-				</div>
+		<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-6 max-w-4xl">
+			<h1 className="text-2xl font-bold text-white">Profile Settings</h1>
 
-				{message && (
-					<Card className="glass-empty-panel border-white/10">
-						<div aria-hidden className="glass-panel-highlight" />
-						<CardContent className="glass-panel-inner p-4">
-							<div className={message.type === "success" ? "alert-success" : "alert-error"}>
-								{message.text}
+			{message && (
+				<motion.div
+					initial={{ opacity: 0, y: -10 }}
+					animate={{ opacity: 1, y: 0 }}
+					className={`px-4 py-3 rounded-xl text-sm font-medium ${
+						message.type === "success"
+							? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+							: "bg-red-500/10 text-red-400 border border-red-500/20"
+					}`}
+				>
+					{message.text}
+				</motion.div>
+			)}
+
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				{/* Avatar Card */}
+				<Card className="p-6 flex flex-col items-center" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+					<AvatarUpload
+						currentAvatar={avatar}
+						username={user?.username || "User"}
+						onAvatarChange={setAvatar}
+						size="lg"
+					/>
+					<h3 className="text-lg font-semibold text-white mt-4">{user?.username || "User"}</h3>
+					<p className="text-sm text-white/40">{user?.email || "No email"}</p>
+					<div className="flex items-center gap-2 mt-3">
+						<div className={`w-2 h-2 rounded-full ${preferences.email_verified ? "bg-emerald-400" : "bg-amber-400"}`} />
+						<span className="text-xs text-white/40">
+							{preferences.email_verified ? "Verified" : "Unverified"}
+						</span>
+					</div>
+				</Card>
+
+				{/* Preferences */}
+				<div className="md:col-span-2 space-y-6">
+					<Card className="p-6" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+						<h2 className="text-lg font-semibold text-white mb-4">Preferences</h2>
+						<div className="space-y-4">
+							<div>
+								<label className="text-xs text-white/50 mb-1.5 block">Language</label>
+								<Select
+									value={preferences.language}
+									onChange={(e) => setPreferences({ ...preferences, language: e.target.value as "en" | "pl" })}
+								>
+									<option value="en">English</option>
+									<option value="pl">Polish</option>
+								</Select>
 							</div>
-						</CardContent>
+							<div>
+								<label className="text-xs text-white/50 mb-1.5 block">Theme</label>
+								<Select
+									value={preferences.theme}
+									onChange={(e) => setPreferences({ ...preferences, theme: e.target.value as "dark" | "light" })}
+								>
+									<option value="dark">Dark</option>
+									<option value="light">Light</option>
+								</Select>
+							</div>
+							<div className="flex items-center justify-between py-2">
+								<div className="flex items-center gap-2">
+									<Bell className="w-4 h-4 text-white/40" />
+									<div>
+										<p className="text-sm font-medium text-white">Notifications</p>
+										<p className="text-xs text-white/40">Receive email notifications</p>
+									</div>
+								</div>
+								<button
+									onClick={() => setPreferences({ ...preferences, notifications_enabled: !preferences.notifications_enabled })}
+									className={`w-11 h-6 rounded-full transition-colors duration-200 relative ${
+										preferences.notifications_enabled ? "bg-[#f23f5d]" : "bg-white/[0.1]"
+									}`}
+								>
+									<div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all duration-200 ${
+										preferences.notifications_enabled ? "left-6" : "left-1"
+									}`} />
+								</button>
+							</div>
+							<div className="flex items-center justify-between py-2">
+								<div className="flex items-center gap-2">
+									<Shield className="w-4 h-4 text-white/40" />
+									<div>
+										<p className="text-sm font-medium text-white">Two-Factor Auth</p>
+										<p className="text-xs text-white/40">Additional security layer</p>
+									</div>
+								</div>
+								<div className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
+									preferences.two_factor_enabled
+										? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+										: "bg-white/[0.04] text-white/40 border border-white/[0.08]"
+								}`}>
+									{preferences.two_factor_enabled ? "Enabled" : "Disabled"}
+								</div>
+							</div>
+						</div>
+						<div className="pt-4">
+							<Button onClick={handleSavePreferences}>
+								<Save className="w-4 h-4 mr-2" />
+								Save Changes
+							</Button>
+						</div>
 					</Card>
-				)}
 
-				<div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-					<div className="xl:col-span-8 space-y-5">
-						<Card className="glass-surface-panel">
-							<div aria-hidden className="glass-panel-highlight" />
-							<CardContent className="glass-panel-inner p-6">
-								<div className="flex flex-col items-center gap-4">
-									<AvatarUpload
-										currentAvatar={avatar}
-										username={user.username}
-										onAvatarChange={handleAvatarChange}
-										size="lg"
-									/>
-
-									<div className="flex flex-wrap items-center justify-center gap-3">
-										{hasChanges && (
-											<>
-												<Button
-													onClick={handleSaveAvatar}
-													disabled={isUploading}
-													className="glass-cta-button"
-												>
-													{isUploading ? t("saving") : t("saveChanges")}
-												</Button>
-												<Button
-													variant="outline"
-													onClick={() => setAvatar(user.avatar || null)}
-													disabled={isUploading}
-													className="glass-muted-button"
-												>
-													{t("cancel")}
-												</Button>
-											</>
-										)}
-
-										{avatar && !hasChanges && (
-											<Button
-												variant="destructive"
-												onClick={handleDeleteAvatar}
-												disabled={isUploading}
-											>
-												{isUploading ? t("deleting") : t("removeAvatar")}
-											</Button>
-										)}
+					{/* Activity Feed */}
+					<Card className="p-6" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+						<h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
+						<div className="space-y-3 max-h-64 overflow-y-auto">
+							{activity.length > 0 ? activity.map((item) => (
+								<div key={item.id} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+									<div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
+										<ActivityIcon type={item.event_type} />
 									</div>
-
-									<p className="text-xs text-text-secondary flex items-center gap-1.5">
-										<ImageIcon className="h-3.5 w-3.5" />
-										PNG / JPG / WebP • max 10MB
-									</p>
+									<div className="min-w-0">
+										<p className="text-sm text-white truncate">{item.title}</p>
+										<p className="text-xs text-white/40">{formatDate(item.created_at)}</p>
+									</div>
 								</div>
-							</CardContent>
-						</Card>
+							)) : (
+								<p className="text-center text-white/40 py-4">No recent activity</p>
+							)}
+						</div>
+					</Card>
 
-						<Card className="glass-filter-panel">
-							<div aria-hidden className="glass-panel-highlight" />
-							<CardContent className="glass-panel-inner p-5">
-								<div className="mb-4 flex items-center gap-2">
-									<Sparkles className="h-4 w-4 text-indigo-300" />
-									<h2 className="text-sm font-semibold tracking-wide text-text-primary uppercase">
-										Recent activity
-									</h2>
-								</div>
-
-								<div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-									{loadingMeta ? (
-										<p className="text-sm text-text-secondary">Loading activity...</p>
-									) : activity.length === 0 ? (
-										<p className="text-sm text-text-secondary">No recent activity yet.</p>
-									) : (
-										activity.map((item) => {
-											const Icon = mapProfileActivityIcon(item.event_type);
-											return (
-												<div
-													key={item.id}
-													className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5"
-												>
-													<div className="flex items-center gap-2.5">
-														<div className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/4">
-															<Icon className="h-4 w-4 text-text-secondary" />
-														</div>
-														<span className="text-sm text-text-primary">{item.title}</span>
-													</div>
-													<span className="text-xs text-text-secondary">
-														{formatRelativeTime(item.created_at)}
-													</span>
-												</div>
-											);
-										})
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					</div>
-
-					<div className="xl:col-span-4 space-y-5">
-						<Card className="glass-metric-card">
-							<div aria-hidden className="glass-panel-highlight" />
-							<CardContent className="glass-panel-inner p-5">
-								<p className="text-xs uppercase tracking-[0.14em] text-text-secondary mb-2">
-									{t("username")}
-								</p>
-								<div className="flex items-center gap-2">
-									<User className="h-4 w-4 text-text-secondary" />
-									<p className="text-xl font-semibold text-text-primary">{user.username}</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="glass-metric-card">
-							<div aria-hidden className="glass-panel-highlight" />
-							<CardContent className="glass-panel-inner p-5">
-								<p className="text-xs uppercase tracking-[0.14em] text-text-secondary mb-2">
-									{t("balance")}
-								</p>
-								<div className="flex items-center gap-2">
-									<Wallet className="h-4 w-4 text-emerald-300" />
-									<p className="text-xl font-semibold text-emerald-300">{balanceText}</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="glass-metric-card">
-							<div aria-hidden className="glass-panel-highlight" />
-							<CardContent className="glass-panel-inner p-5">
-								<p className="text-xs uppercase tracking-[0.14em] text-text-secondary mb-2">
-									{t("userId")}
-								</p>
-								<p className="text-xl font-semibold text-text-primary">#{user.id}</p>
-							</CardContent>
-						</Card>
-
-						<Card className="glass-filter-panel">
-							<div aria-hidden className="glass-panel-highlight" />
-							<CardContent className="glass-panel-inner p-5 space-y-3">
-								<h2 className="text-sm font-semibold tracking-wide text-text-primary uppercase">
-									Preferences
-								</h2>
-
-								<button
-									type="button"
-									disabled={savingPrefs || !preferences}
-									onClick={() =>
-										updatePreferences({
-											language: preferences?.language === "en" ? "pl" : "en",
-										})
-									}
-									className="w-full flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-60 disabled:cursor-not-allowed"
-								>
-									<div className="flex items-center gap-2 text-sm text-text-primary">
-										<Languages className="h-4 w-4 text-text-secondary" />
-										<span>Language</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<span className="text-xs text-text-secondary uppercase">
-											{preferences?.language || i18n.language || "en"}
-										</span>
-										<ChevronRight className="h-3.5 w-3.5 text-text-secondary" />
-									</div>
-								</button>
-
-								<button
-									type="button"
-									disabled={savingPrefs || !preferences}
-									onClick={() =>
-										updatePreferences({
-											notifications_enabled: !preferences?.notifications_enabled,
-										})
-									}
-									className="w-full flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-60 disabled:cursor-not-allowed"
-								>
-									<div className="flex items-center gap-2 text-sm text-text-primary">
-										<Bell className="h-4 w-4 text-text-secondary" />
-										<span>Notifications</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<span
-											className={`text-xs ${
-												preferences?.notifications_enabled
-													? "text-emerald-300"
-													: "text-text-secondary"
-											}`}
-										>
-											{preferences?.notifications_enabled ? "Enabled" : "Disabled"}
-										</span>
-										<ChevronRight className="h-3.5 w-3.5 text-text-secondary" />
-									</div>
-								</button>
-
-								<button
-									type="button"
-									disabled={savingPrefs || !preferences}
-									onClick={() =>
-										updatePreferences({
-											theme: preferences?.theme === "dark" ? "light" : "dark",
-										})
-									}
-									className="w-full flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-60 disabled:cursor-not-allowed"
-								>
-									<div className="flex items-center gap-2 text-sm text-text-primary">
-										<Moon className="h-4 w-4 text-text-secondary" />
-										<span>Theme</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<span className="text-xs text-text-secondary">
-											{preferences?.theme || "dark"}
-										</span>
-										<ChevronRight className="h-3.5 w-3.5 text-text-secondary" />
-									</div>
-								</button>
-
-								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 opacity-85">
-									<div className="flex items-center gap-2 text-sm text-text-primary">
-										<Mail className="h-4 w-4 text-text-secondary" />
-										<span>Email status</span>
-									</div>
-									<span
-										className={`text-xs ${
-											preferences?.email_verified
-												? "text-emerald-300"
-												: "text-amber-300"
-										}`}
-									>
-										{preferences?.email_verified ? "Verified" : "Unverified"}
-									</span>
-								</div>
-
-								<div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-3 py-2.5 opacity-85">
-									<div className="flex items-center gap-2 text-sm text-text-primary">
-										<Lock className="h-4 w-4 text-text-secondary" />
-										<span>2FA</span>
-									</div>
-									<span
-										className={`text-xs ${
-											preferences?.two_factor_enabled
-												? "text-emerald-300"
-												: "text-amber-300"
-										}`}
-									>
-										{preferences?.two_factor_enabled ? "Enabled" : "Not configured"}
-									</span>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
+					<Button variant="destructive" onClick={handleLogout} className="w-full">
+						<LogOut className="w-4 h-4 mr-2" />
+						Logout
+					</Button>
 				</div>
 			</div>
-		</div>
+		</motion.div>
 	);
 };
 
