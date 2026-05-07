@@ -1,9 +1,15 @@
-import { Clock3, Image as ImageIcon, ShieldCheck, Sparkles } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import React from "react";
+import { ShoppingCart, User, Settings, Bell, Image } from "lucide-react";
 
-export const mapProfileActivityIcon = (eventType: string): LucideIcon => {
-	if (eventType.includes("avatar")) return ImageIcon;
-	if (eventType.includes("login")) return ShieldCheck;
-	if (eventType.includes("preferences")) return Sparkles;
-	return Clock3;
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+	order: ShoppingCart,
+	login: User,
+	profile: User,
+	settings: Settings,
+	notification: Bell,
+	avatar: Image,
+};
+
+export const mapProfileActivityIcon = (eventType: string) => {
+	return iconMap[eventType] || Settings;
 };
