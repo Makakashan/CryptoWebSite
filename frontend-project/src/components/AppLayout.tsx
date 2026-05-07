@@ -19,12 +19,24 @@ const AppLayout = () => {
 	if (!isAuthenticated) return null;
 
 	return (
-		<div className="flex min-h-screen bg-[#030303]">
+		<div className="relative min-h-screen overflow-hidden bg-[#030303]">
+			<div
+				aria-hidden
+				className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.025),transparent_24%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.015),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(255,255,255,0.01),transparent_26%)]"
+			/>
+			<div
+				aria-hidden
+				className="pointer-events-none absolute -left-32 top-24 h-72 w-72 rounded-full bg-black/30 blur-3xl"
+			/>
+			<div
+				aria-hidden
+				className="pointer-events-none absolute -right-24 top-80 h-80 w-80 rounded-full bg-black/25 blur-3xl"
+			/>
 			<Sidebar />
-			<div className="flex-1 flex flex-col ml-60">
+			<div className="relative z-10 flex min-h-screen flex-col pl-[17rem]">
 				<Header />
-				<main className="flex-1 p-6 overflow-y-auto">
-					<div className="flex justify-end mb-4">
+				<main className="flex-1 overflow-y-auto p-6">
+					<div className="mb-4 flex justify-end">
 						<LanguageSwitcher />
 					</div>
 					<Outlet />

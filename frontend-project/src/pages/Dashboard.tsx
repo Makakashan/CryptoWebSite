@@ -48,10 +48,14 @@ const DashboardMetricCard = ({
 	icon: typeof Wallet;
 	valueClassName?: string;
 }) => (
-	<Card className="liquid-glass-glow relative overflow-hidden">
+	<Card className="liquid-glass-glow relative overflow-hidden border-white/[0.11] bg-black/35 shadow-[0_20px_80px_rgba(0,0,0,0.55)] transition-all duration-300 hover:border-white/[0.16]">
 		<div
 			aria-hidden
-			className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-white/4"
+			className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"
+		/>
+		<div
+			aria-hidden
+			className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-black/20"
 		/>
 		<CardHeader className="pb-2 pr-6">
 			<CardDescription>{title}</CardDescription>
@@ -67,10 +71,14 @@ const DashboardMetricCard = ({
 );
 
 const DashboardMetricSkeleton = () => (
-	<Card className="liquid-glass-glow relative overflow-hidden animate-pulse">
+	<Card className="liquid-glass-glow relative overflow-hidden animate-pulse border-white/[0.11] bg-black/35 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
 		<div
 			aria-hidden
-			className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-white/4"
+			className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"
+		/>
+		<div
+			aria-hidden
+			className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-black/20"
 		/>
 		<CardHeader className="pb-2 pr-6">
 			<div className="h-4 w-24 rounded bg-white/8 shimmer" />
@@ -184,6 +192,7 @@ const buildBalanceHistory = (
 	currentCashBalance: number,
 	currentHoldings: Map<string, number>,
 	historicalPrices: Record<string, number[]>,
+	endTime: number,
 ): BalancePoint[] => {
 	if (orders.length === 0 && currentHoldings.size === 0 && currentCashBalance === 0) {
 		return [];
@@ -192,7 +201,6 @@ const buildBalanceHistory = (
 	const sortedOrdersAsc = [...orders].sort(
 		(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 	);
-	const endTime = Date.now();
 	const startTime = endTime - (BALANCE_HISTORY_LIMIT - 1) * BALANCE_HISTORY_STEP_MS;
 	const ordersInRange = sortedOrdersAsc.filter(
 		(order) => new Date(order.timestamp).getTime() >= startTime,
@@ -257,8 +265,13 @@ const Dashboard = () => {
 	const { portfolio, isLoading: portfolioLoading } = useAppSelector((state) => state.portfolio);
 	const { orders, isLoading: ordersLoading } = useAppSelector((state) => state.orders);
 	const [priceTick, setPriceTick] = useState(0);
+	const [dashboardNow, setDashboardNow] = useState(0);
 
 	const initialFetchDone = useRef(false);
+
+	useEffect(() => {
+		setDashboardNow(Date.now());
+	}, []);
 
 	useEffect(() => {
 		if (initialFetchDone.current) return;
@@ -303,9 +316,9 @@ const Dashboard = () => {
 	]);
 
 	const recentOrders = useMemo(() => {
-		const sevenDaysAgo = Date.now() - BALANCE_HISTORY_LIMIT * BALANCE_HISTORY_STEP_MS;
+		const sevenDaysAgo = dashboardNow - BALANCE_HISTORY_LIMIT * BALANCE_HISTORY_STEP_MS;
 		return orders.filter((order) => new Date(order.timestamp).getTime() >= sevenDaysAgo);
-	}, [orders]);
+	}, [dashboardNow, orders]);
 
 	const balanceHistorySymbols = useMemo(() => {
 		if (!isAuthenticated) return [];
@@ -401,8 +414,15 @@ const Dashboard = () => {
 		balanceHistorySymbols.some((symbol) => !(symbol in chartData));
 
 	const balanceHistory = useMemo(() => {
-		return buildBalanceHistory(recentOrders, priceMap, cashBalance, currentHoldings, chartData);
-	}, [recentOrders, priceMap, cashBalance, currentHoldings, chartData]);
+		return buildBalanceHistory(
+			recentOrders,
+			priceMap,
+			cashBalance,
+			currentHoldings,
+			chartData,
+			dashboardNow,
+		);
+	}, [recentOrders, priceMap, cashBalance, currentHoldings, chartData, dashboardNow]);
 
 	const balanceChange = useMemo(() => {
 		if (balanceHistory.length < 2) return 0;
@@ -459,10 +479,14 @@ const Dashboard = () => {
 
 	return (
 		<div className="space-y-6">
-			<Card className="liquid-glass-glow relative overflow-hidden px-6 py-5">
+			<Card className="liquid-glass-glow relative overflow-hidden border-white/[0.11] bg-black/35 px-6 py-5 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
 				<div
 					aria-hidden
-					className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-white/10"
+					className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"
+				/>
+				<div
+					aria-hidden
+					className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.025] via-transparent to-black/20"
 				/>
 				<div className="relative flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 					<div className="max-w-2xl">
@@ -526,10 +550,14 @@ const Dashboard = () => {
 			</div>
 
 			<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-				<Card className="liquid-glass-glow relative overflow-hidden xl:col-span-2">
+				<Card className="liquid-glass-glow relative overflow-hidden border-white/[0.11] bg-black/35 shadow-[0_20px_80px_rgba(0,0,0,0.55)] xl:col-span-2">
 					<div
 						aria-hidden
-						className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-white/10"
+						className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"
+					/>
+					<div
+						aria-hidden
+						className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.025] via-transparent to-black/20"
 					/>
 					<div className="relative">
 						<CardHeader>
@@ -627,10 +655,14 @@ const Dashboard = () => {
 					</div>
 				</Card>
 
-				<Card className="liquid-glass-glow relative overflow-hidden">
+				<Card className="liquid-glass-glow relative overflow-hidden border-white/[0.11] bg-black/35 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
 					<div
 						aria-hidden
-						className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-white/10"
+						className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"
+					/>
+					<div
+						aria-hidden
+						className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.025] via-transparent to-black/20"
 					/>
 					<div className="relative">
 						<CardHeader>
@@ -657,7 +689,7 @@ const Dashboard = () => {
 										<button
 											type="button"
 											key={asset.symbol}
-											className="flex w-full items-center justify-between rounded-3xl p-3 text-left transition-colors hover:bg-white/4"
+											className="flex w-full items-center justify-between rounded-2xl border border-white/[0.06] bg-black/25 px-3 py-3 text-left transition-all duration-200 hover:border-white/[0.12] hover:bg-black/40 hover:shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
 											onClick={() => navigate(`/markets/${asset.symbol}`)}
 										>
 											<div className="flex items-center gap-3 text-left">
@@ -670,16 +702,14 @@ const Dashboard = () => {
 													}}
 												/>
 												<div>
-													<p className="text-sm font-semibold text-text-primary">
+													<p className="text-sm font-semibold text-white">
 														{shortName}
 													</p>
-													<p className="text-xs text-text-secondary">
-														{formatPrice(price)}
-													</p>
+													<p className="text-xs text-white/55">{formatPrice(price)}</p>
 												</div>
 											</div>
 											<span
-												className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
+												className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ${
 													change >= 0
 														? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
 														: "border-rose-500/20 bg-rose-500/10 text-rose-400"
@@ -695,7 +725,7 @@ const Dashboard = () => {
 
 							<Button
 								variant="outline"
-								className="mt-2 w-full"
+								className="mt-2 w-full border-white/10 bg-black/30 text-white/80 hover:border-white/18 hover:bg-black/45"
 								onClick={() => navigate("/markets")}
 							>
 								{t("viewMarkets")}
@@ -709,7 +739,7 @@ const Dashboard = () => {
 			<Card className="liquid-glass-strong relative overflow-hidden">
 				<div
 					aria-hidden
-					className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-white/10"
+					className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/35 via-black/10 to-transparent"
 				/>
 				<div className="relative">
 					<CardHeader>
@@ -717,11 +747,24 @@ const Dashboard = () => {
 						<CardDescription>{t("shortcutsForNextMove")}</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-wrap gap-3">
-						<Button onClick={() => navigate("/markets")}>{t("viewMarkets")}</Button>
-						<Button variant="secondary" onClick={() => navigate("/portfolio")}>
+						<Button
+							className="border border-white/10 shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+							onClick={() => navigate("/markets")}
+						>
+							{t("viewMarkets")}
+						</Button>
+						<Button
+							variant="secondary"
+							className="border border-white/8 bg-black/30 hover:bg-black/45"
+							onClick={() => navigate("/portfolio")}
+						>
 							{t("myPortfolio")}
 						</Button>
-						<Button variant="secondary" onClick={() => navigate("/orders")}>
+						<Button
+							variant="secondary"
+							className="border border-white/8 bg-black/30 hover:bg-black/45"
+							onClick={() => navigate("/orders")}
+						>
 							{t("orderHistory")}
 						</Button>
 					</CardContent>

@@ -17,17 +17,17 @@ const Sidebar = () => {
 	const location = useLocation();
 
 	return (
-		<aside className="fixed left-0 top-0 h-screen w-60 bg-[#0a0a0a] border-r border-white/[0.06] z-50 flex flex-col">
-			<div className="flex items-center gap-3 px-6 py-6 border-b border-white/[0.06]">
-				<div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shadow-lg shadow-white/10">
+		<aside className="fixed left-4 top-4 z-50 flex h-[calc(100vh-2rem)] w-60 flex-col rounded-[2rem] liquid-glass-strong">
+			<div className="flex items-center gap-3 border-b border-white/[0.06] px-6 py-6">
+				<div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-black/50 to-black/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_30px_rgba(0,0,0,0.35)]">
 					<TrendingUp className="w-4 h-4 text-white" />
 				</div>
 				<div>
-					<h1 className="text-base font-bold text-white tracking-tight">MakakaTrade</h1>
+					<h1 className="text-base font-bold tracking-tight text-white">MakakaTrade</h1>
 				</div>
 			</div>
 
-			<nav className="flex-1 px-4 py-6 space-y-1.5">
+			<nav className="flex-1 space-y-1.5 px-4 py-6">
 				{navItems.map((item) => {
 					const isActive = item.exact
 						? location.pathname === item.to
@@ -38,17 +38,17 @@ const Sidebar = () => {
 							to={item.to}
 							end={item.exact}
 							className={({ isActive: navActive }) =>
-								`relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
+								`relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-300 ${
 									navActive
 										? "text-white"
-										: "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+										: "text-white/50 hover:text-white/80 hover:bg-black/20"
 								}`
 							}
 						>
 							{isActive && (
 								<motion.div
 									layoutId="sidebar-active"
-									className="absolute inset-0 rounded-xl bg-white/10 border border-white/20"
+									className="absolute inset-0 rounded-2xl bg-black/35 border border-white/14"
 									style={{ boxShadow: "0 0 20px rgba(255, 255, 255, 0.1)" }}
 									transition={{ type: "spring", stiffness: 300, damping: 30 }}
 								/>
@@ -60,9 +60,9 @@ const Sidebar = () => {
 				})}
 			</nav>
 
-			<div className="px-4 py-4 border-t border-white/[0.06]">
-				<div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-					<div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-bold">
+			<div className="border-t border-white/[0.06] px-4 py-4">
+				<div className="flex items-center gap-3 rounded-2xl liquid-glass px-4 py-3">
+					<div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-xs font-bold text-white border border-white/[0.08]">
 						{user?.username?.slice(0, 2).toUpperCase() || "U"}
 					</div>
 					<div className="overflow-hidden">
