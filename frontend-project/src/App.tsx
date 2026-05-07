@@ -1,87 +1,76 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
-import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { useDispatch } from "react-redux";
+import { fetchAssets } from "./store/slices/assetsSlice";
+import { fetchPortfolio } from "./store/slices/portfolioSlice";
+import { fetchOrders } from "./store/slices/ordersSlice";
 import { fetchProfile } from "./store/slices/authSlice";
 import AppLayout from "./components/AppLayout";
+import Dashboard from "./pages/Dashboard";
+import Markets from "./pages/Markets";
+import AssetDetail from "./pages/AssetDetail";
+import AssetForm from "./pages/AssetForm";
+import Portfolio from "./pages/Portfolio";
+import Orders from "./pages/Orders";
+import Statistics from "./pages/Statistics";
+import Profile from "./pages/Profile";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
-// Lazy load all page components for code splitting
-const Markets = lazy(() => import("./pages/Markets"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const Portfolio = lazy(() => import("./pages/Portfolio"));
-const Orders = lazy(() => import("./pages/Orders"));
-const Statistics = lazy(() => import("./pages/Statistics"));
-const AssetDetail = lazy(() => import("./pages/AssetDetail"));
-const AssetForm = lazy(() => import("./pages/AssetForm"));
-const Profile = lazy(() => import("./pages/Profile"));
+const AppInitializer = ({ children }: { children: React.ReactNode }) => {
+	const dispatch = useDispatch();
+	const [ready, setReady] = useState(false);
 
-const PageLoader = () => (
-	<div className="flex items-center justify-center min-h-100">
-		<div className="w-10 h-10 border-4 border-bg-hover border-t-blue rounded-full animate-spin"></div>
-	</div>
-);
+	useEffect(() => {
+		const init = async () => {
+			await dispatch(fetchProfile() as any);
+			dispatch(fetchAssets({ limit: 50 }) as any);
+			dispatch(fetchPortfolio() as any);
+			dispatch(fetchOrders({ limit: 50 }) as any);
+			setReady(true);
+		};
+		init();
+	}, [dispatch]);
 
-const ProtectedRoutes = ({ children }: { children: React.ReactNode }) => {
-	const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
-
-	if (isLoading) {
+	if (!ready) {
 		return (
-			<div className="loading-container h-screen">
-				<div className="loading-spinner mb-4"></div>
-				<p className="text-text-secondary">Loading...</p>
+			<div className="min-h-screen bg-[#030303] flex items-center justify-center">
+				<div className="flex flex-col items-center gap-4">
+					<div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center animate-pulse shadow-lg shadow-[#f23f5d]/20">
+						<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+					</div>
+					<p className="text-white/40 text-sm">Loading MakakaTrade...</p>
+				</div>
 			</div>
 		);
 	}
 
-	if (!isAuthenticated) return <Navigate to="/login" replace />;
 	return <>{children}</>;
 };
 
-function App() {
-	const dispatch = useAppDispatch();
-	const { isAuthenticated } = useAppSelector((state) => state.auth);
-
-	useEffect(() => {
-		dispatch(fetchProfile());
-	}, [dispatch]);
-
+const App = () => {
 	return (
 		<BrowserRouter>
-			<Suspense fallback={<PageLoader />}>
+			<AppInitializer>
 				<Routes>
-					<Route
-						path="/login"
-						element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
-					/>
-					<Route
-						path="/register"
-						element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
-					/>
-
-					<Route
-						element={
-							<ProtectedRoutes>
-								<AppLayout />
-							</ProtectedRoutes>
-						}
-					>
-						<Route path="/" element={<Dashboard />} />
+					<Route path="/login" element={<Login />} />
+					<Route path="/register" element={<Register />} />
+					<Route element={<AppLayout />}>
+						<Route path="/dashboard" element={<Dashboard />} />
 						<Route path="/markets" element={<Markets />} />
-						<Route path="/markets/add" element={<AssetForm />} />
-						<Route path="/markets/edit/:symbol" element={<AssetForm />} />
 						<Route path="/markets/:symbol" element={<AssetDetail />} />
+						<Route path="/assets/new" element={<AssetForm />} />
+						<Route path="/assets/:symbol/edit" element={<AssetForm />} />
 						<Route path="/portfolio" element={<Portfolio />} />
 						<Route path="/orders" element={<Orders />} />
 						<Route path="/statistics" element={<Statistics />} />
 						<Route path="/profile" element={<Profile />} />
+						<Route path="/" element={<Navigate to="/dashboard" replace />} />
 					</Route>
-
-					<Route path="*" element={<Navigate to="/" replace />} />
 				</Routes>
-			</Suspense>
+			</AppInitializer>
 		</BrowserRouter>
 	);
-}
+};
 
 export default App;
