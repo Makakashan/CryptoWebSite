@@ -1,6 +1,6 @@
 import api from "./axiosConfig";
 import { type LoginRequest, type RegisterRequest, type AuthResponse } from "../store/types";
-import type { Portfolio } from "../store/types";
+import type { UserProfile } from "../store/types";
 
 export const authApi = {
 	login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -25,8 +25,8 @@ export const authApi = {
 		return response.data;
 	},
 
-	getProfile: async (): Promise<Portfolio> => {
-		const response = await api.get<Portfolio>("/portfolio");
+	getProfile: async (): Promise<UserProfile> => {
+		const response = await api.get<UserProfile>("/portfolio");
 		return response.data;
 	},
 };

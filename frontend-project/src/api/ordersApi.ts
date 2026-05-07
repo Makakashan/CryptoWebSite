@@ -25,7 +25,6 @@ export const ordersApi = {
 			`/orders/history?${params.toString()}`,
 		);
 
-		// Handle both paginated response and direct array
 		if (response.data && typeof response.data === "object" && "data" in response.data) {
 			return {
 				data: response.data.data || [],
@@ -33,7 +32,6 @@ export const ordersApi = {
 			};
 		}
 
-		// Fallback for direct array response
 		return {
 			data: Array.isArray(response.data) ? response.data : [],
 			pagination: undefined,
@@ -54,10 +52,9 @@ export const ordersApi = {
 			total: number;
 		}>("/orders/place", orderData);
 
-		// Backend doesn't return full order object, so we construct one
 		return {
-			id: Date.now(), // Temporary ID
-			user_id: 0, // Will be filled by backend
+			id: Date.now(),
+			user_id: 0,
 			asset_symbol: response.data.asset,
 			order_type: orderData.order_type,
 			amount: response.data.amount,
