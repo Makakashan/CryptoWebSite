@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { useAppDispatch } from "./store/hooks";
 import { fetchAssets } from "./store/slices/assetsSlice";
 import { fetchPortfolio } from "./store/slices/portfolioSlice";
@@ -16,6 +16,11 @@ import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+
+const AssetDetailRoute = () => {
+	const { symbol } = useParams<{ symbol: string }>();
+	return <AssetDetail key={symbol} />;
+};
 
 const AppInitializer = ({ children }: { children: React.ReactNode }) => {
 	const dispatch = useAppDispatch();
@@ -58,7 +63,7 @@ const App = () => {
 					<Route element={<AppLayout />}>
 						<Route path="/dashboard" element={<Dashboard />} />
 						<Route path="/markets" element={<Markets />} />
-						<Route path="/markets/:symbol" element={<AssetDetail />} />
+						<Route path="/markets/:symbol" element={<AssetDetailRoute />} />
 						<Route path="/assets/new" element={<AssetForm />} />
 						<Route path="/assets/:symbol/edit" element={<AssetForm />} />
 						<Route path="/portfolio" element={<Portfolio />} />

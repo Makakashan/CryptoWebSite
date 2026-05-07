@@ -43,7 +43,9 @@ const Dashboard = () => {
 	const navigate = useNavigate();
 	const { user, isLoading: authLoading } = useSelector((state: RootState) => state.auth);
 	const { assets: allAssets } = useSelector((state: RootState) => state.assets);
-	const [balanceHistory, setBalanceHistory] = useState<BalanceHistoryPoint[]>([]);
+	const [balanceHistory] = useState(() =>
+		user?.balance ? generateBalanceHistory(user.balance) : [],
+	);
 
 	const portfolioAssets = useMemo(() => {
 		if (!allAssets?.length) return [];
@@ -58,12 +60,6 @@ const Dashboard = () => {
 	useEffect(() => {
 		dispatch(fetchAssets({ limit: 20 }));
 	}, [dispatch]);
-
-	useEffect(() => {
-		if (user?.balance) {
-			setBalanceHistory(generateBalanceHistory(user.balance));
-		}
-	}, [user?.balance]);
 
 	const balance = user?.balance ?? 0;
 	const totalValue = balance;

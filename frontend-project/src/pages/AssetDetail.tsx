@@ -36,21 +36,13 @@ const AssetDetail = () => {
 	const dispatch = useAppDispatch();
 	const { assets } = useSelector((state: RootState) => state.assets);
 	const { user } = useSelector((state: RootState) => state.auth);
-	const [price, setPrice] = useState(0);
+	const asset = assets.find((a) => a.symbol === symbol);
+	const initialPrice = asset?.current_price || asset?.price || 0;
+	const [price, setPrice] = useState(() => initialPrice);
 	const [flash, setFlash] = useState<PriceFlash>(null);
 	const [orderAmount, setOrderAmount] = useState("");
 	const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
-	const [chartData, setChartData] = useState<ChartPoint[]>([]);
-
-	const asset = assets.find((a) => a.symbol === symbol);
-
-	useEffect(() => {
-		if (asset) {
-			const initialPrice = asset.current_price || asset.price || 0;
-			setPrice(initialPrice);
-			setChartData(generateChartData(initialPrice));
-		}
-	}, [asset]);
+	const [chartData] = useState(() => generateChartData(initialPrice));
 
 	useBinanceWebSocket({ symbols: symbol ? [symbol] : [], enabled: !!symbol });
 
