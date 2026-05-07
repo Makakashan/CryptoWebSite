@@ -3,18 +3,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f23f5d]/50 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
 	{
 		variants: {
 			variant: {
-				default: "bg-red text-white hover:bg-accent-red shadow-lg shadow-red/20",
-				success: "bg-green text-white hover:bg-green/90 shadow-lg shadow-green/20",
+				default: "bg-[#f23f5d] text-white hover:bg-[#b81a3c] shadow-lg shadow-[#f23f5d]/20 border border-transparent",
+				success: "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 border border-transparent",
 				outline:
-					"border border-bg-hover bg-transparent text-text-secondary hover:bg-bg-hover hover:text-white hover:border-red/50",
-				secondary: "bg-bg-hover text-text-primary hover:bg-bg-hover/80",
-				ghost: "hover:bg-bg-hover hover:text-white text-text-secondary",
-				link: "text-red underline-offset-4 hover:underline hover:text-accent-red p-0",
-				destructive: "bg-dark-red text-white hover:bg-red",
+					"border border-white/[0.12] bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white hover:border-[#f23f5d]/30 backdrop-blur-xl",
+				secondary: "bg-white/[0.08] text-white hover:bg-white/[0.12] border border-white/[0.08] backdrop-blur-xl",
+				ghost: "hover:bg-white/[0.06] hover:text-white text-white/60",
+				link: "text-[#f23f5d] underline-offset-4 hover:underline hover:text-[#b81a3c] p-0",
+				destructive: "bg-red-900 text-white hover:bg-red-700 border border-red-500/30",
 			},
 			size: {
 				default: "h-11 px-6 py-3",
@@ -49,4 +49,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
+export { Button, buttonVariants };
 export default Button;
