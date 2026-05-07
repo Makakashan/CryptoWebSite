@@ -1,6 +1,27 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import { assetsApi } from "../../api/assetsApi";
-import type { AssetsFilters, Asset, ChartDataResponse } from "../types";
+import type {
+	AssetsFilters,
+	Asset,
+	CreateAssetDto,
+	UpdateAssetDto,
+	ChartDataResponse,
+	AssetsResponse,
+} from "../types";
+
+interface ApiErrorShape {
+	response?: {
+		data?: {
+			message?: string;
+		};
+	};
+}
+
+const hasApiErrorResponse = (error: unknown): error is ApiErrorShape =>
+	typeof error === "object" && error !== null && "response" in error;
+
+const getApiErrorMessage = (error: unknown, fallback: string) =>
+	hasApiErrorResponse(error) ? error.response?.data?.message || fallback : fallback;
 
 interface AssetsState {
 	assets: Asset[];
@@ -30,65 +51,65 @@ const initialState: AssetsState = {
 	chartData: {},
 };
 
-export const fetchAssets = createAsyncThunk(
-	"assets/fetchAssets",
-	async (filters: AssetsFilters | undefined, { rejectWithValue }) => {
-		try {
-			const response = await assetsApi.getAssets(filters);
-			return response;
-		} catch (error: any) {
-			return rejectWithValue(error.response?.data?.message || "Failed to fetch assets");
-		}
-	},
-);
+export const fetchAssets = createAsyncThunk<
+	AssetsResponse,
+	AssetsFilters | undefined,
+	{ rejectValue: string }
+>("assets/fetchAssets", async (filters, { rejectWithValue }) => {
+	try {
+		const response = await assetsApi.getAssets(filters);
+		return response;
+	} catch (error: unknown) {
+		return rejectWithValue(getApiErrorMessage(error, "Failed to fetch assets"));
+	}
+});
 
-export const fetchChartData = createAsyncThunk(
-	"assets/fetchChartData",
-	async (
-		{ symbols, interval, limit }: { symbols: string[]; interval?: string; limit?: number },
-		{ rejectWithValue },
-	) => {
-		try {
-			const response = await assetsApi.getChartData(symbols, interval, limit);
-			return response;
-		} catch (error: any) {
-			return rejectWithValue(error.response?.data?.message || "Failed to fetch chart data");
-		}
-	},
-);
+export const fetchChartData = createAsyncThunk<
+	ChartDataResponse,
+	{ symbols: string[]; interval?: string; limit?: number },
+	{ rejectValue: string }
+>("assets/fetchChartData", async ({ symbols, interval, limit }, { rejectWithValue }) => {
+	try {
+		const response = await assetsApi.getChartData(symbols, interval, limit);
+		return response;
+	} catch (error: unknown) {
+		return rejectWithValue(getApiErrorMessage(error, "Failed to fetch chart data"));
+	}
+});
 
-export const createAsset = createAsyncThunk(
+export const createAsset = createAsyncThunk<Asset, CreateAssetDto, { rejectValue: string }>(
 	"assets/createAsset",
-	async (asset: any, { rejectWithValue }) => {
+	async (asset, { rejectWithValue }) => {
 		try {
 			const response = await assetsApi.createAsset(asset);
 			return response;
-		} catch (error: any) {
-			return rejectWithValue(error.response?.data?.message || "Failed to create asset");
+		} catch (error: unknown) {
+			return rejectWithValue(getApiErrorMessage(error, "Failed to create asset"));
 		}
 	},
 );
 
-export const updateAsset = createAsyncThunk(
-	"assets/updateAsset",
-	async ({ symbol, data }: { symbol: string; data: any }, { rejectWithValue }) => {
-		try {
-			const response = await assetsApi.updateAsset(symbol, data);
-			return response;
-		} catch (error: any) {
-			return rejectWithValue(error.response?.data?.message || "Failed to update asset");
-		}
-	},
-);
+export const updateAsset = createAsyncThunk<
+	Asset,
+	{ symbol: string; data: UpdateAssetDto },
+	{ rejectValue: string }
+>("assets/updateAsset", async ({ symbol, data }, { rejectWithValue }) => {
+	try {
+		const response = await assetsApi.updateAsset(symbol, data);
+		return response;
+	} catch (error: unknown) {
+		return rejectWithValue(getApiErrorMessage(error, "Failed to update asset"));
+	}
+});
 
-export const deleteAsset = createAsyncThunk(
+export const deleteAsset = createAsyncThunk<string, string, { rejectValue: string }>(
 	"assets/deleteAsset",
-	async (symbol: string, { rejectWithValue }) => {
+	async (symbol, { rejectWithValue }) => {
 		try {
 			await assetsApi.deleteAsset(symbol);
 			return symbol;
-		} catch (error: any) {
-			return rejectWithValue(error.response?.data?.message || "Failed to delete asset");
+		} catch (error: unknown) {
+			return rejectWithValue(getApiErrorMessage(error, "Failed to delete asset"));
 		}
 	},
 );
@@ -97,7 +118,7 @@ const assetsSlice = createSlice({
 	name: "assets",
 	initialState,
 	reducers: {
-		setFilters: (state, action) => {
+		setFilters: (state, action: PayloadAction<AssetsFilters>) => {
 			state.filters = { ...state.filters, ...action.payload };
 		},
 		clearError: (state) => {
@@ -117,19 +138,19 @@ const assetsSlice = createSlice({
 			})
 			.addCase(fetchAssets.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error = action.payload as string;
+				state.error = action.payload ?? "Failed to fetch assets";
 			})
 			.addCase(fetchChartData.fulfilled, (state, action) => {
-				const data = (action.payload as ChartDataResponse).data || {};
+				const data = action.payload.data || {};
 				state.chartData = { ...state.chartData, ...data };
 			})
 			.addCase(createAsset.fulfilled, (state, action) => {
-				state.assets.unshift(action.payload as Asset);
+				state.assets.unshift(action.payload);
 			})
 			.addCase(updateAsset.fulfilled, (state, action) => {
-				const index = state.assets.findIndex((a) => a.symbol === (action.payload as Asset).symbol);
+				const index = state.assets.findIndex((a) => a.symbol === action.payload.symbol);
 				if (index !== -1) {
-					state.assets[index] = action.payload as Asset;
+					state.assets[index] = action.payload;
 				}
 			})
 			.addCase(deleteAsset.fulfilled, (state, action) => {

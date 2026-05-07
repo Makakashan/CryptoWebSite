@@ -15,8 +15,13 @@ import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 
-const generateChartData = (basePrice: number, points: number = 50) => {
-	const data = [];
+type ChartPoint = {
+	time: number;
+	price: number;
+};
+
+const generateChartData = (basePrice: number, points: number = 50): ChartPoint[] => {
+	const data: ChartPoint[] = [];
 	let price = basePrice;
 	for (let i = 0; i < points; i++) {
 		price += (Math.random() - 0.48) * price * 0.02;
@@ -35,7 +40,7 @@ const AssetDetail = () => {
 	const [flash, setFlash] = useState<PriceFlash>(null);
 	const [orderAmount, setOrderAmount] = useState("");
 	const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
-	const [chartData, setChartData] = useState<any[]>([]);
+	const [chartData, setChartData] = useState<ChartPoint[]>([]);
 
 	const asset = assets.find((a) => a.symbol === symbol);
 
@@ -75,11 +80,13 @@ const AssetDetail = () => {
 
 	const handleOrder = () => {
 		if (!orderAmount || parseFloat(orderAmount) <= 0) return;
-		dispatch(placeOrder({
-			asset_symbol: asset.symbol,
-			order_type: activeTab.toUpperCase() as "BUY" | "SELL",
-			amount: parseFloat(orderAmount),
-		}));
+		dispatch(
+			placeOrder({
+				asset_symbol: asset.symbol,
+				order_type: activeTab.toUpperCase() as "BUY" | "SELL",
+				amount: parseFloat(orderAmount),
+			}),
+		);
 		setOrderAmount("");
 	};
 
@@ -91,12 +98,19 @@ const AssetDetail = () => {
 			className="space-y-6"
 		>
 			<div className="flex items-center gap-4">
-				<button onClick={() => navigate(-1)} className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all text-white/60 hover:text-white">
+				<button
+					onClick={() => navigate(-1)}
+					className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all text-white/60 hover:text-white"
+				>
 					<ArrowLeft className="w-5 h-5" />
 				</button>
 				<div className="flex items-center gap-3">
 					{asset.image_url ? (
-						<img src={asset.image_url} alt={asset.symbol} className="w-12 h-12 rounded-full" />
+						<img
+							src={asset.image_url}
+							alt={asset.symbol}
+							className="w-12 h-12 rounded-full"
+						/>
 					) : (
 						<div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center text-white font-bold text-lg">
 							{asset.symbol.slice(0, 2)}
@@ -115,15 +129,25 @@ const AssetDetail = () => {
 					<Card className="p-6" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<p className={`text-3xl font-bold transition-all duration-500 ${
-									flash === "up" ? "text-emerald-400" :
-									flash === "down" ? "text-red-400" :
-									"text-white"
-								}`}>
+								<p
+									className={`text-3xl font-bold transition-all duration-500 ${
+										flash === "up"
+											? "text-emerald-400"
+											: flash === "down"
+												? "text-red-400"
+												: "text-white"
+									}`}
+								>
 									{formatPrice(price)}
 								</p>
-								<div className={`flex items-center gap-1 mt-1 ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
-									{isPositive ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+								<div
+									className={`flex items-center gap-1 mt-1 ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+								>
+									{isPositive ? (
+										<ArrowUpRight className="w-4 h-4" />
+									) : (
+										<ArrowDownRight className="w-4 h-4" />
+									)}
 									<span className="text-sm font-medium">
 										{(asset.price_change_24h || 0) >= 0 ? "+" : ""}
 										{(asset.price_change_24h || 0).toFixed(2)}%
@@ -156,7 +180,14 @@ const AssetDetail = () => {
 										}}
 										formatter={(value: number) => [formatPrice(value), "Price"]}
 									/>
-									<Area type="monotone" dataKey="price" stroke="#f23f5d" strokeWidth={2} fill="url(#chartGrad)" dot={false} />
+									<Area
+										type="monotone"
+										dataKey="price"
+										stroke="#f23f5d"
+										strokeWidth={2}
+										fill="url(#chartGrad)"
+										dot={false}
+									/>
 								</AreaChart>
 							</ResponsiveContainer>
 						</div>

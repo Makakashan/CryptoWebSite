@@ -1,6 +1,20 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import { ordersApi } from "../../api/ordersApi";
-import type { Order, OrdersFilters, PlaceOrderRequest } from "../types";
+import type { Order, OrdersFilters, PlaceOrderRequest, OrdersResponse } from "../types";
+
+interface ApiErrorShape {
+	response?: {
+		data?: {
+			message?: string;
+		};
+	};
+}
+
+const hasApiErrorResponse = (error: unknown): error is ApiErrorShape =>
+	typeof error === "object" && error !== null && "response" in error;
+
+const getApiErrorMessage = (error: unknown, fallback: string) =>
+	hasApiErrorResponse(error) ? error.response?.data?.message || fallback : fallback;
 
 interface OrdersState {
 	orders: Order[];
@@ -28,26 +42,27 @@ const initialState: OrdersState = {
 	pagination: null,
 };
 
-export const fetchOrders = createAsyncThunk(
-	"orders/fetchOrders",
-	async (filters: OrdersFilters | undefined, { rejectWithValue }) => {
-		try {
-			const response = await ordersApi.getOrders(filters);
-			return response;
-		} catch (error: any) {
-			return rejectWithValue(error.response?.data?.message || "Failed to fetch orders");
-		}
-	},
-);
+export const fetchOrders = createAsyncThunk<
+	OrdersResponse,
+	OrdersFilters | undefined,
+	{ rejectValue: string }
+>("orders/fetchOrders", async (filters, { rejectWithValue }) => {
+	try {
+		const response = await ordersApi.getOrders(filters);
+		return response;
+	} catch (error: unknown) {
+		return rejectWithValue(getApiErrorMessage(error, "Failed to fetch orders"));
+	}
+});
 
-export const placeOrder = createAsyncThunk(
+export const placeOrder = createAsyncThunk<Order, PlaceOrderRequest, { rejectValue: string }>(
 	"orders/placeOrder",
-	async (orderData: PlaceOrderRequest, { rejectWithValue }) => {
+	async (orderData, { rejectWithValue }) => {
 		try {
 			const response = await ordersApi.placeOrder(orderData);
 			return response;
-		} catch (error: any) {
-			return rejectWithValue(error.response?.data?.message || "Failed to place order");
+		} catch (error: unknown) {
+			return rejectWithValue(getApiErrorMessage(error, "Failed to place order"));
 		}
 	},
 );
@@ -56,7 +71,7 @@ const ordersSlice = createSlice({
 	name: "orders",
 	initialState,
 	reducers: {
-		setOrdersFilters: (state, action) => {
+		setOrdersFilters: (state, action: PayloadAction<OrdersFilters>) => {
 			state.filters = { ...state.filters, ...action.payload };
 		},
 	},
@@ -73,10 +88,10 @@ const ordersSlice = createSlice({
 			})
 			.addCase(fetchOrders.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error = action.payload as string;
+				state.error = action.payload ?? "Failed to fetch orders";
 			})
 			.addCase(placeOrder.fulfilled, (state, action) => {
-				state.orders.unshift(action.payload as Order);
+				state.orders.unshift(action.payload);
 			});
 	},
 });

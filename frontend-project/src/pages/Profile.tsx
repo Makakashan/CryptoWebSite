@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { UserCircle, Bell, Shield, Activity, Settings, LogOut, Save } from "lucide-react";
 import type { RootState } from "../store/store";
+import { useAppDispatch } from "../store/hooks";
 import { logout } from "../store/slices/authSlice";
 import { profileApi } from "../api/profileApi";
-import type { ProfilePreferences, ProfileActivityItem, UiMessage } from "../store/types/profile.types";
+import type {
+	ProfilePreferences,
+	ProfileActivityItem,
+	UiMessage,
+} from "../store/types/profile.types";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
@@ -24,7 +29,7 @@ const ActivityIcon = ({ type }: { type: string }) => {
 };
 
 const Profile = () => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const { user } = useSelector((state: RootState) => state.auth);
 	const [preferences, setPreferences] = useState<ProfilePreferences>({
 		language: "en",
@@ -67,7 +72,7 @@ const Profile = () => {
 	};
 
 	const handleLogout = () => {
-		dispatch(logout() as any);
+		dispatch(logout());
 	};
 
 	const formatDate = (dateStr: string) => {
@@ -80,7 +85,12 @@ const Profile = () => {
 	};
 
 	return (
-		<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-6 max-w-4xl">
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 0.4 }}
+			className="space-y-6 max-w-4xl"
+		>
 			<h1 className="text-2xl font-bold text-white">Profile Settings</h1>
 
 			{message && (
@@ -99,7 +109,10 @@ const Profile = () => {
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{/* Avatar Card */}
-				<Card className="p-6 flex flex-col items-center" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+				<Card
+					className="p-6 flex flex-col items-center"
+					style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}
+				>
 					<AvatarUpload
 						currentAvatar={avatar}
 						username={user?.username || "User"}
@@ -109,7 +122,9 @@ const Profile = () => {
 					<h3 className="text-lg font-semibold text-white mt-4">{user?.username || "User"}</h3>
 					<p className="text-sm text-white/40">{user?.email || "No email"}</p>
 					<div className="flex items-center gap-2 mt-3">
-						<div className={`w-2 h-2 rounded-full ${preferences.email_verified ? "bg-emerald-400" : "bg-amber-400"}`} />
+						<div
+							className={`w-2 h-2 rounded-full ${preferences.email_verified ? "bg-emerald-400" : "bg-amber-400"}`}
+						/>
 						<span className="text-xs text-white/40">
 							{preferences.email_verified ? "Verified" : "Unverified"}
 						</span>
@@ -125,7 +140,12 @@ const Profile = () => {
 								<label className="text-xs text-white/50 mb-1.5 block">Language</label>
 								<Select
 									value={preferences.language}
-									onChange={(e) => setPreferences({ ...preferences, language: e.target.value as "en" | "pl" })}
+									onChange={(e) =>
+										setPreferences({
+											...preferences,
+											language: e.target.value as "en" | "pl",
+										})
+									}
 								>
 									<option value="en">English</option>
 									<option value="pl">Polish</option>
@@ -135,7 +155,12 @@ const Profile = () => {
 								<label className="text-xs text-white/50 mb-1.5 block">Theme</label>
 								<Select
 									value={preferences.theme}
-									onChange={(e) => setPreferences({ ...preferences, theme: e.target.value as "dark" | "light" })}
+									onChange={(e) =>
+										setPreferences({
+											...preferences,
+											theme: e.target.value as "dark" | "light",
+										})
+									}
 								>
 									<option value="dark">Dark</option>
 									<option value="light">Light</option>
@@ -150,14 +175,21 @@ const Profile = () => {
 									</div>
 								</div>
 								<button
-									onClick={() => setPreferences({ ...preferences, notifications_enabled: !preferences.notifications_enabled })}
+									onClick={() =>
+										setPreferences({
+											...preferences,
+											notifications_enabled: !preferences.notifications_enabled,
+										})
+									}
 									className={`w-11 h-6 rounded-full transition-colors duration-200 relative ${
 										preferences.notifications_enabled ? "bg-[#f23f5d]" : "bg-white/[0.1]"
 									}`}
 								>
-									<div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all duration-200 ${
-										preferences.notifications_enabled ? "left-6" : "left-1"
-									}`} />
+									<div
+										className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all duration-200 ${
+											preferences.notifications_enabled ? "left-6" : "left-1"
+										}`}
+									/>
 								</button>
 							</div>
 							<div className="flex items-center justify-between py-2">
@@ -168,11 +200,13 @@ const Profile = () => {
 										<p className="text-xs text-white/40">Additional security layer</p>
 									</div>
 								</div>
-								<div className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
-									preferences.two_factor_enabled
-										? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-										: "bg-white/[0.04] text-white/40 border border-white/[0.08]"
-								}`}>
+								<div
+									className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
+										preferences.two_factor_enabled
+											? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+											: "bg-white/[0.04] text-white/40 border border-white/[0.08]"
+									}`}
+								>
 									{preferences.two_factor_enabled ? "Enabled" : "Disabled"}
 								</div>
 							</div>
@@ -189,17 +223,24 @@ const Profile = () => {
 					<Card className="p-6" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
 						<h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
 						<div className="space-y-3 max-h-64 overflow-y-auto">
-							{activity.length > 0 ? activity.map((item) => (
-								<div key={item.id} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-									<div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
-										<ActivityIcon type={item.event_type} />
+							{activity.length > 0 ? (
+								activity.map((item) => (
+									<div
+										key={item.id}
+										className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]"
+									>
+										<div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
+											<ActivityIcon type={item.event_type} />
+										</div>
+										<div className="min-w-0">
+											<p className="text-sm text-white truncate">{item.title}</p>
+											<p className="text-xs text-white/40">
+												{formatDate(item.created_at)}
+											</p>
+										</div>
 									</div>
-									<div className="min-w-0">
-										<p className="text-sm text-white truncate">{item.title}</p>
-										<p className="text-xs text-white/40">{formatDate(item.created_at)}</p>
-									</div>
-								</div>
-							)) : (
+								))
+							) : (
 								<p className="text-center text-white/40 py-4">No recent activity</p>
 							)}
 						</div>
