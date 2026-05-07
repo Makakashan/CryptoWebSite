@@ -84,6 +84,7 @@ export const pl = {
 	myPortfolio: "Moje portfolio",
 	orderHistory: "Historia zamówień",
 	welcomeToMakakaTrade: "Witaj w MakakaTrade",
+	dashboardSubtitle: "Saldo na żywo, puls rynku i Twoje następne ruchy.",
 	loginToViewPortfolio: "Zaloguj się, aby zobaczyć portfolio i rozpocząć handel",
 	noAssetsAvailable: "Brak dostępnych aktywów",
 	topMovers: "Największe ruchy",

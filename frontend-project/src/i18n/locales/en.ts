@@ -84,6 +84,7 @@ export const en = {
 	myPortfolio: "My Portfolio",
 	orderHistory: "Order History",
 	welcomeToMakakaTrade: "Welcome to MakakaTrade",
+	dashboardSubtitle: "Live balance, market pulse, and your next trading moves.",
 	loginToViewPortfolio: "Login to view your portfolio and start trading",
 	noAssetsAvailable: "No assets available",
 	topMovers: "Top movers",
