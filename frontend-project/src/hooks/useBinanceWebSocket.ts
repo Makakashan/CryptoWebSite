@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId } from "react";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 
 interface UseBinanceWebSocketOptions {
@@ -7,16 +7,17 @@ interface UseBinanceWebSocketOptions {
 }
 
 export const useBinanceWebSocket = ({ symbols, enabled = true }: UseBinanceWebSocketOptions) => {
-	const sourceIdRef = useRef(`ws-${Math.random().toString(36).slice(2)}`);
+	const reactId = useId();
+	const sourceId = `ws-${reactId.replace(/:/g, "")}`;
 
 	useEffect(() => {
 		if (!enabled || symbols.length === 0) {
-			binanceWebSocketService.clearSymbols(sourceIdRef.current);
+			binanceWebSocketService.clearSymbols(sourceId);
 			return;
 		}
-		binanceWebSocketService.updateSymbols(symbols, sourceIdRef.current);
+		binanceWebSocketService.updateSymbols(symbols, sourceId);
 		return () => {
-			binanceWebSocketService.clearSymbols(sourceIdRef.current);
+			binanceWebSocketService.clearSymbols(sourceId);
 		};
-	}, [symbols, enabled]);
+	}, [symbols, enabled, sourceId]);
 };

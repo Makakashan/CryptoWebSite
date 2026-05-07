@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import { assetsApi } from "../../api/assetsApi";
+import { binanceWebSocketService } from "../../services/binanceWebSocket";
 import type {
 	AssetsFilters,
 	Asset,
@@ -133,7 +134,10 @@ const assetsSlice = createSlice({
 			})
 			.addCase(fetchAssets.fulfilled, (state, action) => {
 				state.isLoading = false;
-				state.assets = action.payload.data || [];
+				state.assets = (action.payload.data || []).map((asset) => {
+					const cachedPrice = binanceWebSocketService.getPrice(asset.symbol);
+					return cachedPrice !== undefined ? { ...asset, current_price: cachedPrice } : asset;
+				});
 				state.pagination = action.payload.pagination || null;
 			})
 			.addCase(fetchAssets.rejected, (state, action) => {

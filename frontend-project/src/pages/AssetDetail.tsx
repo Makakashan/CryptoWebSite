@@ -37,7 +37,9 @@ const AssetDetail = () => {
 	const { assets } = useSelector((state: RootState) => state.assets);
 	const { user } = useSelector((state: RootState) => state.auth);
 	const asset = assets.find((a) => a.symbol === symbol);
-	const initialPrice = asset?.current_price || asset?.price || 0;
+	const initialPrice = symbol
+		? (binanceWebSocketService.getPrice(symbol) ?? asset?.current_price ?? asset?.price ?? 0)
+		: asset?.current_price || asset?.price || 0;
 	const [price, setPrice] = useState(() => initialPrice);
 	const [flash, setFlash] = useState<PriceFlash>(null);
 	const [orderAmount, setOrderAmount] = useState("");

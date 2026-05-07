@@ -1,6 +1,8 @@
 type PriceCallback = () => void;
 type PriceListener = (symbol: string, price: number) => void;
 
+const PRICE_CACHE_KEY = "binance-price-cache";
+
 class BinanceWebSocketService {
 	private ws: WebSocket | null = null;
 	private prices: Map<string, number> = new Map();
@@ -9,6 +11,10 @@ class BinanceWebSocketService {
 	private symbolSources: Map<string, Set<string>> = new Map();
 	private allSymbols: Set<string> = new Set();
 	private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+	constructor() {
+		this.restoreCachedPrices();
+	}
 
 	connect() {
 		if (this.ws?.readyState === WebSocket.OPEN) return;
@@ -21,6 +27,7 @@ class BinanceWebSocketService {
 			if (data.s && data.c) {
 				const price = parseFloat(data.c);
 				this.prices.set(data.s, price);
+				this.persistCachedPrices();
 				this.priceListeners.forEach((cb) => cb(data.s, price));
 				this.subscribers.forEach((cb) => cb());
 			}
@@ -64,6 +71,35 @@ class BinanceWebSocketService {
 
 	getPrice(symbol: string): number | undefined {
 		return this.prices.get(symbol);
+	}
+
+	private restoreCachedPrices() {
+		if (typeof window === "undefined") return;
+
+		try {
+			const cachedPrices = window.localStorage.getItem(PRICE_CACHE_KEY);
+			if (!cachedPrices) return;
+
+			const parsed = JSON.parse(cachedPrices) as Record<string, number>;
+			Object.entries(parsed).forEach(([symbol, price]) => {
+				if (Number.isFinite(price)) {
+					this.prices.set(symbol, price);
+				}
+			});
+		} catch {
+			// Ignore cache parse/storage errors and continue with an empty cache.
+		}
+	}
+
+	private persistCachedPrices() {
+		if (typeof window === "undefined") return;
+
+		try {
+			const cachedPrices = Object.fromEntries(this.prices.entries());
+			window.localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(cachedPrices));
+		} catch {
+			// Ignore storage quota or serialization issues.
+		}
 	}
 
 	subscribe(callback: PriceCallback) {
