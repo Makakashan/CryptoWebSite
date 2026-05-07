@@ -1,40 +1,27 @@
-import Card from "../ui/card";
-import Skeleton from "../ui/skeleton";
+import Skeleton from "@/components/ui/skeleton";
 
-const AssetCardSkeleton = () => {
+export const AssetCardSkeleton = () => {
 	return (
-		<Card className="overflow-hidden p-5">
-			<div className="flex items-start justify-between gap-4 h-full">
-				{/* Left side - Info */}
-				<div className="flex flex-col justify-between min-w-0 flex-1">
-					{/* Asset header */}
-					<div className="flex items-center gap-3 mb-3">
-						<Skeleton className="w-10 h-10 rounded-full shrink-0" />
-						<div className="min-w-0 flex-1">
-							<Skeleton className="h-4 w-16 mb-2" />
-							<Skeleton className="h-3 w-20" />
-						</div>
-					</div>
-
-					{/* Price */}
-					<div className="mb-2">
-						<Skeleton className="h-6 w-24 mb-2" />
-						<Skeleton className="h-5 w-16 rounded-md" />
-					</div>
-
-					{/* Category badge */}
-					<div className="mt-auto">
-						<Skeleton className="h-6 w-20 rounded-md" />
+		<div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 backdrop-blur-xl">
+			<div className="flex items-start justify-between mb-4">
+				<div className="flex items-center gap-3">
+					<Skeleton className="h-10 w-10 rounded-full" />
+					<div>
+						<Skeleton className="h-4 w-24 mb-1.5" />
+						<Skeleton className="h-3 w-16" />
 					</div>
 				</div>
-
-				{/* Right side - Chart */}
-				<div className="w-32 h-24 shrink-0">
-					<Skeleton className="w-full h-full rounded-lg" />
+				<Skeleton className="h-4 w-16" />
+			</div>
+			<div className="flex items-end justify-between">
+				<div>
+					<Skeleton className="h-7 w-28 mb-2" />
+					<Skeleton className="h-3 w-20" />
+				</div>
+				<div className="w-24 h-8">
+					<Skeleton className="h-full w-full rounded-lg" />
 				</div>
 			</div>
-		</Card>
+		</div>
 	);
 };
-
-export default AssetCardSkeleton;

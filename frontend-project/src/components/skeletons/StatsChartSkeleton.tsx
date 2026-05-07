@@ -1,18 +1,13 @@
-import Skeleton from "../ui/skeleton";
+import Skeleton from "@/components/ui/skeleton";
 
-const StatsChartSkeleton = () => {
+export const StatsChartSkeleton = () => {
 	return (
-		<div className="card-padded stats-chart-card">
-			<div className="stats-chart-header">
-				<Skeleton className="h-4 w-40" />
-				<Skeleton className="h-6 w-20 rounded-full" />
+		<div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 backdrop-blur-xl">
+			<div className="flex items-center justify-between mb-6">
+				<Skeleton className="h-6 w-48" />
+				<Skeleton className="h-6 w-32" />
 			</div>
-			<Skeleton className="h-4 w-60 mb-4" />
-			<div className="h-75 w-full rounded-xl bg-bg-hover/40 relative overflow-hidden">
-				<Skeleton className="absolute inset-0" />
-			</div>
+			<Skeleton className="h-64 w-full rounded-lg" />
 		</div>
 	);
 };
-
-export default StatsChartSkeleton;

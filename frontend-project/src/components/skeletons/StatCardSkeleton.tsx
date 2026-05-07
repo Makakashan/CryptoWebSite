@@ -1,21 +1,13 @@
-import Card, { CardContent } from "../ui/card";
-import Skeleton from "../ui/skeleton";
+import Skeleton from "@/components/ui/skeleton";
 
-const StatCardSkeleton = () => {
+export const StatCardSkeleton = () => {
 	return (
-		<Card>
-			<CardContent className="p-6">
-				<div className="flex items-start justify-between">
-					<div className="flex-1">
-						<Skeleton className="h-4 w-24 mb-3" />
-						<Skeleton className="h-8 w-32 mb-2" />
-						<Skeleton className="h-3 w-20" />
-					</div>
-					<Skeleton className="w-12 h-12 rounded-lg" />
-				</div>
-			</CardContent>
-		</Card>
+		<div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 backdrop-blur-xl">
+			<div className="flex items-center gap-3 mb-3">
+				<Skeleton className="h-8 w-8 rounded-lg" />
+				<Skeleton className="h-4 w-24" />
+			</div>
+			<Skeleton className="h-8 w-32" />
+		</div>
 	);
 };
-
-export default StatCardSkeleton;

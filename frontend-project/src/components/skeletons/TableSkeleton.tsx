@@ -1,38 +1,34 @@
-import Card, { CardContent } from "../ui/card";
-import Skeleton from "../ui/skeleton";
+import Skeleton from "@/components/ui/skeleton";
 
 interface TableSkeletonProps {
 	rows?: number;
-	columns?: number;
 }
 
-const TableSkeleton = ({ rows = 5, columns = 4 }: TableSkeletonProps) => {
+export const TableSkeleton = ({ rows = 5 }: TableSkeletonProps) => {
 	return (
-		<Card>
-			<CardContent className="p-6">
-				{/* Table Header */}
-				<div className="flex items-center gap-4 mb-4 pb-4 border-b border-bg-hover">
-					{Array.from({ length: columns }).map((_, i) => (
-						<Skeleton key={`header-${i}`} className="h-4 flex-1" />
-					))}
-				</div>
-
-				{/* Table Rows */}
-				<div className="space-y-3">
-					{Array.from({ length: rows }).map((_, rowIndex) => (
-						<div key={`row-${rowIndex}`} className="flex items-center gap-4">
-							{Array.from({ length: columns }).map((_, colIndex) => (
-								<Skeleton
-									key={`cell-${rowIndex}-${colIndex}`}
-									className={`h-10 ${colIndex === 0 ? "w-16" : "flex-1"}`}
-								/>
+		<div className="overflow-x-auto">
+			<table className="w-full">
+				<thead>
+					<tr>
+						{Array.from({ length: 5 }).map((_, i) => (
+							<th key={i} className="text-left pb-4">
+								<Skeleton className="h-4 w-20" />
+							</th>
+						))}
+					</tr>
+				</thead>
+				<tbody>
+					{Array.from({ length: rows }).map((_, rowIdx) => (
+						<tr key={rowIdx}>
+							{Array.from({ length: 5 }).map((_, colIdx) => (
+								<td key={colIdx} className="py-3">
+									<Skeleton className="h-4 w-20" />
+								</td>
 							))}
-						</div>
+						</tr>
 					))}
-				</div>
-			</CardContent>
-		</Card>
+				</tbody>
+			</table>
+		</div>
 	);
 };
-
-export default TableSkeleton;
