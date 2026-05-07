@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "./store/hooks";
 import { fetchAssets } from "./store/slices/assetsSlice";
 import { fetchPortfolio } from "./store/slices/portfolioSlice";
 import { fetchOrders } from "./store/slices/ordersSlice";
@@ -18,15 +18,15 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 const AppInitializer = ({ children }: { children: React.ReactNode }) => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
 		const init = async () => {
-			await dispatch(fetchProfile() as any);
-			dispatch(fetchAssets({ limit: 50 }) as any);
-			dispatch(fetchPortfolio() as any);
-			dispatch(fetchOrders({ limit: 50 }) as any);
+			await dispatch(fetchProfile());
+			dispatch(fetchAssets({ limit: 50 }));
+			dispatch(fetchPortfolio());
+			dispatch(fetchOrders({ limit: 50 }));
 			setReady(true);
 		};
 		init();
