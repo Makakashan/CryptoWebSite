@@ -18,7 +18,7 @@ export const store = configureStore({
 				ignoredActions: ["auth/login/fulfilled", "auth/register/fulfilled"],
 			},
 		}),
-	devTools: process.env.NODE_ENV !== "production",
+	devTools: import.meta.env.DEV,
 });
 
 export type RootState = ReturnType<typeof store.getState>;
