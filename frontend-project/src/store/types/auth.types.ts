@@ -1,10 +1,10 @@
-// Auth Domain Types
-
 export interface User {
 	id: number;
 	username: string;
-	balance: number;
+	email?: string;
 	avatar?: string | null;
+	balance?: number;
+	role?: string;
 }
 
 export interface LoginRequest {
@@ -19,13 +19,6 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-	message: string;
-	user?: User;
-}
-
-export interface AuthState {
-	user: User | null;
-	isAuthenticated: boolean;
-	isLoading: boolean;
-	error: string | null;
+	user: User;
+	token?: string;
 }

@@ -1,66 +1,48 @@
-// Assets Domain Types
-
-import type { PaginationInfo } from "./common.types";
-
 export interface Asset {
 	symbol: string;
 	name: string;
-	image_url: string | null;
-	category: string;
-	description: string | null;
-	is_active: boolean;
-	current_price?: number;
 	price?: number;
+	current_price?: number;
 	price_change_24h?: number;
-}
-
-export interface AssetsFilters {
-	page?: number;
-	limit?: number;
-	sortBy?: string;
-	sortOrder?: "asc" | "desc";
-	search?: string;
+	image_url: string | null;
 	category?: string;
-	isActive?: boolean;
-	minPrice?: number;
-	maxPrice?: number;
+	description?: string | null;
+	is_active?: boolean;
+	updated_at?: string;
 }
 
 export interface CreateAssetDto {
 	symbol: string;
 	name: string;
-	image_url?: string | null;
+	image_url?: string;
 	category?: string;
 	description?: string | null;
 	is_active?: boolean;
 }
 
-export interface UpdateAssetDto {
-	name?: string;
-	image_url?: string | null;
+export type UpdateAssetDto = Partial<CreateAssetDto>;
+
+export interface AssetsFilters {
+	search?: string;
 	category?: string;
-	description?: string | null;
-	is_active?: boolean;
+	sortBy?: string;
+	sortOrder?: "asc" | "desc";
+	page?: number;
+	limit?: number;
 }
 
-export interface AssetsState {
-	assets: Asset[];
-	isLoading: boolean;
-	error: string | null;
-	filters: AssetsFilters;
-	pagination: PaginationInfo | null;
-	chartData: Record<string, number[]>;
+export interface PaginationInfo {
+	page: number;
+	limit: number;
+	total: number;
+	totalPages: number;
 }
 
 export interface AssetsResponse {
 	data: Asset[];
 	pagination?: PaginationInfo;
-	sortBy?: string;
-	sortOrder?: string;
 }
 
 export interface ChartDataResponse {
 	data: Record<string, number[]>;
-	interval: string;
-	limit: number;
 }

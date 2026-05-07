@@ -1,7 +1,3 @@
-// Orders Domain Types
-
-import type { PaginationInfo } from "./common.types";
-
 export interface Order {
 	id: number;
 	user_id: number;
@@ -24,27 +20,20 @@ export interface OrdersFilters {
 	order_type?: "BUY" | "SELL";
 	dateFrom?: string;
 	dateTo?: string;
-	minAmount?: number;
-	maxAmount?: number;
 	sortBy?: string;
 	sortOrder?: "asc" | "desc";
 	page?: number;
 	limit?: number;
 }
 
-export interface OrdersState {
-	orders: Order[];
-	isLoading: boolean;
-	error: string | null;
-	filters: OrdersFilters;
-	pagination: PaginationInfo | null;
-}
-
 export interface OrdersResponse {
 	data: Order[];
 	pagination?: PaginationInfo;
-	sorting?: {
-		sortBy: string;
-		sortOrder: string;
-	};
+}
+
+export interface PaginationInfo {
+	page: number;
+	limit: number;
+	total: number;
+	totalPages: number;
 }
