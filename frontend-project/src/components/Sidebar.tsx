@@ -1,13 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import {
-	LayoutDashboard,
-	TrendingUp,
-	PieChart,
-	ListOrdered,
-	UserCircle,
-} from "lucide-react";
+import { LayoutDashboard, TrendingUp, PieChart, ListOrdered, UserCircle } from "lucide-react";
 import type { RootState } from "../store/store";
 
 const navItems = [
@@ -25,7 +19,7 @@ const Sidebar = () => {
 	return (
 		<aside className="fixed left-0 top-0 h-screen w-60 bg-[#0a0a0a] border-r border-white/[0.06] z-50 flex flex-col">
 			<div className="flex items-center gap-3 px-6 py-6 border-b border-white/[0.06]">
-				<div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center shadow-lg shadow-[#f23f5d]/20">
+				<div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shadow-lg shadow-white/10">
 					<TrendingUp className="w-4 h-4 text-white" />
 				</div>
 				<div>
@@ -46,7 +40,7 @@ const Sidebar = () => {
 							className={({ isActive: navActive }) =>
 								`relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
 									navActive
-										? "text-[#f23f5d]"
+										? "text-white"
 										: "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
 								}`
 							}
@@ -54,8 +48,8 @@ const Sidebar = () => {
 							{isActive && (
 								<motion.div
 									layoutId="sidebar-active"
-									className="absolute inset-0 rounded-xl bg-[#f23f5d]/10 border border-[#f23f5d]/20"
-									style={{ boxShadow: "0 0 20px rgba(242, 63, 93, 0.15)" }}
+									className="absolute inset-0 rounded-xl bg-white/10 border border-white/20"
+									style={{ boxShadow: "0 0 20px rgba(255, 255, 255, 0.1)" }}
 									transition={{ type: "spring", stiffness: 300, damping: 30 }}
 								/>
 							)}
@@ -68,7 +62,7 @@ const Sidebar = () => {
 
 			<div className="px-4 py-4 border-t border-white/[0.06]">
 				<div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-					<div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center text-white text-xs font-bold">
+					<div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-bold">
 						{user?.username?.slice(0, 2).toUpperCase() || "U"}
 					</div>
 					<div className="overflow-hidden">

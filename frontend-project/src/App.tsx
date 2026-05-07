@@ -41,7 +41,7 @@ const AppInitializer = ({ children }: { children: React.ReactNode }) => {
 		return (
 			<div className="min-h-screen bg-[#030303] flex items-center justify-center">
 				<div className="flex flex-col items-center gap-4">
-					<div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center animate-pulse shadow-lg shadow-[#f23f5d]/20">
+					<div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center animate-pulse shadow-lg shadow-white/10">
 						<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
 					</div>
 					<p className="text-white/40 text-sm">Loading MakakaTrade...</p>

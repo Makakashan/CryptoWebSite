@@ -8,7 +8,7 @@ import type { RootState } from "../store/store";
 import { login } from "../store/slices/authSlice";
 import Input from "@/components/ui/input";
 import Label from "@/components/ui/label";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
 	const dispatch = useAppDispatch();
@@ -32,8 +32,8 @@ const Login = () => {
 		<div className="min-h-screen bg-[#030303] flex items-center justify-center p-4">
 			{/* Background glow */}
 			<div className="fixed inset-0 overflow-hidden pointer-events-none">
-				<div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#f23f5d]/5 rounded-full blur-3xl" />
-				<div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#f23f5d]/5 rounded-full blur-3xl" />
+				<div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+				<div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 			</div>
 
 			<motion.div
@@ -46,11 +46,11 @@ const Login = () => {
 					className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-8"
 					style={{
 						boxShadow:
-							"0 0 40px rgba(242, 63, 93, 0.06), inset 0 1px 0 rgba(255,255,255,0.1)",
+							"0 0 40px rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255,255,255,0.1)",
 					}}
 				>
 					<div className="flex flex-col items-center mb-8">
-						<div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center shadow-lg shadow-[#f23f5d]/20 mb-4">
+						<div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shadow-lg shadow-white/10 mb-4">
 							<TrendingUp className="w-7 h-7 text-white" />
 						</div>
 						<h1 className="text-2xl font-bold text-white">Welcome Back</h1>
@@ -106,7 +106,7 @@ const Login = () => {
 							Don't have an account?{" "}
 							<Link
 								to="/register"
-								className="text-[#f23f5d] hover:text-[#b81a3c] transition-colors font-medium"
+								className="text-white hover:text-white/80 transition-colors font-medium"
 							>
 								Register
 							</Link>

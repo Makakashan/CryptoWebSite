@@ -10,7 +10,7 @@ import { createAsset, updateAsset, deleteAsset } from "../store/slices/assetsSli
 import Input from "@/components/ui/input";
 import Label from "@/components/ui/label";
 import Select from "@/components/ui/select";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import Card from "@/components/ui/card";
 
 type AssetCategory = "crypto" | "stock" | "forex" | "commodity";
@@ -133,7 +133,7 @@ const AssetForm = () => {
 							onChange={(e) => updateFormData({ description: e.target.value })}
 							placeholder="Asset description..."
 							rows={4}
-							className="flex w-full rounded-xl border border-white/[0.10] bg-white/[0.03] px-4 py-2 text-sm text-white shadow-sm transition-all duration-200 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#f23f5d]/30 focus:border-[#f23f5d]/50 resize-none"
+							className="flex w-full rounded-xl border border-white/[0.10] bg-white/[0.03] px-4 py-2 text-sm text-white shadow-sm transition-all duration-200 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/50 resize-none"
 						/>
 					</div>
 					<div className="flex items-center gap-3">
@@ -141,7 +141,7 @@ const AssetForm = () => {
 							type="checkbox"
 							checked={formData.is_active}
 							onChange={(e) => updateFormData({ is_active: e.target.checked })}
-							className="w-4 h-4 rounded accent-[#f23f5d]"
+							className="w-4 h-4 rounded accent-white"
 						/>
 						<Label className="text-sm text-white/60">Active</Label>
 					</div>

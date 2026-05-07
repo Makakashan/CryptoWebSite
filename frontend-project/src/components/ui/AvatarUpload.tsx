@@ -15,7 +15,12 @@ const sizeClasses = {
 	lg: "w-32 h-32",
 };
 
-export const AvatarUpload = ({ currentAvatar, username, onAvatarChange, size = "md" }: AvatarUploadProps) => {
+export const AvatarUpload = ({
+	currentAvatar,
+	username,
+	onAvatarChange,
+	size = "md",
+}: AvatarUploadProps) => {
 	const [isDragging, setIsDragging] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,15 +60,24 @@ export const AvatarUpload = ({ currentAvatar, username, onAvatarChange, size = "
 			className={cn(
 				sizeClasses[size],
 				"relative rounded-full border-2 border-dashed border-white/20 cursor-pointer transition-all duration-200 overflow-hidden group",
-				isDragging && "border-[#f23f5d]/60 bg-[#f23f5d]/10",
+				isDragging && "border-white/60 bg-white/10",
 				!currentAvatar && "bg-white/[0.04]",
 			)}
 			onClick={() => inputRef.current?.click()}
-			onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+			onDragOver={(e) => {
+				e.preventDefault();
+				setIsDragging(true);
+			}}
 			onDragLeave={() => setIsDragging(false)}
 			onDrop={handleDrop}
 		>
-			<input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
+			<input
+				ref={inputRef}
+				type="file"
+				accept="image/*"
+				className="hidden"
+				onChange={handleChange}
+			/>
 			{currentAvatar ? (
 				<img src={currentAvatar} alt={username} className="w-full h-full object-cover" />
 			) : (

@@ -12,7 +12,16 @@ import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
 import Card from "@/components/ui/card";
 
-const COLORS = ["#f23f5d", "#4ade80", "#a78bfa", "#fbbf24", "#60a5fa", "#f472b6", "#34d399", "#fb923c"];
+const COLORS = [
+	"#ffffff",
+	"#d4d4d8",
+	"#a1a1aa",
+	"#71717a",
+	"#52525b",
+	"#e5e7eb",
+	"#f4f4f5",
+	"#9ca3af",
+];
 
 const generatePnLHistory = () => {
 	const data = [];
@@ -35,7 +44,10 @@ const Portfolio = () => {
 		dispatch(fetchAssets({ limit: 100 }));
 	}, [dispatch]);
 
-	const portfolioSymbols = useMemo(() => portfolio?.assets?.map((a) => a.asset_symbol) || [], [portfolio]);
+	const portfolioSymbols = useMemo(
+		() => portfolio?.assets?.map((a) => a.asset_symbol) || [],
+		[portfolio],
+	);
 	useBinanceWebSocket({ symbols: portfolioSymbols, enabled: portfolioSymbols.length > 0 });
 
 	const portfolioAssets = useMemo(() => {
@@ -64,10 +76,30 @@ const Portfolio = () => {
 		}));
 
 	const stats = [
-		{ label: "Total Balance", value: `$${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, icon: DollarSign, color: "from-[#f23f5d] to-[#b81a3c]" },
-		{ label: "Assets Value", value: `$${assetsTotalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, icon: Layers, color: "from-violet-500 to-violet-700" },
-		{ label: "Grand Total", value: `$${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "from-emerald-500 to-emerald-700" },
-		{ label: "Holdings", value: `${portfolioAssets.length}`, icon: PieChart, color: "from-amber-500 to-amber-700" },
+		{
+			label: "Total Balance",
+			value: `$${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+			icon: DollarSign,
+			color: "from-white/10 to-white/30",
+		},
+		{
+			label: "Assets Value",
+			value: `$${assetsTotalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+			icon: Layers,
+			color: "from-white/8 to-white/20",
+		},
+		{
+			label: "Grand Total",
+			value: `$${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+			icon: TrendingUp,
+			color: "from-white/6 to-white/18",
+		},
+		{
+			label: "Holdings",
+			value: `${portfolioAssets.length}`,
+			icon: PieChart,
+			color: "from-white/12 to-white/24",
+		},
 	];
 
 	return (
@@ -82,9 +114,14 @@ const Portfolio = () => {
 						animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
 						transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
 					>
-						<Card className="p-5" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+						<Card
+							className="p-5"
+							style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}
+						>
 							<div className="flex items-center gap-3 mb-3">
-								<div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
+								<div
+									className={`w-9 h-9 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}
+								>
 									<stat.icon className="w-4 h-4 text-white" />
 								</div>
 								<span className="text-xs font-medium text-white/50">{stat.label}</span>
@@ -110,9 +147,16 @@ const Portfolio = () => {
 									paddingAngle={4}
 									dataKey="value"
 								>
-									{(pieData.length > 0 ? pieData : [{ name: "No Data", value: 1 }]).map((_, index) => (
-										<Cell key={`cell-${index}`} fill={pieData.length > 0 ? COLORS[index % COLORS.length] : "#333"} />
-									))}
+									{(pieData.length > 0 ? pieData : [{ name: "No Data", value: 1 }]).map(
+										(_, index) => (
+											<Cell
+												key={`cell-${index}`}
+												fill={
+													pieData.length > 0 ? COLORS[index % COLORS.length] : "#555"
+												}
+											/>
+										),
+									)}
 								</Pie>
 								<Tooltip
 									contentStyle={{
@@ -131,7 +175,10 @@ const Portfolio = () => {
 						<div className="flex flex-wrap gap-3 mt-4 justify-center">
 							{pieData.map((entry, index) => (
 								<div key={entry.name} className="flex items-center gap-1.5">
-									<div className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[index % COLORS.length] }} />
+									<div
+										className="w-2.5 h-2.5 rounded-full"
+										style={{ background: COLORS[index % COLORS.length] }}
+									/>
 									<span className="text-xs text-white/60">{entry.name}</span>
 								</div>
 							))}
@@ -146,8 +193,8 @@ const Portfolio = () => {
 							<AreaChart data={pnlHistory}>
 								<defs>
 									<linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
-										<stop offset="0%" stopColor="#4ade80" stopOpacity={0.4} />
-										<stop offset="100%" stopColor="#4ade80" stopOpacity={0} />
+										<stop offset="0%" stopColor="#ffffff" stopOpacity={0.4} />
+										<stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
 									</linearGradient>
 								</defs>
 								<Tooltip
@@ -160,7 +207,14 @@ const Portfolio = () => {
 									}}
 									formatter={(value: number) => [`$${value.toFixed(2)}`, "PnL"]}
 								/>
-								<Area type="monotone" dataKey="pnl" stroke="#4ade80" strokeWidth={2} fill="url(#pnlGrad)" dot={false} />
+								<Area
+									type="monotone"
+									dataKey="pnl"
+									stroke="#ffffff"
+									strokeWidth={2}
+									fill="url(#pnlGrad)"
+									dot={false}
+								/>
 							</AreaChart>
 						</ResponsiveContainer>
 					</div>
@@ -174,42 +228,63 @@ const Portfolio = () => {
 					<table className="w-full">
 						<thead>
 							<tr className="border-b border-white/[0.06]">
-								<th className="text-left text-xs font-medium text-white/40 pb-3 pr-4">Asset</th>
-								<th className="text-right text-xs font-medium text-white/40 pb-3 pr-4">Amount</th>
-								<th className="text-right text-xs font-medium text-white/40 pb-3 pr-4">Price</th>
+								<th className="text-left text-xs font-medium text-white/40 pb-3 pr-4">
+									Asset
+								</th>
+								<th className="text-right text-xs font-medium text-white/40 pb-3 pr-4">
+									Amount
+								</th>
+								<th className="text-right text-xs font-medium text-white/40 pb-3 pr-4">
+									Price
+								</th>
 								<th className="text-right text-xs font-medium text-white/40 pb-3">Value</th>
 							</tr>
 						</thead>
 						<tbody>
 							{portfolioAssets.map((pa) => (
-								<tr key={pa.symbol} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+								<tr
+									key={pa.symbol}
+									className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors"
+								>
 									<td className="py-3 pr-4">
 										<div className="flex items-center gap-3">
 											{pa.image_url ? (
-												<img src={pa.image_url} alt={pa.symbol} className="w-8 h-8 rounded-full" />
+												<img
+													src={pa.image_url}
+													alt={pa.symbol}
+													className="w-8 h-8 rounded-full"
+												/>
 											) : (
-												<div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center text-white text-[10px] font-bold">
+												<div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-[10px] font-bold">
 													{pa.symbol.slice(0, 2)}
 												</div>
 											)}
 											<span className="text-sm font-medium text-white">{pa.symbol}</span>
 										</div>
 									</td>
-									<td className="text-right text-sm text-white/60 py-3 pr-4">{pa.amount.toLocaleString()}</td>
-									<td className="text-right text-sm text-white/60 py-3 pr-4">{formatPrice(pa.price)}</td>
-									<td className="text-right text-sm font-semibold text-white py-3">{formatPrice(pa.amount * pa.price)}</td>
+									<td className="text-right text-sm text-white/60 py-3 pr-4">
+										{pa.amount.toLocaleString()}
+									</td>
+									<td className="text-right text-sm text-white/60 py-3 pr-4">
+										{formatPrice(pa.price)}
+									</td>
+									<td className="text-right text-sm font-semibold text-white py-3">
+										{formatPrice(pa.amount * pa.price)}
+									</td>
 								</tr>
 							))}
-								{portfolioAssets.length === 0 && (
-									<tr>
-										<td colSpan={4} className="text-center text-white/40 py-8">No holdings yet</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
-					</div>
-				</Card>
-			</div>
+							{portfolioAssets.length === 0 && (
+								<tr>
+									<td colSpan={4} className="text-center text-white/40 py-8">
+										No holdings yet
+									</td>
+								</tr>
+							)}
+						</tbody>
+					</table>
+				</div>
+			</Card>
+		</div>
 	);
 };
 

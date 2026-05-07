@@ -13,7 +13,7 @@ import type {
 } from "../store/types/profile.types";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import Card from "@/components/ui/card";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import Select from "@/components/ui/select";
 
 const ActivityIcon = ({ type }: { type: string }) => {
@@ -182,7 +182,7 @@ const Profile = () => {
 										})
 									}
 									className={`w-11 h-6 rounded-full transition-colors duration-200 relative ${
-										preferences.notifications_enabled ? "bg-[#f23f5d]" : "bg-white/[0.1]"
+										preferences.notifications_enabled ? "bg-white" : "bg-white/[0.1]"
 									}`}
 								>
 									<div

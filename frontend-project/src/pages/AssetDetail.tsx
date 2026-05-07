@@ -12,7 +12,7 @@ import { placeOrder } from "../store/slices/ordersSlice";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
 import Card from "@/components/ui/card";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
 
 type ChartPoint = {
@@ -106,7 +106,7 @@ const AssetDetail = () => {
 							className="w-12 h-12 rounded-full"
 						/>
 					) : (
-						<div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center text-white font-bold text-lg">
+						<div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-lg">
 							{asset.symbol.slice(0, 2)}
 						</div>
 					)}
@@ -158,8 +158,8 @@ const AssetDetail = () => {
 								<AreaChart data={chartData}>
 									<defs>
 										<linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-											<stop offset="0%" stopColor="#f23f5d" stopOpacity={0.4} />
-											<stop offset="100%" stopColor="#f23f5d" stopOpacity={0} />
+											<stop offset="0%" stopColor="#ffffff" stopOpacity={0.4} />
+											<stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
 										</linearGradient>
 									</defs>
 									<XAxis dataKey="time" hide />
@@ -177,7 +177,7 @@ const AssetDetail = () => {
 									<Area
 										type="monotone"
 										dataKey="price"
-										stroke="#f23f5d"
+										stroke="#ffffff"
 										strokeWidth={2}
 										fill="url(#chartGrad)"
 										dot={false}

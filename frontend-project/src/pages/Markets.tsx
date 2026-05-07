@@ -79,7 +79,7 @@ const AssetCard = ({ asset, onClick }: { asset: Asset; onClick: () => void }) =>
 								className="w-10 h-10 rounded-full"
 							/>
 						) : (
-							<div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center text-white text-xs font-bold">
+							<div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-bold">
 								{asset.symbol.slice(0, 2)}
 							</div>
 						)}
