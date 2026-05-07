@@ -1,48 +1,22 @@
-import { useEffect, useRef, useId } from "react";
-import { useAppDispatch } from "../store/hooks";
+import { useEffect, useRef } from "react";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
-import { updateAssetPrice } from "../store/slices/assetsSlice";
-import type { UseBinanceWebSocketProps } from "../store/types";
 
-export const useBinanceWebSocket = ({ symbols, enabled = true }: UseBinanceWebSocketProps) => {
-	const dispatch = useAppDispatch();
-	const prevSymbolsRef = useRef<string>("");
-	const sourceId = `binance-ws-${useId()}`;
-	const symbolsKey = [...symbols].sort().join(",");
+interface UseBinanceWebSocketOptions {
+	symbols: string[];
+	enabled?: boolean;
+}
+
+export const useBinanceWebSocket = ({ symbols, enabled = true }: UseBinanceWebSocketOptions) => {
+	const sourceIdRef = useRef(`ws-${Math.random().toString(36).slice(2)}`);
 
 	useEffect(() => {
-		if (!enabled || symbolsKey.length === 0) {
-			binanceWebSocketService.clearSymbols(sourceId);
+		if (!enabled || symbols.length === 0) {
+			binanceWebSocketService.clearSymbols(sourceIdRef.current);
 			return;
 		}
-		const normalizedSymbols = symbolsKey.split(",");
-
-		// Only update WebSocket if symbols actually changed
-		if (prevSymbolsRef.current === symbolsKey) {
-			return;
-		}
-
-		prevSymbolsRef.current = symbolsKey;
-
-		// Subscribe to price updates
-		const handlePriceUpdate = (symbol: string, price: number) => {
-			dispatch(updateAssetPrice({ symbol, price }));
-		};
-
-		binanceWebSocketService.subscribe(handlePriceUpdate);
-
-		// Connect to WebSocket with current symbols
-		binanceWebSocketService.updateSymbols(normalizedSymbols, sourceId);
-
+		binanceWebSocketService.updateSymbols(symbols, sourceIdRef.current);
 		return () => {
-			binanceWebSocketService.unsubscribe(handlePriceUpdate);
-			binanceWebSocketService.clearSymbols(sourceId);
+			binanceWebSocketService.clearSymbols(sourceIdRef.current);
 		};
-	}, [symbolsKey, enabled, dispatch, sourceId]);
-
-	return {
-		disconnect: () => binanceWebSocketService.disconnect(),
-		getPrice: (symbol: string) => binanceWebSocketService.getPrice(symbol),
-		getAllPrices: () => binanceWebSocketService.getAllPrices(),
-	};
+	}, [symbols, enabled]);
 };
