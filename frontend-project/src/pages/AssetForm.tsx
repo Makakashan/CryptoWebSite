@@ -1,268 +1,152 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { createAsset, updateAsset, fetchAssets } from "../store/slices/assetsSlice";
-import type { CreateAssetDto } from "../store/types";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { Save, ArrowLeft, Trash2 } from "lucide-react";
+import type { RootState } from "../store/store";
+import type { Asset } from "../store/types";
+import { createAsset, updateAsset, deleteAsset } from "../store/slices/assetsSlice";
+import Input from "@/components/ui/input";
+import Label from "@/components/ui/label";
+import Select from "@/components/ui/select";
+import Button from "@/components/ui/button";
+import Card from "@/components/ui/card";
 
 const AssetForm = () => {
-	const { t } = useTranslation();
-	const { symbol } = useParams<{ symbol?: string }>();
+	const { symbol } = useParams<{ symbol: string }>();
 	const navigate = useNavigate();
-	const dispatch = useAppDispatch();
-	const [successMessage, setSuccessMessage] = useState("");
+	const dispatch = useDispatch();
+	const { assets, isLoading } = useSelector((state: RootState) => state.assets);
 
-	const { assets, isLoading, error } = useAppSelector((state) => state.assets);
-	const { isAuthenticated } = useAppSelector((state) => state.auth);
+	const existingAsset = symbol ? assets.find((a: Asset) => a.symbol === symbol) : null;
+	const isEditing = !!existingAsset;
 
-	const isEditMode = !!symbol;
-	const existingAsset = assets.find((a) => a.symbol === symbol);
+	const [formData, setFormData] = useState({
+		symbol: "",
+		name: "",
+		image_url: "",
+		category: "crypto",
+		description: "",
+		is_active: true,
+	});
 
 	useEffect(() => {
-		if (!isAuthenticated) {
-			navigate("/login");
-			return;
+		if (existingAsset) {
+			setFormData({
+				symbol: existingAsset.symbol,
+				name: existingAsset.name,
+				image_url: existingAsset.image_url || "",
+				category: existingAsset.category || "crypto",
+				description: existingAsset.description || "",
+				is_active: existingAsset.is_active !== false,
+			});
 		}
+	}, [existingAsset]);
 
-		if (assets.length === 0) {
-			dispatch(fetchAssets());
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (isEditing) {
+			dispatch(updateAsset({ symbol: symbol!, data: formData }) as any);
+		} else {
+			dispatch(createAsset(formData) as any);
 		}
-	}, [isAuthenticated, navigate, dispatch, assets.length]);
+		navigate("/markets");
+	};
 
-	const assetValidationSchema = Yup.object({
-		symbol: Yup.string()
-			.required(t("symbolRequired"))
-			.matches(/^[A-Z]+USDT$/, t("symbolFormat"))
-			.max(20, "Symbol must be less than 20 characters"),
-		name: Yup.string()
-			.required(t("nameRequired"))
-			.max(100, "Name must be less than 100 characters"),
-		image_url: Yup.string().url("Must be a valid URL").nullable().notRequired(),
-		category: Yup.string().max(50, "Category must be less than 50 characters"),
-		description: Yup.string()
-			.max(1000, "Description must be less than 1000 characters")
-			.nullable()
-			.notRequired(),
-		is_active: Yup.boolean(),
-	});
-
-	const formik = useFormik<CreateAssetDto>({
-		initialValues: {
-			symbol: existingAsset?.symbol || "",
-			name: existingAsset?.name || "",
-			image_url: existingAsset?.image_url || "",
-			category: existingAsset?.category || "other",
-			description: existingAsset?.description || "",
-			is_active: existingAsset?.is_active ?? true,
-		},
-		validationSchema: assetValidationSchema,
-		enableReinitialize: true,
-		onSubmit: async (values) => {
-			try {
-				if (isEditMode && symbol) {
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					const { symbol: _, ...updateData } = values;
-					const result = await dispatch(updateAsset({ symbol, data: updateData }));
-
-					if (result.meta.requestStatus === "fulfilled") {
-						setSuccessMessage(t("assetUpdatedSuccessfully"));
-						setTimeout(() => {
-							navigate(`/markets/${symbol}`);
-						}, 1500);
-					}
-				} else {
-					const result = await dispatch(createAsset(values));
-
-					if (result.meta.requestStatus === "fulfilled") {
-						setSuccessMessage(t("assetCreatedSuccessfully"));
-						setTimeout(() => {
-							navigate("/markets");
-						}, 1500);
-					}
-				}
-			} catch (err) {
-				console.error("Error saving asset:", err);
-			}
-		},
-	});
-
-	const categories = [
-		"Layer 1",
-		"DeFi",
-		"Smart Contract Platform",
-		"Exchange Token",
-		"Meme",
-		"Gaming",
-		"other",
-	];
+	const handleDelete = () => {
+		if (!symbol) return;
+		if (window.confirm("Are you sure you want to delete this asset?")) {
+			dispatch(deleteAsset(symbol) as any);
+			navigate("/markets");
+		}
+	};
 
 	return (
-		<div>
-			<button className="btn-secondary btn-small mb-6" onClick={() => navigate("/markets")}>
-				← {t("back")}
-			</button>
-
-			<div className="max-w-2xl mx-auto card p-8">
-				<h1 className="text-2xl font-bold text-text-primary mb-6">
-					{isEditMode ? t("editAsset") : t("addNewAsset")}
+		<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="max-w-2xl mx-auto">
+			<div className="flex items-center gap-4 mb-6">
+				<button onClick={() => navigate(-1)} className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all text-white/60 hover:text-white">
+					<ArrowLeft className="w-5 h-5" />
+				</button>
+				<h1 className="text-2xl font-bold text-white">
+					{isEditing ? `Edit ${symbol}` : "Create New Asset"}
 				</h1>
+			</div>
 
-				{successMessage && <div className="alert-success">{successMessage}</div>}
-
-				{error && <div className="alert-error">{error}</div>}
-
-				<form onSubmit={formik.handleSubmit}>
-					<div className="mb-6">
-						<label
-							htmlFor="symbol"
-							className="block mb-2 text-text-primary font-semibold text-sm"
-						>
-							{t("assetSymbol")} <span className="text-red">*</span>
-						</label>
-						<input
-							id="symbol"
-							name="symbol"
-							type="text"
-							placeholder="e.g., BTCUSDT"
-							value={formik.values.symbol}
-							onChange={formik.handleChange}
-							onBlur={formik.handleBlur}
-							disabled={isEditMode}
-							className="input-disabled"
+			<Card className="p-6" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+				<form onSubmit={handleSubmit} className="space-y-5">
+					<div>
+						<Label className="mb-2 block">Symbol *</Label>
+						<Input
+							value={formData.symbol}
+							onChange={(e) => setFormData({ ...formData, symbol: e.target.value.toUpperCase() })}
+							placeholder="e.g. BTCUSDT"
+							required
+							disabled={isEditing}
 						/>
-						{formik.touched.symbol && formik.errors.symbol && (
-							<div className="text-red text-xs mt-1">{formik.errors.symbol}</div>
-						)}
 					</div>
-
-					<div className="mb-6">
-						<label
-							htmlFor="name"
-							className="block mb-2 text-text-primary font-semibold text-sm"
-						>
-							{t("assetName")} <span className="text-red">*</span>
-						</label>
-						<input
-							id="name"
-							name="name"
-							type="text"
-							placeholder="e.g., Bitcoin"
-							value={formik.values.name}
-							onChange={formik.handleChange}
-							onBlur={formik.handleBlur}
-							className="input"
+					<div>
+						<Label className="mb-2 block">Name *</Label>
+						<Input
+							value={formData.name}
+							onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+							placeholder="e.g. Bitcoin"
+							required
 						/>
-						{formik.touched.symbol && formik.errors.symbol && (
-							<div className="form-error">{formik.errors.symbol}</div>
-						)}
 					</div>
-
-					<div className="mb-6">
-						<label
-							htmlFor="category"
-							className="block mb-2 text-text-primary font-semibold text-sm"
-						>
-							{t("category")}
-						</label>
-						<select
-							id="category"
-							name="category"
-							value={formik.values.category}
-							onChange={formik.handleChange}
-							onBlur={formik.handleBlur}
-							className="select"
-						>
-							{categories.map((cat) => (
-								<option key={cat} value={cat}>
-									{cat}
-								</option>
-							))}
-						</select>
-						{formik.touched.category && formik.errors.category && (
-							<div className="text-red text-xs mt-1">{formik.errors.category}</div>
-						)}
-					</div>
-
-					<div className="mb-6">
-						<label
-							htmlFor="image_url"
-							className="block mb-2 text-text-primary font-semibold text-sm"
-						>
-							{t("imageUrl")}
-						</label>
-						<input
-							id="image_url"
-							name="image_url"
-							type="text"
-							placeholder="https://example.com/image.png"
-							value={formik.values.image_url || ""}
-							onChange={formik.handleChange}
-							onBlur={formik.handleBlur}
-							className="input"
+					<div>
+						<Label className="mb-2 block">Image URL</Label>
+						<Input
+							value={formData.image_url}
+							onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+							placeholder="https://..."
 						/>
-						{formik.touched.image_url && formik.errors.image_url && (
-							<div className="text-red text-xs mt-1">{formik.errors.image_url}</div>
-						)}
 					</div>
-
-					<div className="mb-6">
-						<label
-							htmlFor="description"
-							className="block mb-2 text-text-primary font-semibold text-sm"
+					<div>
+						<Label className="mb-2 block">Category</Label>
+						<Select
+							value={formData.category}
+							onChange={(e) => setFormData({ ...formData, category: e.target.value })}
 						>
-							{t("description")}
-						</label>
+							<option value="crypto">Crypto</option>
+							<option value="stock">Stock</option>
+							<option value="forex">Forex</option>
+							<option value="commodity">Commodity</option>
+						</Select>
+					</div>
+					<div>
+						<Label className="mb-2 block">Description</Label>
 						<textarea
-							id="description"
-							name="description"
+							value={formData.description}
+							onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+							placeholder="Asset description..."
 							rows={4}
-							placeholder={t("description")}
-							value={formik.values.description || ""}
-							onChange={formik.handleChange}
-							onBlur={formik.handleBlur}
-							className="textarea"
+							className="flex w-full rounded-xl border border-white/[0.10] bg-white/[0.03] px-4 py-2 text-sm text-white shadow-sm transition-all duration-200 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#f23f5d]/30 focus:border-[#f23f5d]/50 resize-none"
 						/>
-						{formik.touched.description && formik.errors.description && (
-							<div className="text-red text-xs mt-1">{formik.errors.description}</div>
+					</div>
+					<div className="flex items-center gap-3">
+						<input
+							type="checkbox"
+							checked={formData.is_active}
+							onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+							className="w-4 h-4 rounded accent-[#f23f5d]"
+						/>
+						<Label className="text-sm text-white/60">Active</Label>
+					</div>
+					<div className="flex gap-3 pt-2">
+						<Button type="submit" className="flex-1" disabled={isLoading}>
+							<Save className="w-4 h-4 mr-2" />
+							{isEditing ? "Update" : "Create"}
+						</Button>
+						{isEditing && (
+							<Button type="button" variant="destructive" onClick={handleDelete}>
+								<Trash2 className="w-4 h-4 mr-2" />
+								Delete
+							</Button>
 						)}
-					</div>
-
-					<div className="mb-6">
-						<label className="flex items-center gap-3 cursor-pointer">
-							<input
-								id="is_active"
-								name="is_active"
-								type="checkbox"
-								checked={formik.values.is_active}
-								onChange={formik.handleChange}
-								className="checkbox"
-							/>
-							<span className="text-text-primary font-medium text-sm">{t("isActive")}</span>
-						</label>
-					</div>
-
-					<div className="flex gap-3 justify-end">
-						<button
-							type="button"
-							className="btn-outline"
-							onClick={() => navigate("/markets")}
-							disabled={isLoading}
-						>
-							{t("cancel")}
-						</button>
-						<button
-							type="submit"
-							className="btn-primary"
-							disabled={isLoading || !formik.isValid || !formik.dirty}
-						>
-							{isLoading ? t("loading") : isEditMode ? t("updateAsset") : t("createAsset")}
-						</button>
 					</div>
 				</form>
-			</div>
-		</div>
+			</Card>
+		</motion.div>
 	);
 };
 
