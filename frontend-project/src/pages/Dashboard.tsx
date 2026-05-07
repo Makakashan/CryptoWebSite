@@ -432,7 +432,10 @@ const Dashboard = () => {
 
 	const topMovers = useMemo(() => {
 		return [...assets]
-			.filter((asset) => typeof asset.price_change_24h === "number")
+			.filter((asset) => {
+				const price = asset.current_price ?? asset.price ?? 0;
+				return typeof asset.price_change_24h === "number" && price > 0;
+			})
 			.sort((a, b) => Math.abs(b.price_change_24h || 0) - Math.abs(a.price_change_24h || 0))
 			.slice(0, 5);
 	}, [assets]);
