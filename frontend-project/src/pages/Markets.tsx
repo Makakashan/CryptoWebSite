@@ -1,370 +1,202 @@
-import { useEffect, useState, useRef, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { fetchAssets, setFilters, fetchChartData } from "../store/slices/assetsSlice";
-import type { AssetsFilters } from "../store/types/assets.types";
+import { useState, useEffect, useRef } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Search, Grid3X3, List, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import type { RootState } from "../store/store";
+import type { Asset } from "../store/types";
+import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
-import AssetCard from "../components/AssetCard";
-import Button from "@/components/ui/button";
+import { formatPrice } from "../utils/formatPrice";
 import Input from "@/components/ui/input";
 import Select from "@/components/ui/select";
-import Card, { CardContent } from "@/components/ui/card";
-import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
-import AssetCardSkeleton from "../components/skeletons/AssetCardSkeleton";
-import { iconLoaderService } from "../services/iconLoader";
+import Card from "@/components/ui/card";
+import { AssetCardSkeleton } from "@/components/skeletons/AssetCardSkeleton";
 
-const Markets = () => {
-	const { t } = useTranslation();
-	const navigate = useNavigate();
-	const location = useLocation();
-	const dispatch = useAppDispatch();
-	const { assets, isLoading, error, filters, pagination, chartData } = useAppSelector(
-		(state) => state.assets,
-	);
+const generateSparklineData = (basePrice: number) => {
+	const data = [];
+	let price = basePrice;
+	for (let i = 0; i < 24; i++) {
+		price += (Math.random() - 0.48) * price * 0.02;
+		data.push(price);
+	}
+	return data;
+};
 
-	// Use backend WebSocket for real-time price updates
-	const symbols = useMemo(() => assets.map((asset) => asset.symbol), [assets]);
-	useBinanceWebSocket({ symbols, enabled: assets.length > 0 });
-
-	const [search, setSearch] = useState("");
-	const [category, setCategory] = useState("");
-	const [sortBy, setSortBy] = useState("price");
-	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-	const [showFilters, setShowFilters] = useState(false);
-	const fetchInProgress = useRef(false);
-
-	const categories = [
-		"Layer 1",
-		"DeFi",
-		"Smart Contract Platform",
-		"Exchange Token",
-		"Meme",
-		"Gaming",
-	];
+const AssetCard = ({ asset, onClick }: { asset: Asset; onClick: () => void }) => {
+	const [price, setPrice] = useState<number>(asset.current_price || asset.price || 0);
+	const [flash, setFlash] = useState<"up" | "down" | null>(null);
 
 	useEffect(() => {
-		// Always fetch assets on mount to ensure we have the correct limit (12)
-		const shouldFetch = assets.length === 0 || (pagination?.limit ?? filters.limit) !== 12;
-
-		if (shouldFetch) {
-			const initialFilters = {
-				...filters,
-				limit: 12,
-				page: 1,
-			};
-			dispatch(setFilters(initialFilters));
-			dispatch(fetchAssets(initialFilters));
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [location.key, filters.limit, pagination?.limit]);
-
-	useEffect(() => {
-		if (assets.length === 0) return;
-
-		const BATCH_SIZE = 4;
-		const symbolsNeedingData = assets
-			.filter((asset) => !chartData[asset.symbol] || chartData[asset.symbol].length === 0)
-			.map((asset) => asset.symbol);
-
-		if (symbolsNeedingData.length === 0) return;
-
-		const loadBatch = (startIndex: number) => {
-			if (startIndex >= symbolsNeedingData.length) return;
-
-			const batch = symbolsNeedingData.slice(startIndex, startIndex + BATCH_SIZE);
-			dispatch(fetchChartData(batch));
-
-			if (startIndex + BATCH_SIZE < symbolsNeedingData.length) {
-				setTimeout(() => loadBatch(startIndex + BATCH_SIZE), 500);
+		const handler = (sym: string, p: number) => {
+			if (sym === asset.symbol) {
+				setPrice(p);
+				setFlash(p >= price ? "up" : "down");
+				setTimeout(() => setFlash(null), 500);
 			}
 		};
+		binanceWebSocketService.subscribeToPrice(handler);
+		return () => binanceWebSocketService.unsubscribeFromPrice(handler);
+	}, [asset.symbol, price]);
 
-		loadBatch(0);
-	}, [assets, chartData, dispatch]);
-
-	useEffect(() => {
-		if (assets.length === 0) return;
-
-		const assetsNeedingIcons = assets
-			.filter((asset) => !asset.image_url)
-			.map((asset) => asset.symbol);
-
-		if (assetsNeedingIcons.length > 0) {
-			iconLoaderService.preloadIcons(assetsNeedingIcons);
-		}
-	}, [assets]);
-
-	useEffect(() => {
-		if (assets.length === 0) return;
-
-		const intervalId = setInterval(() => {
-			if (!document.hidden && assets.length > 0) {
-				const symbols = assets.map((asset) => asset.symbol);
-				const BATCH_SIZE = 6;
-				for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
-					const batch = symbols.slice(i, i + BATCH_SIZE);
-					setTimeout(
-						() => {
-							dispatch(fetchChartData(batch));
-						},
-						(i / BATCH_SIZE) * 1000,
-					);
-				}
-			}
-		}, 60000);
-
-		return () => {
-			clearInterval(intervalId);
-		};
-	}, [dispatch, assets]);
-
-	const handleApplyFilters = () => {
-		if (fetchInProgress.current) return;
-		fetchInProgress.current = true;
-
-		const newFilters = {
-			search: search || undefined,
-			category: category || undefined,
-			sortBy,
-			sortOrder,
-			page: 1,
-			limit: filters.limit,
-		};
-		dispatch(setFilters(newFilters));
-		dispatch(fetchAssets(newFilters)).finally(() => {
-			fetchInProgress.current = false;
-		});
-		setShowFilters(false);
-	};
-
-	const handleReset = () => {
-		if (fetchInProgress.current) return;
-		fetchInProgress.current = true;
-
-		setSearch("");
-		setCategory("");
-		setSortBy("price");
-		setSortOrder("desc");
-		const newFilters: AssetsFilters = {
-			page: 1,
-			limit: 12,
-			sortBy: "price",
-			sortOrder: "desc" as "asc" | "desc",
-		};
-		dispatch(setFilters(newFilters));
-		dispatch(fetchAssets(newFilters)).finally(() => {
-			fetchInProgress.current = false;
-		});
-	};
-
-	const handlePageChange = (page: number) => {
-		if (fetchInProgress.current) return;
-		fetchInProgress.current = true;
-
-		window.scrollTo({ top: 0, behavior: "smooth" });
-		const newFilters = { ...filters, page };
-		dispatch(setFilters(newFilters));
-		dispatch(fetchAssets(newFilters)).finally(() => {
-			fetchInProgress.current = false;
-		});
-	};
-
-	const showSkeletons = isLoading;
-
-	const currentPage = pagination?.page || 1;
-	const totalPages = pagination?.totalPages || 1;
-	const hasActiveFilters = search || category || sortBy !== "price" || sortOrder !== "desc";
+	const sparklineData = useRef(generateSparklineData(asset.current_price || 100));
+	const isPositive = (asset.price_change_24h || 0) >= 0;
 
 	return (
-		<div className="glass-page-shell">
-			<div className="glass-page-body">
-				<div className="glass-hero-glass px-6 py-5">
-					<div aria-hidden className="glass-panel-highlight" />
-					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-						<div className="max-w-2xl">
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-								{t("markets")}
-							</h1>
-							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
-								Discover and track your favorite assets
-							</p>
+		<motion.div
+			initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+			animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+			whileHover={{ scale: 1.02 }}
+			transition={{ duration: 0.4 }}
+		>
+			<Card
+				className={`p-5 cursor-pointer transition-all duration-300 ${
+					flash === "up" ? "border-emerald-500/40" : flash === "down" ? "border-red-500/40" : ""
+				}`}
+				onClick={onClick}
+				style={{
+					boxShadow: flash === "up" ? "0 0 20px rgba(74, 222, 128, 0.15)" : flash === "down" ? "0 0 20px rgba(248, 113, 113, 0.15)" : "inset 0 1px 0 rgba(255,255,255,0.08)",
+				}}
+			>
+				<div className="flex items-start justify-between mb-3">
+					<div className="flex items-center gap-3">
+						{asset.image_url ? (
+							<img src={asset.image_url} alt={asset.symbol} className="w-10 h-10 rounded-full" />
+						) : (
+							<div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f23f5d] to-[#b81a3c] flex items-center justify-center text-white text-xs font-bold">
+								{asset.symbol.slice(0, 2)}
+							</div>
+						)}
+						<div>
+							<h3 className="text-sm font-semibold text-white">{asset.symbol}</h3>
+							<p className="text-xs text-white/40">{asset.name}</p>
 						</div>
-						<Button
-							onClick={() => navigate("/markets/add")}
-							className="glass-cta-button gap-2 shrink-0 self-start lg:self-center"
-						>
-							<Plus className="w-4 h-4" />
-							{t("addNewAsset")}
-						</Button>
+					</div>
+					<div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
+						isPositive
+							? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+							: "bg-red-500/10 text-red-400 border border-red-500/20"
+					}`}>
+						{isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+						{Math.abs(asset.price_change_24h || 0).toFixed(2)}%
 					</div>
 				</div>
-
-				<Card className="glass-filter-panel">
-					<div aria-hidden className="glass-panel-highlight" />
-					<CardContent className="glass-panel-inner p-4">
-						<div className="glass-filter-grid">
-							<div className="flex flex-col sm:flex-row gap-3">
-								<div className="flex-1 relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
-									<Input
-										type="text"
-										placeholder={t("searchAssets")}
-										value={search}
-										onChange={(e) => setSearch(e.target.value)}
-										onKeyPress={(e) => e.key === "Enter" && handleApplyFilters()}
-										className="pl-10"
-									/>
-								</div>
-
-								<div className="flex gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => setShowFilters(!showFilters)}
-										className={`glass-muted-button gap-2 ${hasActiveFilters ? "border-white/20 text-white" : ""}`}
-									>
-										<SlidersHorizontal className="w-4 h-4" />
-										{t("filters")}
-										{hasActiveFilters && (
-											<span className="ml-1 h-2 w-2 rounded-full bg-white/80" />
-										)}
-									</Button>
-									<Button
-										size="sm"
-										className="glass-cta-button"
-										onClick={handleApplyFilters}
-									>
-										{t("apply")}
-									</Button>
-									{hasActiveFilters && (
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={handleReset}
-											className="glass-muted-button gap-1"
-										>
-											<X className="w-4 h-4" />
-										</Button>
-									)}
-								</div>
-							</div>
-
-							{showFilters && (
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-white/8 animate-in fade-in slide-in-from-top-2 duration-200">
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("category")}
-										</label>
-										<Select
-											value={category}
-											onChange={(e) => setCategory(e.target.value)}
-										>
-											<option value="">{t("all")}</option>
-											{categories.map((cat) => (
-												<option key={cat} value={cat}>
-													{cat}
-												</option>
-											))}
-										</Select>
-									</div>
-
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("sortBy")}
-										</label>
-										<Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-											<option value="price">{t("price")}</option>
-											<option value="symbol">{t("symbol")}</option>
-											<option value="name">{t("name")}</option>
-										</Select>
-									</div>
-
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("order")}
-										</label>
-										<Select
-											value={sortOrder}
-											onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-										>
-											<option value="desc">{t("highToLow")}</option>
-											<option value="asc">{t("lowToHigh")}</option>
-										</Select>
-									</div>
-								</div>
-							)}
-						</div>
-					</CardContent>
-				</Card>
-
-				{error && (
-					<Card className="glass-empty-panel border-white/10">
-						<div aria-hidden className="glass-panel-highlight" />
-						<CardContent className="glass-panel-inner p-6 text-center">
-							<p className="text-red text-base">{error}</p>
-						</CardContent>
-					</Card>
-				)}
-
-				{!error && (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-						{showSkeletons
-							? Array.from({ length: 12 }).map((_, index) => (
-									<AssetCardSkeleton key={`skeleton-${index}`} />
-								))
-							: assets.map((asset) => <AssetCard key={asset.symbol} asset={asset} />)}
+				<div className="flex items-end justify-between">
+					<div>
+						<p className={`text-xl font-bold transition-all duration-500 ${
+							flash === "up" ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]" :
+							flash === "down" ? "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]" :
+							"text-white"
+						}`}>
+							{formatPrice(price)}
+						</p>
 					</div>
-				)}
-
-				{!error && !showSkeletons && assets.length === 0 && (
-					<Card className="glass-empty-panel">
-						<div aria-hidden className="glass-panel-highlight" />
-						<CardContent className="glass-panel-inner p-14 text-center">
-							<div className="flex flex-col items-center gap-3">
-								<div className="glass-inline-metric w-16 h-16 rounded-full flex items-center justify-center">
-									<Search className="w-8 h-8 text-text-secondary" />
-								</div>
-								<p className="text-text-secondary text-lg">{t("noAssetsAvailable")}</p>
-								<Button
-									variant="outline"
-									size="sm"
-									className="glass-muted-button"
-									onClick={handleReset}
-								>
-									{t("resetFilters")}
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
-				)}
-
-				{totalPages > 1 && (
-					<div className="flex justify-center items-center gap-4 pt-6">
-						<Button
-							variant="outline"
-							size="sm"
-							className="glass-muted-button"
-							onClick={() => handlePageChange(currentPage - 1)}
-							disabled={currentPage === 1}
-						>
-							{t("previous")}
-						</Button>
-						<span className="text-text-secondary text-sm font-medium px-4">
-							{t("page")} {currentPage} {t("of")} {totalPages}
-						</span>
-						<Button
-							variant="outline"
-							size="sm"
-							className="glass-muted-button"
-							onClick={() => handlePageChange(currentPage + 1)}
-							disabled={currentPage === totalPages}
-						>
-							{t("next")}
-						</Button>
+					<div className="w-24 h-10">
+						<ResponsiveContainer width="100%" height="100%">
+							<AreaChart data={sparklineData.current.map((v) => ({ v }))}>
+								<defs>
+									<linearGradient id={`spark-${asset.symbol}`} x1="0" y1="0" x2="0" y2="1">
+										<stop offset="0%" stopColor={isPositive ? "#4ade80" : "#f87171"} stopOpacity={0.5} />
+										<stop offset="100%" stopColor={isPositive ? "#4ade80" : "#f87171"} stopOpacity={0} />
+									</linearGradient>
+								</defs>
+								<Area type="monotone" dataKey="v" stroke={isPositive ? "#4ade80" : "#f87171"} strokeWidth={1.5} fill={`url(#spark-${asset.symbol})`} dot={false} />
+							</AreaChart>
+						</ResponsiveContainer>
 					</div>
-				)}
+				</div>
+			</Card>
+		</motion.div>
+	);
+};
+
+const Markets = () => {
+	const navigate = useNavigate();
+	const { assets: allAssets, isLoading } = useSelector((state: RootState) => state.assets);
+	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [searchTerm, setSearchTerm] = useState("");
+	const [selectedCategory, setSelectedCategory] = useState<string>("");
+	const [sortBy, setSortBy] = useState<string>("price");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+	const filteredAssets = (allAssets || []).filter((asset: Asset) => {
+		const matchesSearch = !searchTerm ||
+			asset.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			asset.name.toLowerCase().includes(searchTerm.toLowerCase());
+		const matchesCategory = !selectedCategory || asset.category === selectedCategory;
+		return matchesSearch && matchesCategory;
+	}).sort((a: Asset, b: Asset) => {
+		let aVal: number, bVal: number;
+		switch (sortBy) {
+			case "symbol": aVal = a.symbol.localeCompare(b.symbol); bVal = 0; return sortOrder === "asc" ? aVal : -aVal;
+			case "price": aVal = a.current_price || a.price || 0; bVal = b.current_price || b.price || 0; break;
+			case "change": aVal = a.price_change_24h || 0; bVal = b.price_change_24h || 0; break;
+			default: aVal = a.current_price || a.price || 0; bVal = b.current_price || b.price || 0;
+		}
+		return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+	});
+
+	const symbols = filteredAssets.map((a: Asset) => a.symbol);
+	useBinanceWebSocket({ symbols, enabled: symbols.length > 0 });
+
+	return (
+		<div className="space-y-6">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+				<h1 className="text-2xl font-bold text-white">Markets</h1>
+				<div className="flex items-center gap-2">
+					<button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-white/[0.08] text-white" : "text-white/40 hover:text-white"}`}>
+						<Grid3X3 className="w-5 h-5" />
+					</button>
+					<button onClick={() => setViewMode("list")} className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-white/[0.08] text-white" : "text-white/40 hover:text-white"}`}>
+						<List className="w-5 h-5" />
+					</button>
+				</div>
 			</div>
+
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="relative">
+					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+					<Input
+						placeholder="Search assets..."
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+						className="pl-10"
+					/>
+				</div>
+				<Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+					<option value="">All Categories</option>
+					<option value="crypto">Crypto</option>
+					<option value="stock">Stock</option>
+					<option value="forex">Forex</option>
+					<option value="commodity">Commodity</option>
+				</Select>
+				<Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+					<option value="price">Price</option>
+					<option value="symbol">Symbol</option>
+					<option value="change">Change %</option>
+				</Select>
+				<Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}>
+					<option value="desc">High to Low</option>
+					<option value="asc">Low to High</option>
+				</Select>
+			</div>
+
+			{isLoading ? (
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					{Array.from({ length: 9 }).map((_, i) => <AssetCardSkeleton key={i} />)}
+				</div>
+			) : (
+				<div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"}>
+					{filteredAssets.map((asset: Asset) => (
+						<AssetCard
+							key={asset.symbol}
+							asset={asset}
+							onClick={() => navigate(`/markets/${asset.symbol}`)}
+						/>
+					))}
+				</div>
+			)}
 		</div>
 	);
 };
