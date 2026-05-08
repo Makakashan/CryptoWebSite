@@ -1,10 +1,10 @@
-import { memo, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, Grid3X3, List, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import type { RootState } from "../store/store";
 import type { Asset } from "../store/types";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { fetchChartData } from "../store/slices/assetsSlice";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
@@ -14,26 +14,62 @@ import Select from "@/components/ui/select";
 import Card from "@/components/ui/card";
 import { AssetCardSkeleton } from "@/components/skeletons/AssetCardSkeleton";
 
-const generateSparklineData = (basePrice: number) => {
-	const data: number[] = [];
-	let price = basePrice;
-	for (let index = 0; index < 24; index++) {
-		price += (Math.random() - 0.48) * price * 0.02;
-		data.push(price);
-	}
-	return data;
-};
-
 const AssetCard = memo(({ asset }: { asset: Asset }) => {
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const initialPrice =
 		binanceWebSocketService.getPrice(asset.symbol) ?? asset.current_price ?? asset.price ?? 0;
+	const cardRef = useRef<HTMLDivElement>(null);
+	const [isVisible, setIsVisible] = useState(false);
 	const [price, setPrice] = useState<number>(initialPrice);
 	const [flash, setFlash] = useState<"up" | "down" | null>(null);
+	const chartDataMap = useAppSelector((state) => state.assets.chartData);
+	const chartData = chartDataMap[asset.symbol];
+	const hasChartData = Object.prototype.hasOwnProperty.call(chartDataMap, asset.symbol);
+	const chartRequestSentRef = useRef(false);
 
 	useEffect(() => {
 		setPrice(initialPrice);
 	}, [initialPrice]);
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setIsVisible(true);
+					observer.disconnect();
+				}
+			},
+			{
+				root: null,
+				rootMargin: "50px",
+				threshold: 0,
+			},
+		);
+
+		if (cardRef.current) {
+			observer.observe(cardRef.current);
+		}
+
+		return () => {
+			observer.disconnect();
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!isVisible || hasChartData || chartRequestSentRef.current) {
+			return;
+		}
+
+		chartRequestSentRef.current = true;
+		dispatch(
+			fetchChartData({
+				symbols: [asset.symbol],
+				interval: "1h",
+				limit: 24,
+			}),
+		);
+	}, [asset.symbol, dispatch, hasChartData, isVisible]);
 
 	useEffect(() => {
 		let flashTimer: ReturnType<typeof setTimeout> | null = null;
@@ -64,7 +100,6 @@ const AssetCard = memo(({ asset }: { asset: Asset }) => {
 		};
 	}, [asset.symbol]);
 
-	const sparklineData = useMemo(() => generateSparklineData(initialPrice || 100), [initialPrice]);
 	const isPositive = (asset.price_change_24h || 0) >= 0;
 
 	return (
@@ -76,6 +111,7 @@ const AssetCard = memo(({ asset }: { asset: Asset }) => {
 			style={{ willChange: "transform, opacity, filter" }}
 		>
 			<Card
+				ref={cardRef}
 				className={`p-5 cursor-pointer transition-all duration-300 ${
 					flash === "up"
 						? "border-emerald-500/40"
@@ -141,7 +177,15 @@ const AssetCard = memo(({ asset }: { asset: Asset }) => {
 						</p>
 					</div>
 					<div className="w-24 h-10">
-						<MiniChart data={sparklineData} color={isPositive ? "#4ade80" : "#f87171"} />
+						{chartData && chartData.length > 0 ? (
+							<MiniChart data={chartData} color={isPositive ? "#4ade80" : "#f87171"} />
+						) : hasChartData ? (
+							<div className="w-full h-full rounded-lg bg-white/5" />
+						) : (
+							<div className="w-full h-full flex items-center justify-center bg-bg-hover/30 rounded-lg">
+								<div className="w-4 h-4 border-2 border-text-secondary/30 border-t-text-secondary rounded-full animate-spin"></div>
+							</div>
+						)}
 					</div>
 				</div>
 			</Card>
@@ -152,7 +196,7 @@ const AssetCard = memo(({ asset }: { asset: Asset }) => {
 AssetCard.displayName = "AssetCard";
 
 const Markets = () => {
-	const { assets: allAssets, isLoading } = useSelector((state: RootState) => state.assets);
+	const { assets: allAssets, isLoading } = useAppSelector((state) => state.assets);
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState<string>("");
