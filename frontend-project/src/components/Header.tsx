@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 
@@ -21,4 +22,4 @@ const Header = () => {
 	);
 };
 
-export default Header;
+export default memo(Header);
