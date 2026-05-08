@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { useTransition } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { LayoutDashboard, TrendingUp, PieChart, ListOrdered, UserCircle } from "lucide-react";
@@ -14,6 +15,17 @@ const navItems = [
 
 const Sidebar = () => {
 	const { user } = useSelector((state: RootState) => state.auth);
+	const location = useLocation();
+	const navigate = useNavigate();
+	const [, startTransition] = useTransition();
+
+	const handleNavigate = (to: string) => {
+		if (location.pathname === to) return;
+
+		startTransition(() => {
+			navigate(to);
+		});
+	};
 
 	return (
 		<aside className="fixed left-4 top-4 z-50 flex h-[calc(100vh-2rem)] w-60 flex-col rounded-[2rem] liquid-glass-strong">
@@ -27,44 +39,45 @@ const Sidebar = () => {
 			</div>
 
 			<nav className="flex-1 space-y-1.5 px-4 py-6">
-				{navItems.map((item) => (
-					<NavLink
-						key={item.to}
-						to={item.to}
-						end={item.exact}
-						className={({ isActive }) =>
-							`relative isolate flex items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 text-sm font-medium transition-colors duration-150 ease-out ${
+				{navItems.map((item) => {
+					const isActive = item.exact
+						? location.pathname === item.to
+						: location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
+
+					return (
+						<button
+							key={item.to}
+							type="button"
+							aria-current={isActive ? "page" : undefined}
+							onClick={() => handleNavigate(item.to)}
+							className={`group relative isolate flex w-full items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 text-left text-sm font-medium outline-none transition-[transform,background-color,color,box-shadow,border-color,opacity] duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-white/20 ${
 								isActive
 									? "text-white"
 									: "text-white/50 hover:bg-black/20 hover:text-white/80"
-							}`
-						}
-					>
-						{({ isActive }) => (
-							<>
-								{isActive && (
-									<motion.span
-										layoutId="sidebar-active"
+							}`}
+						>
+							{isActive && (
+								<motion.span
+									layoutId="sidebar-active"
+									aria-hidden
+									className="absolute inset-0 overflow-hidden rounded-2xl border border-white/30 bg-gradient-to-br from-white/12 via-white/5 to-black/50 ring-1 ring-white/10"
+									style={{
+										boxShadow:
+											"0 0 28px rgba(255, 255, 255, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.04)",
+									}}
+									transition={{ type: "spring", stiffness: 360, damping: 34, mass: 0.9 }}
+								>
+									<span
 										aria-hidden
-										className="absolute inset-0 overflow-hidden rounded-2xl border border-white/30 bg-gradient-to-br from-white/12 via-white/5 to-black/50 ring-1 ring-white/10"
-										style={{
-											boxShadow:
-												"0 0 28px rgba(255, 255, 255, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.04)",
-										}}
-										transition={{ type: "spring", stiffness: 260, damping: 28 }}
-									>
-										<span
-											aria-hidden
-											className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgba(255,255,255,0.18),transparent_34%),radial-gradient(circle_at_78%_82%,rgba(255,255,255,0.08),transparent_30%)]"
-										/>
-									</motion.span>
-								)}
-								<item.icon className="relative z-10 h-5 w-5" />
-								<span className="relative z-10">{item.label}</span>
-							</>
-						)}
-					</NavLink>
-				))}
+										className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgba(255,255,255,0.18),transparent_34%),radial-gradient(circle_at_78%_82%,rgba(255,255,255,0.08),transparent_30%)]"
+									/>
+								</motion.span>
+							)}
+							<item.icon className="relative z-10 h-5 w-5 shrink-0" />
+							<span className="relative z-10">{item.label}</span>
+						</button>
+					);
+				})}
 			</nav>
 
 			<div className="border-t border-white/[0.06] px-4 py-4">

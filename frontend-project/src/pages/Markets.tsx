@@ -1,46 +1,68 @@
-import { useState, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, Grid3X3, List, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import type { RootState } from "../store/store";
 import type { Asset } from "../store/types";
 import { binanceWebSocketService } from "../services/binanceWebSocket";
 import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
 import { formatPrice } from "../utils/formatPrice";
+import MiniChart from "../components/MiniChart";
 import Input from "@/components/ui/input";
 import Select from "@/components/ui/select";
 import Card from "@/components/ui/card";
 import { AssetCardSkeleton } from "@/components/skeletons/AssetCardSkeleton";
 
 const generateSparklineData = (basePrice: number) => {
-	const data = [];
+	const data: number[] = [];
 	let price = basePrice;
-	for (let i = 0; i < 24; i++) {
+	for (let index = 0; index < 24; index++) {
 		price += (Math.random() - 0.48) * price * 0.02;
 		data.push(price);
 	}
 	return data;
 };
 
-const AssetCard = ({ asset, onClick }: { asset: Asset; onClick: () => void }) => {
+const AssetCard = memo(({ asset }: { asset: Asset }) => {
+	const navigate = useNavigate();
 	const initialPrice =
 		binanceWebSocketService.getPrice(asset.symbol) ?? asset.current_price ?? asset.price ?? 0;
 	const [price, setPrice] = useState<number>(initialPrice);
 	const [flash, setFlash] = useState<"up" | "down" | null>(null);
 
 	useEffect(() => {
-		const handler = (sym: string, p: number) => {
-			if (sym === asset.symbol) {
-				setPrice(p);
-				setFlash(p >= price ? "up" : "down");
-				setTimeout(() => setFlash(null), 500);
+		setPrice(initialPrice);
+	}, [initialPrice]);
+
+	useEffect(() => {
+		let flashTimer: ReturnType<typeof setTimeout> | null = null;
+
+		const handler = (sym: string, nextPrice: number) => {
+			if (sym !== asset.symbol) return;
+
+			setPrice((currentPrice) => {
+				setFlash(nextPrice >= currentPrice ? "up" : "down");
+				return nextPrice;
+			});
+
+			if (flashTimer) {
+				clearTimeout(flashTimer);
 			}
+
+			flashTimer = setTimeout(() => {
+				setFlash(null);
+			}, 500);
 		};
+
 		binanceWebSocketService.subscribeToPrice(handler);
-		return () => binanceWebSocketService.unsubscribeFromPrice(handler);
-	}, [asset.symbol, price]);
+		return () => {
+			if (flashTimer) {
+				clearTimeout(flashTimer);
+			}
+			binanceWebSocketService.unsubscribeFromPrice(handler);
+		};
+	}, [asset.symbol]);
 
 	const sparklineData = useMemo(() => generateSparklineData(initialPrice || 100), [initialPrice]);
 	const isPositive = (asset.price_change_24h || 0) >= 0;
@@ -50,7 +72,8 @@ const AssetCard = ({ asset, onClick }: { asset: Asset; onClick: () => void }) =>
 			initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
 			animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
 			whileHover={{ scale: 1.02 }}
-			transition={{ duration: 0.4 }}
+			transition={{ duration: 0.28, ease: "easeOut" }}
+			style={{ willChange: "transform, opacity, filter" }}
 		>
 			<Card
 				className={`p-5 cursor-pointer transition-all duration-300 ${
@@ -60,7 +83,7 @@ const AssetCard = ({ asset, onClick }: { asset: Asset; onClick: () => void }) =>
 							? "border-red-500/40"
 							: ""
 				}`}
-				onClick={onClick}
+				onClick={() => navigate(`/markets/${asset.symbol}`)}
 				style={{
 					boxShadow:
 						flash === "up"
@@ -118,81 +141,75 @@ const AssetCard = ({ asset, onClick }: { asset: Asset; onClick: () => void }) =>
 						</p>
 					</div>
 					<div className="w-24 h-10">
-						<ResponsiveContainer width="100%" height="100%">
-							<AreaChart data={sparklineData.map((v) => ({ v }))}>
-								<defs>
-									<linearGradient id={`spark-${asset.symbol}`} x1="0" y1="0" x2="0" y2="1">
-										<stop
-											offset="0%"
-											stopColor={isPositive ? "#4ade80" : "#f87171"}
-											stopOpacity={0.5}
-										/>
-										<stop
-											offset="100%"
-											stopColor={isPositive ? "#4ade80" : "#f87171"}
-											stopOpacity={0}
-										/>
-									</linearGradient>
-								</defs>
-								<Area
-									type="monotone"
-									dataKey="v"
-									stroke={isPositive ? "#4ade80" : "#f87171"}
-									strokeWidth={1.5}
-									fill={`url(#spark-${asset.symbol})`}
-									dot={false}
-								/>
-							</AreaChart>
-						</ResponsiveContainer>
+						<MiniChart data={sparklineData} color={isPositive ? "#4ade80" : "#f87171"} />
 					</div>
 				</div>
 			</Card>
 		</motion.div>
 	);
-};
+});
+
+AssetCard.displayName = "AssetCard";
 
 const Markets = () => {
-	const navigate = useNavigate();
 	const { assets: allAssets, isLoading } = useSelector((state: RootState) => state.assets);
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState<string>("");
 	const [sortBy, setSortBy] = useState<string>("price");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+	const [websocketReady, setWebsocketReady] = useState(false);
 
-	const filteredAssets = (allAssets || [])
-		.filter((asset: Asset) => {
-			const matchesSearch =
-				!searchTerm ||
-				asset.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				asset.name.toLowerCase().includes(searchTerm.toLowerCase());
-			const matchesCategory = !selectedCategory || asset.category === selectedCategory;
-			return matchesSearch && matchesCategory;
-		})
-		.sort((a: Asset, b: Asset) => {
-			let aVal: number, bVal: number;
-			switch (sortBy) {
-				case "symbol":
-					aVal = a.symbol.localeCompare(b.symbol);
-					bVal = 0;
-					return sortOrder === "asc" ? aVal : -aVal;
-				case "price":
-					aVal = a.current_price || a.price || 0;
-					bVal = b.current_price || b.price || 0;
-					break;
-				case "change":
-					aVal = a.price_change_24h || 0;
-					bVal = b.price_change_24h || 0;
-					break;
-				default:
-					aVal = a.current_price || a.price || 0;
-					bVal = b.current_price || b.price || 0;
-			}
-			return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+	useEffect(() => {
+		const frame = requestAnimationFrame(() => {
+			setWebsocketReady(true);
 		});
 
-	const symbols = filteredAssets.map((a: Asset) => a.symbol);
-	useBinanceWebSocket({ symbols, enabled: symbols.length > 0 });
+		return () => {
+			cancelAnimationFrame(frame);
+			setWebsocketReady(false);
+		};
+	}, []);
+
+	const filteredAssets = useMemo(() => {
+		return (allAssets || [])
+			.filter((asset: Asset) => {
+				const query = searchTerm.toLowerCase();
+				const matchesSearch =
+					!query ||
+					asset.symbol.toLowerCase().includes(query) ||
+					asset.name.toLowerCase().includes(query);
+				const matchesCategory = !selectedCategory || asset.category === selectedCategory;
+				return matchesSearch && matchesCategory;
+			})
+			.sort((a: Asset, b: Asset) => {
+				let aVal: number, bVal: number;
+				switch (sortBy) {
+					case "symbol":
+						aVal = a.symbol.localeCompare(b.symbol);
+						bVal = 0;
+						return sortOrder === "asc" ? aVal : -aVal;
+					case "price":
+						aVal = a.current_price || a.price || 0;
+						bVal = b.current_price || b.price || 0;
+						break;
+					case "change":
+						aVal = a.price_change_24h || 0;
+						bVal = b.price_change_24h || 0;
+						break;
+					default:
+						aVal = a.current_price || a.price || 0;
+						bVal = b.current_price || b.price || 0;
+				}
+				return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+			});
+	}, [allAssets, searchTerm, selectedCategory, sortBy, sortOrder]);
+
+	const symbols = useMemo(
+		() => filteredAssets.map((asset: Asset) => asset.symbol),
+		[filteredAssets],
+	);
+	useBinanceWebSocket({ symbols, enabled: websocketReady && symbols.length > 0 });
 
 	return (
 		<div className="space-y-6">
@@ -247,8 +264,8 @@ const Markets = () => {
 
 			{isLoading ? (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-					{Array.from({ length: 9 }).map((_, i) => (
-						<AssetCardSkeleton key={i} />
+					{Array.from({ length: 9 }).map((_, index) => (
+						<AssetCardSkeleton key={index} />
 					))}
 				</div>
 			) : (
@@ -260,11 +277,7 @@ const Markets = () => {
 					}
 				>
 					{filteredAssets.map((asset: Asset) => (
-						<AssetCard
-							key={asset.symbol}
-							asset={asset}
-							onClick={() => navigate(`/markets/${asset.symbol}`)}
-						/>
+						<AssetCard key={asset.symbol} asset={asset} />
 					))}
 				</div>
 			)}

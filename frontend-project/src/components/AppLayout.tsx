@@ -1,6 +1,7 @@
-import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { AnimatePresence, motion } from "framer-motion";
 import type { RootState } from "../store/store";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -9,6 +10,7 @@ import LanguageSwitcher from "./ui/LanguageSwitcher";
 const AppLayout = () => {
 	const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -39,7 +41,18 @@ const AppLayout = () => {
 					<div className="mb-4 flex justify-end">
 						<LanguageSwitcher />
 					</div>
-					<Outlet />
+					<AnimatePresence mode="wait" initial={false}>
+						<motion.div
+							key={location.pathname}
+							initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+							animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+							exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
+							transition={{ duration: 0.18, ease: "easeOut" }}
+							style={{ willChange: "opacity, transform, filter" }}
+						>
+							<Outlet />
+						</motion.div>
+					</AnimatePresence>
 				</main>
 			</div>
 		</div>
