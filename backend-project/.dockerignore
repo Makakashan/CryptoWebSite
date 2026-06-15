@@ -1,0 +1,6 @@
+node_modules
+dist
+trading.db
+.env
+npm-debug.log*
+bun.lock

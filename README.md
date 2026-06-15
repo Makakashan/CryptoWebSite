@@ -4,8 +4,7 @@ Modern trading platform with real-time market data, portfolio management, and in
 
 ## Prerequisites
 
-- **Node.js** v18+ (tested on v25.4.0)
-- **npm** v9+ or yarn
+- **Docker** with Docker Compose
 - Modern web browser with WebSocket support
 
 ## Stack
@@ -28,78 +27,62 @@ Modern trading platform with real-time market data, portfolio management, and in
 
 ## Quick Start
 
-### Launch Everything with One Command (Recommended)
+### Launch Everything with Docker Compose
 
 ```sh
-# First time - install dependencies
-npm run install:all
-
-# Start all services (Backend + Market + Frontend)
+# Build and start backend + frontend
 npm run dev
 ```
 
 This command will start:
 - **Backend Server** at `http://localhost:3000`
-- **Market Simulator** (MQTT data from Binance)
 - **Frontend** at `http://localhost:5173`
+- **SQLite database volume** at Docker volume `makakatrade_backend-data`
 
-Press `Ctrl+C` to stop all services
+Useful commands:
 
-**Note:** Works on **Linux, macOS, and Windows**
+```sh
+npm run up      # Build and start in the background
+npm run logs    # Follow container logs
+npm run down    # Stop and remove containers
+```
 
 ---
 
-### Manual Start (Optional)
-
-#### Backend
-```sh
-cd backend-project
-npm install
-npm run dev        # Development server (port 3000)
-npm run market     # Market data run
-```
-
-#### Frontend
-```sh
-cd frontend-project
-npm install
-npm run dev        # Development server (port 5173)
-```
-
 ### Environment
 
-Frontend expects an API base URL. Create `frontend-project/.env` based on the example:
+Docker Compose reads environment overrides from a root `.env` file if present.
 
-```sh
-cp frontend-project/.env.example frontend-project/.env
-```
+Default values:
 
-Default value:
 ```
 VITE_API_URL=http://localhost:3000/api
+VITE_WS_URL=ws://localhost:3000
+GOOGLE_CLIENT_ID=
+VITE_GOOGLE_CLIENT_ID=
 ```
 
-Optional (for Google login):
+Backend container defaults:
+
 ```
-VITE_GOOGLE_CLIENT_ID=your_google_client_id
+PORT=3000
+DB_FILE=/app/data/trading.db
+CORS_ORIGIN=http://localhost:5173
 ```
 
-Backend (Google login verification):
-```
-GOOGLE_CLIENT_ID=your_google_client_id
-```
-
-Create `backend-project/.env` if you want to store it locally.
+For Google login, set both `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID` before rebuilding the frontend image.
 
 ## Project Structure
 
 ```
 Makakatrade/
 ├── package.json              # Root scripts to launch entire project
+├── docker-compose.yml        # Backend + frontend services
 ├── README.md                 # Documentation
 ├── .gitignore               # Git ignore rules
 │
 ├── backend-project/
+│   ├── Dockerfile            # Multi-stage backend image
 │   ├── src/
 │   │   ├── server.ts        # Express server + WebSocket
 │   │   ├── market.ts        # MQTT market data simulator
@@ -111,6 +94,8 @@ Makakatrade/
 │   └── dist/                # Build output
 │
 └── frontend-project/
+    ├── Dockerfile            # Multi-stage frontend image
+    ├── nginx.conf            # Static SPA server config
     ├── src/
     │   ├── components/      # React components
     │   │   └── ui/          # shadcn/ui components
