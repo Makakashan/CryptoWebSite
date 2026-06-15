@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosConfig";
+import { toSearchParams } from "./params";
 import type {
 	Order,
 	PlaceOrderRequest,
@@ -11,15 +12,7 @@ export const ordersApi = {
 	getOrders: async (
 		filters?: OrdersFilters,
 	): Promise<{ data: Order[]; pagination?: PaginationInfo }> => {
-		const params = new URLSearchParams();
-
-		if (filters) {
-			Object.entries(filters).forEach(([key, value]) => {
-				if (value !== undefined && value !== "" && value !== null) {
-					params.append(key, String(value));
-				}
-			});
-		}
+		const params = toSearchParams(filters);
 
 		const response = await axiosInstance.get<OrdersResponse>(
 			`/orders/history?${params.toString()}`,

@@ -366,7 +366,6 @@ const Statistics = () => {
 		<div className="statistics-page glass-page-shell">
 			<div className="glass-page-body">
 				<div className="glass-hero-glass px-6 py-5">
-					<div aria-hidden className="glass-panel-highlight" />
 					<div className="glass-panel-inner max-w-2xl">
 						<h1 className="text-3xl font-bold tracking-tight text-text-primary">
 							{t("tradingStatistics")}

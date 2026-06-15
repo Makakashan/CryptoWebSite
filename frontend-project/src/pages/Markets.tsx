@@ -180,7 +180,6 @@ const Markets = () => {
 		<div className="glass-page-shell">
 			<div className="glass-page-body">
 				<div className="glass-hero-glass px-6 py-5">
-					<div aria-hidden className="glass-panel-highlight" />
 					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 						<div className="max-w-2xl">
 							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
@@ -201,7 +200,6 @@ const Markets = () => {
 				</div>
 
 				<Card className="glass-filter-panel">
-					<div aria-hidden className="glass-panel-highlight" />
 					<CardContent className="glass-panel-inner p-4">
 						<div className="glass-filter-grid">
 							<div className="flex flex-col sm:flex-row gap-3">
@@ -300,7 +298,6 @@ const Markets = () => {
 
 				{error && (
 					<Card className="glass-empty-panel border-white/10">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="glass-panel-inner p-6 text-center">
 							<p className="text-red text-base">{error}</p>
 						</CardContent>
@@ -319,7 +316,6 @@ const Markets = () => {
 
 				{!error && !showSkeletons && assets.length === 0 && (
 					<Card className="glass-empty-panel">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="glass-panel-inner p-14 text-center">
 							<div className="flex flex-col items-center gap-3">
 								<div className="glass-inline-metric w-16 h-16 rounded-full flex items-center justify-center">

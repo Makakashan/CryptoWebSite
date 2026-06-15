@@ -48,7 +48,6 @@ const DashboardMetricCard = ({
 	valueClassName?: string;
 }) => (
 	<Card className="glass-metric-card">
-		<div aria-hidden className="glass-panel-highlight" />
 		<CardHeader className="pb-2">
 			<CardDescription>{title}</CardDescription>
 			<CardTitle className={valueClassName}>{value}</CardTitle>
@@ -415,7 +414,6 @@ const Dashboard = () => {
 		<div className="glass-page-shell">
 			<div className="glass-page-body">
 				<div className="glass-hero-glass px-6 py-5">
-					<div aria-hidden className="glass-panel-highlight" />
 					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 						<div className="max-w-2xl">
 							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
@@ -464,7 +462,6 @@ const Dashboard = () => {
 
 				<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 					<Card className="glass-chart-panel xl:col-span-2">
-						<div aria-hidden className="glass-panel-highlight" />
 						<div className="glass-panel-inner">
 							<CardHeader>
 								<CardTitle className="text-xl">{t("balanceOverTime")}</CardTitle>
@@ -573,7 +570,6 @@ const Dashboard = () => {
 					</Card>
 
 					<Card className="glass-chart-panel">
-						<div aria-hidden className="glass-panel-highlight" />
 						<div className="glass-panel-inner">
 							<CardHeader>
 								<CardTitle className="text-xl">{t("topMovers")}</CardTitle>
@@ -643,7 +639,6 @@ const Dashboard = () => {
 				</div>
 
 				<Card className="glass-surface-panel">
-					<div aria-hidden className="glass-panel-highlight" />
 					<div className="glass-panel-inner">
 						<CardHeader>
 							<CardTitle className="text-xl">{t("quickActions")}</CardTitle>
