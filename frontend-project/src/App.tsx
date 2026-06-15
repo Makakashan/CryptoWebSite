@@ -8,6 +8,7 @@ import { fetchProfile } from "./store/slices/authSlice";
 const AppLayout = lazy(() => import("./components/AppLayout"));
 const Markets = lazy(() => import("./pages/Markets"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
@@ -35,7 +36,7 @@ const ProtectedRoutes = ({ children }: { children: ReactNode }) => {
 		);
 	}
 
-	if (!isAuthenticated) return <Navigate to="/login" replace />;
+	if (!isAuthenticated) return <Navigate to="/" replace />;
 	return <>{children}</>;
 };
 
@@ -52,12 +53,16 @@ function App() {
 			<Suspense fallback={<PageLoader />}>
 				<Routes>
 					<Route
+						path="/"
+						element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />}
+					/>
+					<Route
 						path="/login"
-						element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+						element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
 					/>
 					<Route
 						path="/register"
-						element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
+						element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />}
 					/>
 
 					<Route
@@ -67,7 +72,7 @@ function App() {
 							</ProtectedRoutes>
 						}
 					>
-						<Route path="/" element={<Dashboard />} />
+						<Route path="/dashboard" element={<Dashboard />} />
 						<Route path="/markets" element={<Markets />} />
 						<Route path="/markets/add" element={<AssetForm />} />
 						<Route path="/markets/edit/:symbol" element={<AssetForm />} />
