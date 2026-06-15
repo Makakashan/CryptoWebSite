@@ -48,3 +48,7 @@ logs/
 coverage/
 *.lcov
 .nyc_output/
+
+.agents
+.codex
+.mimocode
