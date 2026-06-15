@@ -1,6 +1,8 @@
 // WebSocket service for real-time price updates
 import type { WebSocketPriceUpdateCallback } from "../store/types";
 
+const defaultWebSocketUrl = import.meta.env.VITE_WS_URL || "ws://localhost:3000";
+
 class WebSocketService {
 	private ws: WebSocket | null = null;
 	private callbacks: WebSocketPriceUpdateCallback[] = [];
@@ -8,7 +10,7 @@ class WebSocketService {
 	private reconnectAttempts = 0;
 	private maxReconnectAttempts = 5;
 
-	connect(url: string = "ws://localhost:3000") {
+	connect(url: string = defaultWebSocketUrl) {
 		if (this.ws?.readyState === WebSocket.OPEN) {
 			return;
 		}

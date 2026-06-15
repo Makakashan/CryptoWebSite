@@ -11,7 +11,7 @@ class BinanceWebSocketService {
 	private prices: Map<string, number> = new Map();
 	private throttleTimers: Map<string, NodeJS.Timeout> = new Map();
 	private readonly throttleDelay = 1000; // Update UI at most once per second
-	private readonly wsUrl = "ws://localhost:3000";
+	private readonly wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:3000";
 
 	private connect() {
 		if (this.activeSymbols.size === 0) {

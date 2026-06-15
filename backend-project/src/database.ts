@@ -8,7 +8,7 @@ let dbinstance: DB | null = null; // Store the database instance
 // Initialize and set up the SQLite database
 export async function initializeDB(): Promise<DB> {
 	const db = await open({
-		filename: "./trading.db",
+		filename: process.env.DB_FILE ?? "./trading.db",
 		driver: sqlite3.verbose().Database,
 	});
 

@@ -7,7 +7,7 @@ export const useWebSocket = () => {
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
-		websocketService.connect("ws://localhost:3000");
+		websocketService.connect();
 
 		const handlePriceUpdate = () => {
 			dispatch(fetchAssets());
