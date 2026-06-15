@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
+import type { ReactNode } from "react";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { fetchProfile } from "./store/slices/authSlice";
-import AppLayout from "./components/AppLayout";
 
 // Lazy load all page components for code splitting
+const AppLayout = lazy(() => import("./components/AppLayout"));
 const Markets = lazy(() => import("./pages/Markets"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Login = lazy(() => import("./pages/Login"));
@@ -22,7 +23,7 @@ const PageLoader = () => (
 	</div>
 );
 
-const ProtectedRoutes = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoutes = ({ children }: { children: ReactNode }) => {
 	const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
 
 	if (isLoading) {
