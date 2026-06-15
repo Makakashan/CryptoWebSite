@@ -15,6 +15,8 @@ import Select from "@/components/ui/select";
 import Card, { CardContent } from "@/components/ui/card";
 import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
+import MetricCard from "../components/MetricCard";
+import { PageHero, PageShell } from "../components/PageShell";
 
 const AUTO_REFRESH_MS = 30000;
 
@@ -225,88 +227,62 @@ const Orders = () => {
 
 	if (showSkeletons) {
 		return (
-			<div className="glass-page-shell">
-				<div className="glass-page-body space-y-6">
-					<div className="glass-hero-glass px-6 py-5">
-						<div className="glass-panel-inner flex items-center justify-between">
-							<div>
-								<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-									{t("orderHistory")}
-								</h1>
-								<p className="mt-1.5 text-sm text-text-secondary">
-									Track and analyze all your trade activity
-								</p>
-							</div>
-						</div>
-					</div>
+			<PageShell bodyClassName="space-y-6">
+				<PageHero
+					title={t("orderHistory")}
+					description="Track and analyze all your trade activity"
+				/>
 
-					<div className="glass-metric-grid glass-metric-grid--four">
-						<StatCardSkeleton />
-						<StatCardSkeleton />
-						<StatCardSkeleton />
-						<StatCardSkeleton />
-					</div>
-
-					<TableSkeleton rows={8} columns={6} />
+				<div className="glass-metric-grid glass-metric-grid--four">
+					<StatCardSkeleton />
+					<StatCardSkeleton />
+					<StatCardSkeleton />
+					<StatCardSkeleton />
 				</div>
-			</div>
+
+				<TableSkeleton rows={8} columns={6} />
+			</PageShell>
 		);
 	}
 
 	if (error && orders.length === 0) {
 		return (
-			<div className="glass-page-shell">
-				<div className="glass-page-body">
-					<Card className="glass-empty-panel border-white/10">
-						<CardContent className="glass-panel-inner p-10 text-center">
-							<p className="text-red text-base">{error}</p>
-							<Button
-								className="glass-cta-button mt-4"
-								onClick={handleManualRefresh}
-							>
-								{t("retry")}
-							</Button>
-						</CardContent>
-					</Card>
-				</div>
-			</div>
+			<PageShell>
+				<Card className="glass-empty-panel border-white/10">
+					<CardContent className="glass-panel-inner p-10 text-center">
+						<p className="text-red text-base">{error}</p>
+						<Button className="glass-cta-button mt-4" onClick={handleManualRefresh}>
+							{t("retry")}
+						</Button>
+					</CardContent>
+				</Card>
+			</PageShell>
 		);
 	}
 
 	return (
-		<div className="glass-page-shell">
-			<div className="glass-page-body">
-				<div className="glass-hero-glass px-6 py-5">
-					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-						<div className="max-w-2xl">
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-								{t("orderHistory")}
-							</h1>
-							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
-								Analyze your execution flow, timing and profit footprint
-							</p>
-						</div>
-
-						<div className="flex flex-wrap items-center gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleManualRefresh}
-								className="glass-muted-button gap-2"
-							>
-								<RefreshCcw className="w-4 h-4" />
-								{t("refresh")}
-							</Button>
-							<Button
-								onClick={() => navigate("/markets")}
-								className="glass-cta-button gap-2"
-							>
-								<ArrowUpRight className="w-4 h-4" />
-								{t("placeNewOrder")}
-							</Button>
-						</div>
-					</div>
-				</div>
+		<PageShell>
+			<PageHero
+				title={t("orderHistory")}
+				description="Analyze your execution flow, timing and profit footprint"
+				actions={
+					<>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleManualRefresh}
+							className="glass-muted-button gap-2"
+						>
+							<RefreshCcw className="w-4 h-4" />
+							{t("refresh")}
+						</Button>
+						<Button onClick={() => navigate("/markets")} className="glass-cta-button gap-2">
+							<ArrowUpRight className="w-4 h-4" />
+							{t("placeNewOrder")}
+						</Button>
+					</>
+				}
+			/>
 
 				<Card className="glass-filter-panel">
 					<CardContent className="glass-panel-inner p-4">
@@ -436,67 +412,28 @@ const Orders = () => {
 				</Card>
 
 				<div className="glass-metric-grid glass-metric-grid--four">
-					<Card className="glass-metric-card">
-						<CardContent className="p-5">
-							<p className="text-xs uppercase tracking-wider text-text-secondary">
-								{t("totalOrders")}
-							</p>
-							<div className="mt-3 text-3xl font-bold text-text-primary">
-								{pagination?.total || orders.length}
-							</div>
-							<div className="mt-2 text-xs text-text-secondary flex items-center gap-1.5">
-								<Clock3 className="w-3.5 h-3.5" />
-								{t("allTime")}
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card className="glass-metric-card">
-						<CardContent className="p-5">
-							<p className="text-xs uppercase tracking-wider text-text-secondary">
-								{t("buyOrders")}
-							</p>
-							<div className="mt-3 text-3xl font-bold text-text-primary">
-								{buyOrders.length}
-							</div>
-							<div className="mt-2 text-xs text-text-secondary">
-								{formatPrice(totalBuyAmount)} {t("spent")}
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card className="glass-metric-card">
-						<CardContent className="p-5">
-							<p className="text-xs uppercase tracking-wider text-text-secondary">
-								{t("sellOrders")}
-							</p>
-							<div className="mt-3 text-3xl font-bold text-text-primary">
-								{sellOrders.length}
-							</div>
-							<div className="mt-2 text-xs text-text-secondary">
-								{formatPrice(totalSellAmount)} {t("earned")}
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card className="glass-metric-card">
-						<CardContent className="p-5">
-							<p className="text-xs uppercase tracking-wider text-text-secondary">
-								{t("netProfit")}
-							</p>
-							<div
-								className="mt-3 text-3xl font-bold"
-								style={{
-									color: netProfit >= 0 ? "#0ecb81" : "#f6465d",
-								}}
-							>
-								{formatPrice(netProfit)}
-							</div>
-							<div className="mt-2 text-xs text-text-secondary">
-								{t("totalGainLoss")}
-							</div>
-						</CardContent>
-					</Card>
+					<MetricCard
+						title={t("totalOrders")}
+						value={pagination?.total || orders.length}
+						description={t("allTime")}
+						icon={Clock3}
+					/>
+					<MetricCard
+						title={t("buyOrders")}
+						value={buyOrders.length}
+						description={`${formatPrice(totalBuyAmount)} ${t("spent")}`}
+					/>
+					<MetricCard
+						title={t("sellOrders")}
+						value={sellOrders.length}
+						description={`${formatPrice(totalSellAmount)} ${t("earned")}`}
+					/>
+					<MetricCard
+						title={t("netProfit")}
+						value={formatPrice(netProfit)}
+						description={t("totalGainLoss")}
+						valueClassName={netProfit >= 0 ? "text-green" : "text-red"}
+					/>
 				</div>
 
 				<Card className="glass-table-panel">
@@ -626,8 +563,7 @@ const Orders = () => {
 						</Button>
 					</div>
 				)}
-			</div>
-		</div>
+		</PageShell>
 	);
 };
 
