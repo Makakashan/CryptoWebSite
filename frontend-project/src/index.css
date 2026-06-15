@@ -581,12 +581,17 @@
 	z-index: 8;
 	width: 2.35rem;
 	height: 2.35rem;
-	padding: 0.45rem;
+	padding: 0.38rem;
+	border: 1px solid rgba(255, 255, 255, 0.11);
 	border-radius: 0.5rem;
-	background: rgba(255, 255, 255, 0.95);
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025)),
+		rgba(3, 4, 5, 0.74);
+	backdrop-filter: blur(14px);
 	box-shadow:
-		0 18px 42px rgba(0, 0, 0, 0.35),
-		0 0 28px rgba(255, 200, 76, 0.12);
+		0 18px 42px rgba(0, 0, 0, 0.42),
+		0 0 24px rgba(255, 200, 76, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .landing-body {
@@ -737,16 +742,18 @@
 	gap: 0.35rem;
 	min-width: 10rem;
 	padding: 1rem;
-	border: 1px solid rgba(154, 172, 183, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.105);
 	border-radius: 0.65rem;
 	color: #eff8f5;
 	background:
-		linear-gradient(180deg, rgba(15, 25, 35, 0.88), rgba(5, 10, 17, 0.78)),
-		rgba(5, 10, 16, 0.72);
-	backdrop-filter: blur(18px);
+		radial-gradient(circle at 18% 12%, rgba(141, 246, 201, 0.08), transparent 42%),
+		linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012)),
+		rgba(3, 4, 5, 0.66);
+	backdrop-filter: blur(16px);
 	box-shadow:
-		0 24px 70px rgba(0, 0, 0, 0.35),
-		inset 0 1px 0 rgba(255, 255, 255, 0.07);
+		0 22px 60px rgba(0, 0, 0, 0.32),
+		0 0 0 1px rgba(141, 246, 201, 0.025),
+		inset 0 1px 0 rgba(255, 255, 255, 0.055);
 	animation: floatingCard 7s ease-in-out infinite;
 	cursor: grab;
 	touch-action: none;
@@ -761,12 +768,16 @@
 	z-index: 6;
 	animation: none;
 	cursor: grabbing;
-	border-color: rgba(141, 246, 201, 0.35);
+	border-color: rgba(141, 246, 201, 0.26);
+	background:
+		radial-gradient(circle at 18% 12%, rgba(141, 246, 201, 0.12), transparent 42%),
+		linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.018)),
+		rgba(3, 4, 5, 0.72);
 }
 
 .landing-float-card__label,
 .landing-float-card__header {
-	color: #8a959d;
+	color: #737a7e;
 	font-size: 0.72rem;
 	font-weight: 850;
 	letter-spacing: 0.06em;
@@ -774,7 +785,7 @@
 }
 
 .landing-float-card__value {
-	color: #f5fbf8;
+	color: #f3f6f5;
 	font-size: clamp(1.8rem, 3vw, 2.7rem);
 	line-height: 0.95;
 	font-weight: 900;
@@ -782,7 +793,7 @@
 
 .landing-float-card__change,
 .landing-float-card__hint {
-	color: #72f5b3;
+	color: #8df6c9;
 	font-size: 0.8rem;
 	font-weight: 850;
 }
