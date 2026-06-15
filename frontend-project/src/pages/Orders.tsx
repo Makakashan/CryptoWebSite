@@ -228,7 +228,6 @@ const Orders = () => {
 			<div className="glass-page-shell">
 				<div className="glass-page-body space-y-6">
 					<div className="glass-hero-glass px-6 py-5">
-						<div aria-hidden className="glass-panel-highlight" />
 						<div className="glass-panel-inner flex items-center justify-between">
 							<div>
 								<h1 className="text-3xl font-bold tracking-tight text-text-primary">
@@ -259,7 +258,6 @@ const Orders = () => {
 			<div className="glass-page-shell">
 				<div className="glass-page-body">
 					<Card className="glass-empty-panel border-white/10">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="glass-panel-inner p-10 text-center">
 							<p className="text-red text-base">{error}</p>
 							<Button
@@ -279,7 +277,6 @@ const Orders = () => {
 		<div className="glass-page-shell">
 			<div className="glass-page-body">
 				<div className="glass-hero-glass px-6 py-5">
-					<div aria-hidden className="glass-panel-highlight" />
 					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 						<div className="max-w-2xl">
 							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
@@ -312,7 +309,6 @@ const Orders = () => {
 				</div>
 
 				<Card className="glass-filter-panel">
-					<div aria-hidden className="glass-panel-highlight" />
 					<CardContent className="glass-panel-inner p-4">
 						<div className="glass-filter-grid">
 							<div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
@@ -441,7 +437,6 @@ const Orders = () => {
 
 				<div className="glass-metric-grid glass-metric-grid--four">
 					<Card className="glass-metric-card">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="p-5">
 							<p className="text-xs uppercase tracking-wider text-text-secondary">
 								{t("totalOrders")}
@@ -457,7 +452,6 @@ const Orders = () => {
 					</Card>
 
 					<Card className="glass-metric-card">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="p-5">
 							<p className="text-xs uppercase tracking-wider text-text-secondary">
 								{t("buyOrders")}
@@ -472,7 +466,6 @@ const Orders = () => {
 					</Card>
 
 					<Card className="glass-metric-card">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="p-5">
 							<p className="text-xs uppercase tracking-wider text-text-secondary">
 								{t("sellOrders")}
@@ -487,7 +480,6 @@ const Orders = () => {
 					</Card>
 
 					<Card className="glass-metric-card">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="p-5">
 							<p className="text-xs uppercase tracking-wider text-text-secondary">
 								{t("netProfit")}
@@ -508,7 +500,6 @@ const Orders = () => {
 				</div>
 
 				<Card className="glass-table-panel">
-					<div aria-hidden className="glass-panel-highlight" />
 					<CardContent className="glass-panel-inner p-0">
 						<div className="px-6 pt-5 pb-3 flex items-center justify-between">
 							<h2 className="text-xl font-semibold text-text-primary">

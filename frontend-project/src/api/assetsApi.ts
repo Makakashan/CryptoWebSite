@@ -1,4 +1,5 @@
 import api from "./axiosConfig";
+import { toSearchParams } from "./params";
 import type {
 	AssetsFilters,
 	Asset,
@@ -10,15 +11,7 @@ import type {
 
 export const assetsApi = {
 	getAssets: async (filters?: AssetsFilters): Promise<AssetsResponse> => {
-		const params = new URLSearchParams();
-
-		if (filters) {
-			Object.entries(filters).forEach(([key, value]) => {
-				if (value !== undefined && value !== "" && value !== null) {
-					params.append(key, String(value));
-				}
-			});
-		}
+		const params = toSearchParams(filters);
 		const response = await api.get<AssetsResponse>(`/assets?${params.toString()}`);
 		return response.data;
 	},

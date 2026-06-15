@@ -197,7 +197,6 @@ const Profile = () => {
 		<div className="glass-page-shell">
 			<div className="glass-page-body space-y-5">
 				<div className="glass-hero-glass px-6 py-5">
-					<div aria-hidden className="glass-panel-highlight" />
 					<div className="glass-panel-inner flex items-center justify-between gap-4">
 						<div>
 							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
@@ -220,7 +219,6 @@ const Profile = () => {
 
 				{message && (
 					<Card className="glass-empty-panel border-white/10">
-						<div aria-hidden className="glass-panel-highlight" />
 						<CardContent className="glass-panel-inner p-4">
 							<div className={message.type === "success" ? "alert-success" : "alert-error"}>
 								{message.text}
@@ -232,7 +230,6 @@ const Profile = () => {
 				<div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
 					<div className="xl:col-span-8 space-y-5">
 						<Card className="glass-surface-panel">
-							<div aria-hidden className="glass-panel-highlight" />
 							<CardContent className="glass-panel-inner p-6">
 								<div className="flex flex-col items-center gap-4">
 									<AvatarUpload
@@ -283,7 +280,6 @@ const Profile = () => {
 						</Card>
 
 						<Card className="glass-filter-panel">
-							<div aria-hidden className="glass-panel-highlight" />
 							<CardContent className="glass-panel-inner p-5">
 								<div className="mb-4 flex items-center gap-2">
 									<Sparkles className="h-4 w-4 text-indigo-300" />
@@ -325,7 +321,6 @@ const Profile = () => {
 
 					<div className="xl:col-span-4 space-y-5">
 						<Card className="glass-metric-card">
-							<div aria-hidden className="glass-panel-highlight" />
 							<CardContent className="glass-panel-inner p-5">
 								<p className="text-xs uppercase tracking-[0.14em] text-text-secondary mb-2">
 									{t("username")}
@@ -338,7 +333,6 @@ const Profile = () => {
 						</Card>
 
 						<Card className="glass-metric-card">
-							<div aria-hidden className="glass-panel-highlight" />
 							<CardContent className="glass-panel-inner p-5">
 								<p className="text-xs uppercase tracking-[0.14em] text-text-secondary mb-2">
 									{t("balance")}
@@ -351,7 +345,6 @@ const Profile = () => {
 						</Card>
 
 						<Card className="glass-metric-card">
-							<div aria-hidden className="glass-panel-highlight" />
 							<CardContent className="glass-panel-inner p-5">
 								<p className="text-xs uppercase tracking-[0.14em] text-text-secondary mb-2">
 									{t("userId")}
@@ -361,7 +354,6 @@ const Profile = () => {
 						</Card>
 
 						<Card className="glass-filter-panel">
-							<div aria-hidden className="glass-panel-highlight" />
 							<CardContent className="glass-panel-inner p-5 space-y-3">
 								<h2 className="text-sm font-semibold tracking-wide text-text-primary uppercase">
 									Preferences
