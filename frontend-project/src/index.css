@@ -2924,6 +2924,67 @@
 		height: 2.65rem;
 		border-radius: 0.85rem !important;
 	}
+
+	.glass-page-body {
+		gap: 1rem;
+	}
+
+	.glass-page-body .gap-6 {
+		gap: 1rem;
+	}
+
+	.glass-hero-glass,
+	.portfolio-glass-panel,
+	.glass-filter-panel,
+	.glass-chart-panel,
+	.glass-table-panel,
+	.glass-empty-panel,
+	.glass-surface-panel {
+		border-radius: 1.35rem;
+	}
+
+	.portfolio-glass-card,
+	.glass-metric-card {
+		border-radius: 1.2rem;
+	}
+
+	.glass-metric-card [class*="p-6"] {
+		padding: 1rem;
+	}
+
+	.dashboard-chart-header {
+		padding: 1rem 1rem 0.75rem !important;
+		padding-right: 6rem !important;
+		gap: 0.35rem;
+	}
+
+	.dashboard-chart-header h3 {
+		font-size: 1rem;
+		line-height: 1.15;
+	}
+
+	.dashboard-chart-header p {
+		max-width: 14.5rem;
+		font-size: 0.82rem;
+		line-height: 1.45;
+	}
+
+	.dashboard-chart-header [class*="absolute"] {
+		top: 0.85rem;
+		right: 0.85rem;
+	}
+
+	.dashboard-chart-content {
+		padding: 0 1rem 1rem !important;
+	}
+
+	.glass-chart-shell,
+	.glass-chart-skeleton,
+	.glass-chart-empty {
+		height: 13.75rem;
+		border-radius: 1rem;
+		padding: 0.35rem;
+	}
 }
 
 @media (max-width: 480px) {
@@ -2958,6 +3019,39 @@
 
 	.header-badge {
 		display: none;
+	}
+
+	.glass-hero-glass {
+		padding: 1rem !important;
+	}
+
+	.glass-hero-glass h1 {
+		font-size: 1.6rem;
+	}
+
+	.glass-page-body .gap-6 {
+		gap: 0.75rem;
+	}
+
+	.dashboard-chart-header {
+		padding-right: 4.8rem !important;
+	}
+
+	.dashboard-chart-header p {
+		max-width: 12.5rem;
+	}
+
+	.dashboard-chart-header .glass-muted-button {
+		height: 2.15rem;
+		padding-inline: 0.8rem;
+		border-radius: 0.75rem !important;
+		font-size: 0.78rem;
+	}
+
+	.glass-chart-shell,
+	.glass-chart-skeleton,
+	.glass-chart-empty {
+		height: 12.25rem;
 	}
 }
 

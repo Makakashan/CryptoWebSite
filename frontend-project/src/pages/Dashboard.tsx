@@ -236,8 +236,21 @@ const Dashboard = () => {
 	const { portfolio, isLoading: portfolioLoading } = useAppSelector((state) => state.portfolio);
 	const { orders, isLoading: ordersLoading } = useAppSelector((state) => state.orders);
 	const [priceTick, setPriceTick] = useState(0);
+	const [isCompactChart, setIsCompactChart] = useState(false);
 
 	const initialFetchDone = useRef(false);
+
+	useEffect(() => {
+		const mediaQuery = window.matchMedia("(max-width: 640px)");
+		const updateCompactChart = () => setIsCompactChart(mediaQuery.matches);
+
+		updateCompactChart();
+		mediaQuery.addEventListener("change", updateCompactChart);
+
+		return () => {
+			mediaQuery.removeEventListener("change", updateCompactChart);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (initialFetchDone.current) return;
@@ -461,9 +474,9 @@ const Dashboard = () => {
 				</div>
 
 				<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-					<Card className="glass-chart-panel xl:col-span-2">
+					<Card className="glass-chart-panel dashboard-chart-panel xl:col-span-2">
 						<div className="glass-panel-inner">
-							<CardHeader>
+							<CardHeader className="dashboard-chart-header">
 								<CardTitle className="text-xl">{t("balanceOverTime")}</CardTitle>
 								<CardDescription>{t("balanceOverTimeDescription")}</CardDescription>
 								<CardAction>
@@ -477,7 +490,7 @@ const Dashboard = () => {
 									</Button>
 								</CardAction>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="dashboard-chart-content">
 								{isLoading || isBalanceHistoryLoading ? (
 									<div className="glass-chart-skeleton animate-pulse" />
 								) : balanceHistory.length > 1 ? (
@@ -485,7 +498,11 @@ const Dashboard = () => {
 										<ResponsiveContainer width="100%" height="100%">
 											<AreaChart
 												data={balanceHistory}
-												margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+												margin={
+													isCompactChart
+														? { top: 6, right: 0, left: -16, bottom: 0 }
+														: { top: 8, right: 8, left: 8, bottom: 0 }
+												}
 											>
 												<defs>
 													<linearGradient
@@ -518,6 +535,8 @@ const Dashboard = () => {
 													stroke="rgba(255,255,255,0.45)"
 													tickLine={false}
 													axisLine={false}
+													minTickGap={isCompactChart ? 14 : 5}
+													tick={{ fontSize: isCompactChart ? 11 : 14 }}
 													tickFormatter={(value) =>
 														new Date(Number(value)).toLocaleDateString([], {
 															day: "2-digit",
@@ -527,10 +546,11 @@ const Dashboard = () => {
 												/>
 												<YAxis
 													domain={yAxisDomain}
-													width={90}
+													width={isCompactChart ? 46 : 90}
 													stroke="rgba(255,255,255,0.45)"
 													tickLine={false}
 													axisLine={false}
+													tick={{ fontSize: isCompactChart ? 11 : 14 }}
 													tickFormatter={(value) => formatAxisPrice(Number(value))}
 												/>
 												<Tooltip
@@ -556,7 +576,7 @@ const Dashboard = () => {
 													type="monotone"
 													dataKey="value"
 													stroke="rgba(255,255,255,0.9)"
-													strokeWidth={2.5}
+													strokeWidth={isCompactChart ? 2 : 2.5}
 													fill="url(#balanceGradient)"
 												/>
 											</AreaChart>
