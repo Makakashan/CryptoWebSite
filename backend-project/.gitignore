@@ -13,3 +13,4 @@ build/
 # Keep important JS config files
 !*.config.js
 !jest.config.js
+serviceAccountKey.json
