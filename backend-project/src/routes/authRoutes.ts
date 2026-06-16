@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { getDB } from "../database.js";
 import { SECRET_KEY } from "../config/secret.js";
 import { DB, User } from "../types/types.js";
@@ -11,18 +13,82 @@ import { resolveAvatarDataUrl } from "../utils/avatar.js";
 // Create a router for authentication routes
 const router: Router = express.Router();
 
+type FirebaseServiceAccount = {
+	projectId: string;
+	clientEmail: string;
+	privateKey: string;
+};
+
+const stripWrappingQuotes = (value: string): string => {
+	if (
+		(value.startsWith('"') && value.endsWith('"')) ||
+		(value.startsWith("'") && value.endsWith("'"))
+	) {
+		return value.slice(1, -1);
+	}
+	return value;
+};
+
+const getFirebaseServiceAccount = (): FirebaseServiceAccount | null => {
+	const projectId = process.env.FIREBASE_PROJECT_ID;
+	const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+	const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+	if (projectId && clientEmail && privateKey) {
+		return {
+			projectId: stripWrappingQuotes(projectId),
+			clientEmail: stripWrappingQuotes(clientEmail),
+			privateKey: stripWrappingQuotes(privateKey).replace(/\\n/g, "\n"),
+		};
+	}
+
+	const serviceAccountPaths = [
+		path.resolve(process.cwd(), "serviceAccountKey.json"),
+		path.resolve(process.cwd(), "src/serviceAccountKey.json"),
+	];
+
+	for (const serviceAccountPath of serviceAccountPaths) {
+		if (!existsSync(serviceAccountPath)) {
+			continue;
+		}
+
+		const parsed = JSON.parse(readFileSync(serviceAccountPath, "utf-8")) as {
+			project_id?: string;
+			client_email?: string;
+			private_key?: string;
+		};
+
+		if (!parsed.project_id || !parsed.client_email || !parsed.private_key) {
+			continue;
+		}
+
+		return {
+			projectId: parsed.project_id,
+			clientEmail: parsed.client_email,
+			privateKey: parsed.private_key,
+		};
+	}
+
+	return null;
+};
+
 // Initialize Firebase Admin SDK
 if (getApps().length === 0) {
 	try {
-		const serviceAccount = JSON.parse(
-			await import("node:fs").then((fs) =>
-				fs.default.readFileSync(
-					new URL("../serviceAccountKey.json", import.meta.url),
-					"utf-8",
-				),
-			),
-		);
-		initializeApp({ credential: cert(serviceAccount) });
+		const serviceAccount = getFirebaseServiceAccount();
+		if (!serviceAccount) {
+			throw new Error(
+				"Missing Firebase Admin credentials. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, or provide backend-project/serviceAccountKey.json.",
+			);
+		}
+
+		initializeApp({
+			credential: cert({
+				projectId: serviceAccount.projectId,
+				clientEmail: serviceAccount.clientEmail,
+				privateKey: serviceAccount.privateKey,
+			}),
+		});
 		console.log("Firebase Admin initialized.");
 	} catch (error) {
 		console.warn("Firebase Admin SDK not initialized:", error);
@@ -95,6 +161,11 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
 		const user = await db.get("SELECT * FROM users WHERE username = ?", [username]);
 		if (!user) {
 			res.status(400).json({ message: "Invalid Username." });
+			return;
+		}
+
+		if (!user.password) {
+			res.status(400).json({ message: "This account uses Google sign-in." });
 			return;
 		}
 
@@ -184,6 +255,7 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 				"UPDATE users SET avatar = COALESCE(?, avatar), email = COALESCE(?, email), google_id = COALESCE(?, google_id) WHERE id = ?",
 				[avatar, email, googleId, user.id],
 			);
+			user = await db.get<User>("SELECT * FROM users WHERE id = ?", [user.id]);
 		}
 
 		if (!user) {
