@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -33,6 +33,23 @@ const Markets = () => {
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [showFilters, setShowFilters] = useState(false);
 	const fetchInProgress = useRef(false);
+	const chartRequestsInFlight = useRef<Set<string>>(new Set());
+
+	const fetchChartBatch = useCallback(
+		(symbolsToFetch: string[]) => {
+			const batch = symbolsToFetch.filter(
+				(symbol) => !chartRequestsInFlight.current.has(symbol),
+			);
+
+			if (batch.length === 0) return;
+
+			batch.forEach((symbol) => chartRequestsInFlight.current.add(symbol));
+			dispatch(fetchChartData(batch)).finally(() => {
+				batch.forEach((symbol) => chartRequestsInFlight.current.delete(symbol));
+			});
+		},
+		[dispatch],
+	);
 
 	const categories = [
 		"Layer 1",
@@ -64,24 +81,35 @@ const Markets = () => {
 
 		const BATCH_SIZE = 4;
 		const symbolsNeedingData = assets
-			.filter((asset) => !chartData[asset.symbol] || chartData[asset.symbol].length === 0)
+			.filter(
+				(asset) =>
+					(!chartData[asset.symbol] || chartData[asset.symbol].length === 0) &&
+					!chartRequestsInFlight.current.has(asset.symbol),
+			)
 			.map((asset) => asset.symbol);
 
 		if (symbolsNeedingData.length === 0) return;
+
+		const timeoutIds: ReturnType<typeof setTimeout>[] = [];
 
 		const loadBatch = (startIndex: number) => {
 			if (startIndex >= symbolsNeedingData.length) return;
 
 			const batch = symbolsNeedingData.slice(startIndex, startIndex + BATCH_SIZE);
-			dispatch(fetchChartData(batch));
+			fetchChartBatch(batch);
 
 			if (startIndex + BATCH_SIZE < symbolsNeedingData.length) {
-				setTimeout(() => loadBatch(startIndex + BATCH_SIZE), 500);
+				const timeoutId = setTimeout(() => loadBatch(startIndex + BATCH_SIZE), 500);
+				timeoutIds.push(timeoutId);
 			}
 		};
 
 		loadBatch(0);
-	}, [assets, chartData, dispatch]);
+
+		return () => {
+			timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
+		};
+	}, [assets, chartData, fetchChartBatch]);
 
 	useEffect(() => {
 		if (assets.length === 0) return;
@@ -98,26 +126,30 @@ const Markets = () => {
 	useEffect(() => {
 		if (assets.length === 0) return;
 
+		const timeoutIds: ReturnType<typeof setTimeout>[] = [];
+
 		const intervalId = setInterval(() => {
 			if (!document.hidden && assets.length > 0) {
 				const symbols = assets.map((asset) => asset.symbol);
 				const BATCH_SIZE = 6;
 				for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
 					const batch = symbols.slice(i, i + BATCH_SIZE);
-					setTimeout(
+					const timeoutId = setTimeout(
 						() => {
-							dispatch(fetchChartData(batch));
+							fetchChartBatch(batch);
 						},
 						(i / BATCH_SIZE) * 1000,
 					);
+					timeoutIds.push(timeoutId);
 				}
 			}
 		}, 60000);
 
 		return () => {
 			clearInterval(intervalId);
+			timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
 		};
-	}, [dispatch, assets]);
+	}, [fetchChartBatch, assets]);
 
 	const handleApplyFilters = () => {
 		if (fetchInProgress.current) return;
