@@ -161,6 +161,32 @@ router.get("/categories", (_req: Request, res: Response): void => {
 	res.json({ categories: ALLOWED_ASSET_CATEGORIES });
 });
 
+// GET /assets/icon/:symbol - Return a stored icon URL without browser-side third-party calls
+router.get("/icon/:symbol", async (req: Request, res: Response): Promise<void> => {
+	const db = getDB();
+	const rawSymbol = String(req.params.symbol || "").trim().toUpperCase();
+	const baseAsset = rawSymbol.replace(/USDT$/, "");
+
+	if (!baseAsset) {
+		res.status(400).json({ message: "Symbol is required" });
+		return;
+	}
+
+	try {
+		const asset = await db.get(
+			`SELECT image_url FROM assets
+			 WHERE UPPER(symbol) = ? OR UPPER(symbol) = ?
+			 LIMIT 1`,
+			[baseAsset, `${baseAsset}USDT`],
+		);
+
+		res.json({ imageUrl: asset?.image_url || null });
+	} catch (error) {
+		console.error(`Error loading icon for ${baseAsset}:`, error);
+		res.status(500).json({ message: "Failed to load icon" });
+	}
+});
+
 // POST /assets/sync - Synchronize Assets from External API with CoinGecko data
 router.post("/sync", authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
 	const db = getDB();

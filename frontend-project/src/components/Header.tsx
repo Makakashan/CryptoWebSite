@@ -68,7 +68,7 @@ const Header = () => {
 	const userInitials = user?.username ? getInitials(user.username) : "U";
 	const pageLabel = useMemo(() => {
 		const path = location.pathname;
-		if (path === "/") return t("dashboard");
+		if (path === "/" || path === "/dashboard") return t("dashboard");
 		if (path.startsWith("/markets")) return t("markets");
 		if (path.startsWith("/portfolio")) return t("portfolio");
 		if (path.startsWith("/orders")) return t("orders");

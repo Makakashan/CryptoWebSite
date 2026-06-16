@@ -209,13 +209,18 @@ export const MarketConstellation3D = ({ prices = [] }: { prices?: number[] }) =>
 	useEffect(() => {
 		const el = containerRef.current;
 		if (!el) return;
+		const isMobile = window.matchMedia("(max-width: 640px)").matches;
 
 		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(32, el.clientWidth / el.clientHeight, 0.1, 100);
-		camera.position.set(0, 0.8, 8);
+		const camera = new THREE.PerspectiveCamera(isMobile ? 38 : 32, el.clientWidth / el.clientHeight, 0.1, 100);
+		camera.position.set(0, isMobile ? 0.3 : 0.8, isMobile ? 9 : 8);
 
-		const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+		const renderer = new THREE.WebGLRenderer({
+			alpha: true,
+			antialias: !isMobile,
+			preserveDrawingBuffer: import.meta.env.DEV,
+		});
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.35 : 2));
 		el.appendChild(renderer.domElement);
 
 		const resize = () => {
@@ -233,12 +238,12 @@ export const MarketConstellation3D = ({ prices = [] }: { prices?: number[] }) =>
 		scene.add(light);
 
 		const particleGeo = new THREE.BufferGeometry();
-		const particleCount = 90;
+		const particleCount = isMobile ? 46 : 90;
 		const particlePositions = new Float32Array(particleCount * 3);
 		for (let i = 0; i < particleCount; i++) {
-			particlePositions[i * 3] = (Math.random() - 0.5) * 8;
-			particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 5;
-			particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 2.5;
+			particlePositions[i * 3] = (Math.random() - 0.5) * (isMobile ? 6 : 8);
+			particlePositions[i * 3 + 1] = (Math.random() - 0.5) * (isMobile ? 3.8 : 5);
+			particlePositions[i * 3 + 2] = (Math.random() - 0.5) * (isMobile ? 1.8 : 2.5);
 		}
 		particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
 		const particleMat = new THREE.PointsMaterial({
@@ -256,6 +261,7 @@ export const MarketConstellation3D = ({ prices = [] }: { prices?: number[] }) =>
 			const t = clock.getElapsedTime();
 			particles.rotation.z = t * 0.012;
 			particles.rotation.y = Math.sin(t * 0.12) * 0.05;
+			particles.position.y = Math.sin(t * 0.45) * (isMobile ? 0.12 : 0.2);
 			renderer.render(scene, camera);
 			frameRef.current = requestAnimationFrame(animate);
 		};

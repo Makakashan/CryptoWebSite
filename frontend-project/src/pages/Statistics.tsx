@@ -186,6 +186,7 @@ const Statistics = () => {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
+	const [isCompactChart, setIsCompactChart] = useState(false);
 
 	const { isAuthenticated } = useAppSelector((state: RootState) => state.auth);
 	const { orders, isLoading: ordersLoading } = useAppSelector((state: RootState) => state.orders);
@@ -193,6 +194,18 @@ const Statistics = () => {
 		(state: RootState) => state.portfolio,
 	);
 	const { assets } = useAppSelector((state: RootState) => state.assets);
+
+	useEffect(() => {
+		const mediaQuery = window.matchMedia("(max-width: 640px)");
+		const updateCompactChart = () => setIsCompactChart(mediaQuery.matches);
+
+		updateCompactChart();
+		mediaQuery.addEventListener("change", updateCompactChart);
+
+		return () => {
+			mediaQuery.removeEventListener("change", updateCompactChart);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (!isAuthenticated) return;
@@ -449,12 +462,16 @@ const Statistics = () => {
 													</span>
 												</div>
 											</CardHeader>
-											<CardContent>
+											<CardContent className="stats-chart-content">
 												<ChartContainer className="glass-chart-shell w-full aspect-auto">
 													<ResponsiveContainer width="100%" height="100%">
 														<BarChart
 															data={ordersByTypeData}
-															margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+															margin={
+																isCompactChart
+																	? { top: 6, right: 2, left: -24, bottom: 0 }
+																	: { top: 8, right: 8, left: 8, bottom: 0 }
+															}
 														>
 															<CartesianGrid
 																strokeDasharray="3 3"
@@ -465,12 +482,15 @@ const Statistics = () => {
 																stroke="rgba(255,255,255,0.45)"
 																tickLine={false}
 																axisLine={false}
+																tick={{ fontSize: isCompactChart ? 11 : 14 }}
 															/>
 															<YAxis
 																stroke="rgba(255,255,255,0.45)"
 																allowDecimals={false}
 																tickLine={false}
 																axisLine={false}
+																width={isCompactChart ? 30 : 60}
+																tick={{ fontSize: isCompactChart ? 11 : 14 }}
 															/>
 															<Tooltip
 																cursor={{ fill: "rgba(255,255,255,0.05)" }}
@@ -521,12 +541,16 @@ const Statistics = () => {
 													</span>
 												</div>
 											</CardHeader>
-											<CardContent>
+											<CardContent className="stats-chart-content">
 												<ChartContainer className="glass-chart-shell w-full aspect-auto">
 													<ResponsiveContainer width="100%" height="100%">
 														<AreaChart
 															data={profitOverTime}
-															margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+															margin={
+																isCompactChart
+																	? { top: 6, right: 4, left: -18, bottom: 0 }
+																	: { top: 8, right: 8, left: 8, bottom: 0 }
+															}
 														>
 															<CartesianGrid
 																strokeDasharray="3 3"
@@ -539,6 +563,8 @@ const Statistics = () => {
 																stroke="rgba(255,255,255,0.45)"
 																tickLine={false}
 																axisLine={false}
+																tick={{ fontSize: isCompactChart ? 11 : 14 }}
+																minTickGap={isCompactChart ? 18 : 5}
 																tickFormatter={(value) =>
 																	new Date(Number(value)).toLocaleDateString([], {
 																		day: "2-digit",
@@ -551,6 +577,8 @@ const Statistics = () => {
 																stroke="rgba(255,255,255,0.45)"
 																tickLine={false}
 																axisLine={false}
+																width={isCompactChart ? 42 : 60}
+																tick={{ fontSize: isCompactChart ? 11 : 14 }}
 																tickFormatter={(value) =>
 																	formatAxisValue(Number(value))
 																}
@@ -575,12 +603,12 @@ const Statistics = () => {
 																	/>
 																}
 															/>
-															<Legend content={<ChartLegend />} />
+															{!isCompactChart && <Legend content={<ChartLegend />} />}
 															<Area
 																type="monotone"
 																dataKey="profit"
 																stroke="rgba(255,255,255,0.9)"
-																strokeWidth={2.5}
+																strokeWidth={isCompactChart ? 2 : 2.5}
 																fill="none"
 																fillOpacity={0}
 																dot={false}

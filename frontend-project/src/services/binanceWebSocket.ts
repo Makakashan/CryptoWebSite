@@ -46,7 +46,9 @@ class BinanceWebSocketService {
 						this.throttledNotify(symbol, price);
 					}
 				} catch (error) {
-					console.error("Error parsing WebSocket message:", error);
+					if (import.meta.env.DEV) {
+						console.error("Error parsing WebSocket message:", error);
+					}
 				}
 			};
 
@@ -65,7 +67,9 @@ class BinanceWebSocketService {
 				}
 			};
 		} catch (error) {
-			console.error("Failed to create WebSocket:", error);
+			if (import.meta.env.DEV) {
+				console.error("Failed to create WebSocket:", error);
+			}
 		}
 	}
 

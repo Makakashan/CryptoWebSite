@@ -154,7 +154,9 @@ const assetsSlice = createSlice({
 				state.chartData = { ...state.chartData, ...action.payload };
 			})
 			.addCase(fetchChartData.rejected, (_, action) => {
-				console.error("Failed to fetch chart data:", action.payload);
+				if (import.meta.env.DEV) {
+					console.error("Failed to fetch chart data:", action.payload);
+				}
 			})
 			.addCase(createAsset.pending, (state) => {
 				state.isLoading = true;

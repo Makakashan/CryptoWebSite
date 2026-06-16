@@ -82,6 +82,7 @@ const Landing = () => {
 
 	const startCardDrag = (key: FloatingCardKey, event: PointerEvent<HTMLDivElement>) => {
 		if (event.button !== 0) return;
+		if (window.matchMedia("(max-width: 900px), (pointer: coarse)").matches) return;
 		event.currentTarget.setPointerCapture(event.pointerId);
 		dragRef.current = {
 			key,
