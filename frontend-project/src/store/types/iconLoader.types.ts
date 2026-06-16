@@ -1,4 +1,4 @@
 export interface CachedIcon {
-	url: string;
+	url: string | null;
 	timestamp: number;
 }
