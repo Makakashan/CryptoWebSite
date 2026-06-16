@@ -1,7 +1,8 @@
 import express, { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getDB } from "../database.js";
 import { SECRET_KEY } from "../config/secret.js";
 import { DB, User } from "../types/types.js";
@@ -10,13 +11,23 @@ import { resolveAvatarDataUrl } from "../utils/avatar.js";
 // Create a router for authentication routes
 const router: Router = express.Router();
 
-const getGoogleClientId = (): string | null => {
-	const clientId = process.env.GOOGLE_CLIENT_ID;
-	if (!clientId) {
-		return null;
+// Initialize Firebase Admin SDK
+if (getApps().length === 0) {
+	try {
+		const serviceAccount = JSON.parse(
+			await import("node:fs").then((fs) =>
+				fs.default.readFileSync(
+					new URL("../serviceAccountKey.json", import.meta.url),
+					"utf-8",
+				),
+			),
+		);
+		initializeApp({ credential: cert(serviceAccount) });
+		console.log("Firebase Admin initialized.");
+	} catch (error) {
+		console.warn("Firebase Admin SDK not initialized:", error);
 	}
-	return clientId;
-};
+}
 
 const sanitizeUsername = (value: string): string => {
 	return value
@@ -137,10 +148,9 @@ router.post("/logout", (_req: Request, res: Response): void => {
 router.post("/google", async (req: Request, res: Response): Promise<void> => {
 	const { credential } = req.body;
 	const db = getDB();
-	const googleClientId = getGoogleClientId();
 
-	if (!googleClientId) {
-		res.status(500).json({ message: "Google client ID is not configured." });
+	if (getApps().length === 0) {
+		res.status(500).json({ message: "Firebase is not configured on the server." });
 		return;
 	}
 
@@ -150,23 +160,12 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 	}
 
 	try {
-		const client = new OAuth2Client(googleClientId);
-		const ticket = await client.verifyIdToken({
-			idToken: credential,
-			audience: googleClientId,
-		});
-		const payload = ticket.getPayload();
-
-		if (!payload || !payload.sub) {
-			res.status(400).json({ message: "Invalid Google token." });
-			return;
-		}
-
-		const googleId = payload.sub;
-		const email = payload.email || null;
-		const avatar = await resolveAvatarDataUrl(payload.picture || null);
+		const decodedToken = await getAuth().verifyIdToken(credential);
+		const googleId = decodedToken.uid;
+		const email = decodedToken.email || null;
+		const avatar = await resolveAvatarDataUrl(decodedToken.picture || null);
 		const baseUsername =
-			(email ? email.split("@")[0] : payload.name) || `user_${googleId.slice(0, 6)}`;
+			(email ? email.split("@")[0] : decodedToken.name) || `user_${googleId.slice(0, 6)}`;
 
 		let user = await db.get<User>("SELECT * FROM users WHERE google_id = ? OR email = ?", [
 			googleId,
