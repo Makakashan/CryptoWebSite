@@ -32,11 +32,11 @@ export async function signInWithGoogle(): Promise<string> {
 	const firebaseAuth = getFirebaseAuth();
 	const provider = new GoogleAuthProvider();
 	const result = await signInWithPopup(firebaseAuth, provider);
-	const credential = GoogleAuthProvider.credentialFromResult(result);
-	if (!credential?.idToken) {
-		throw new Error("No ID token received from Google.");
+	const idToken = await result.user.getIdToken();
+	if (!idToken) {
+		throw new Error("No Firebase ID token received from Google sign-in.");
 	}
-	return credential.idToken;
+	return idToken;
 }
 
 export function isFirebaseConfigured(): boolean {

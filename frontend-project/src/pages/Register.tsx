@@ -30,6 +30,7 @@ const Register = () => {
 
 	const onGoogleSuccess = useCallback(() => navigate("/dashboard"), [navigate]);
 	const { loading: googleLoading, error: googleError, triggerPrompt } = useGoogleAuth(onGoogleSuccess);
+	const visibleAuthError = googleError ?? error;
 
 	const validationSchema = Yup.object({
 		username: Yup.string()
@@ -96,8 +97,7 @@ const Register = () => {
 						</CardAction>
 					</CardHeader>
 					<CardContent>
-						{error && <div className="alert-error mb-4">{error}</div>}
-						{googleError && <div className="alert-error mb-4">{googleError}</div>}
+						{visibleAuthError && <div className="alert-error mb-4">{visibleAuthError}</div>}
 
 						<form onSubmit={formik.handleSubmit}>
 							<div className="flex flex-col gap-6">
