@@ -462,78 +462,122 @@ const Orders = () => {
 								</Button>
 							</div>
 						) : (
-							<div className="overflow-x-auto">
-								<table className="w-full border-collapse">
-									<thead>
-										<tr className="border-b border-white/10">
-											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-												{t("date")}
-											</th>
-											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-												{t("asset")}
-											</th>
-											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-												{t("type")}
-											</th>
-											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-												{t("amount")}
-											</th>
-											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-												{t("price")}
-											</th>
-											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-												{t("total")}
-											</th>
-										</tr>
-									</thead>
-									<tbody>
-										{orders.map((order) => {
-											const shortName = order.asset_symbol.replace(
-												"USDT",
-												"",
-											);
-											const total =
-												order.amount * order.price_at_transaction;
-											const date = new Date(
-												order.timestamp,
-											).toLocaleString();
-											const isBuy = order.order_type === "BUY";
+							<>
+								<div className="orders-table-wrap overflow-x-auto">
+									<table className="w-full border-collapse">
+										<thead>
+											<tr className="border-b border-white/10">
+												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+													{t("date")}
+												</th>
+												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+													{t("asset")}
+												</th>
+												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+													{t("type")}
+												</th>
+												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+													{t("amount")}
+												</th>
+												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+													{t("price")}
+												</th>
+												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+													{t("total")}
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											{orders.map((order) => {
+												const shortName = order.asset_symbol.replace(
+													"USDT",
+													"",
+												);
+												const total =
+													order.amount * order.price_at_transaction;
+												const date = new Date(
+													order.timestamp,
+												).toLocaleString();
+												const isBuy = order.order_type === "BUY";
 
-											return (
-												<tr
-													key={order.id}
-													className="border-b border-white/6 transition-colors duration-200 hover:bg-white/2"
-												>
-													<td className="px-6 py-4 text-sm text-text-primary">
-														{date}
-													</td>
-													<td className="px-6 py-4 text-sm text-text-primary font-semibold">
-														{shortName}
-													</td>
-													<td className="px-6 py-4 text-sm">
-														<span
-															className={`glass-market-chip ${isBuy ? "text-green border-green/30 bg-green/10" : "text-red border-red/30 bg-red/10"}`}
-														>
-															{order.order_type}
-														</span>
-													</td>
-													<td className="px-6 py-4 text-sm text-text-primary">
-														{order.amount.toFixed(6)}
-													</td>
-													<td className="px-6 py-4 text-sm text-text-primary">
-														{formatPrice(
-															order.price_at_transaction,
-														)}
-													</td>
-													<td className="px-6 py-4 text-sm font-semibold text-text-primary">
-														{formatPrice(total)}
-													</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-							</div>
+												return (
+													<tr
+														key={order.id}
+														className="border-b border-white/6 transition-colors duration-200 hover:bg-white/2"
+													>
+														<td className="px-6 py-4 text-sm text-text-primary">
+															{date}
+														</td>
+														<td className="px-6 py-4 text-sm text-text-primary font-semibold">
+															{shortName}
+														</td>
+														<td className="px-6 py-4 text-sm">
+															<span
+																className={`glass-market-chip ${isBuy ? "text-green border-green/30 bg-green/10" : "text-red border-red/30 bg-red/10"}`}
+															>
+																{order.order_type}
+															</span>
+														</td>
+														<td className="px-6 py-4 text-sm text-text-primary">
+															{order.amount.toFixed(6)}
+														</td>
+														<td className="px-6 py-4 text-sm text-text-primary">
+															{formatPrice(
+																order.price_at_transaction,
+															)}
+														</td>
+														<td className="px-6 py-4 text-sm font-semibold text-text-primary">
+															{formatPrice(total)}
+														</td>
+													</tr>
+												);
+											})}
+										</tbody>
+									</table>
+								</div>
+								<div className="orders-mobile-list">
+									{orders.map((order) => {
+										const shortName = order.asset_symbol.replace("USDT", "");
+										const total = order.amount * order.price_at_transaction;
+										const date = new Date(order.timestamp).toLocaleString();
+										const isBuy = order.order_type === "BUY";
+
+										return (
+											<article className="orders-mobile-card" key={order.id}>
+												<div className="orders-mobile-card__top">
+													<div>
+														<span className="orders-mobile-card__label">{t("asset")}</span>
+														<strong>{shortName}</strong>
+													</div>
+													<span
+														className={`glass-market-chip ${isBuy ? "text-green border-green/30 bg-green/10" : "text-red border-red/30 bg-red/10"}`}
+													>
+														{order.order_type}
+													</span>
+												</div>
+												<div className="orders-mobile-card__grid">
+													<div>
+														<span className="orders-mobile-card__label">{t("date")}</span>
+														<span>{date}</span>
+													</div>
+													<div>
+														<span className="orders-mobile-card__label">{t("amount")}</span>
+														<span>{order.amount.toFixed(6)}</span>
+													</div>
+													<div>
+														<span className="orders-mobile-card__label">{t("price")}</span>
+														<span>{formatPrice(order.price_at_transaction)}</span>
+													</div>
+													<div>
+														<span className="orders-mobile-card__label">{t("total")}</span>
+														<strong>{formatPrice(total)}</strong>
+													</div>
+												</div>
+											</article>
+										);
+									})}
+								</div>
+							</>
 						)}
 					</CardContent>
 				</Card>
