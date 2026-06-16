@@ -66,7 +66,9 @@ class IconLoaderService {
 			localStorage.removeItem(cacheKey);
 			return undefined;
 		} catch (error) {
-			console.error(`Error reading cache for ${baseAsset}:`, error);
+			if (import.meta.env.DEV) {
+				console.error(`Error reading cache for ${baseAsset}:`, error);
+			}
 			return undefined;
 		}
 	}

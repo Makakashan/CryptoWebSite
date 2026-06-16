@@ -19,7 +19,9 @@ class WebSocketService {
 			this.ws = new WebSocket(url);
 
 			this.ws.onopen = () => {
-				console.log("WebSocket connected");
+				if (import.meta.env.DEV) {
+					console.log("WebSocket connected");
+				}
 				this.reconnectAttempts = 0;
 			};
 
@@ -34,20 +36,28 @@ class WebSocketService {
 						this.callbacks.forEach((callback) => callback(data));
 					}
 				} catch (error) {
-					console.error("Error parsing WebSocket message:", error);
+					if (import.meta.env.DEV) {
+						console.error("Error parsing WebSocket message:", error);
+					}
 				}
 			};
 
 			this.ws.onerror = (error) => {
-				console.error("WebSocket error:", error);
+				if (import.meta.env.DEV) {
+					console.error("WebSocket error:", error);
+				}
 			};
 
 			this.ws.onclose = () => {
-				console.log("WebSocket disconnected");
+				if (import.meta.env.DEV) {
+					console.log("WebSocket disconnected");
+				}
 				this.attemptReconnect(url);
 			};
 		} catch (error) {
-			console.error("Error connecting to WebSocket:", error);
+			if (import.meta.env.DEV) {
+				console.error("Error connecting to WebSocket:", error);
+			}
 			this.attemptReconnect(url);
 		}
 	}
@@ -55,7 +65,9 @@ class WebSocketService {
 	private attemptReconnect(url: string) {
 		if (this.reconnectAttempts < this.maxReconnectAttempts) {
 			this.reconnectAttempts++;
-			console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
+			if (import.meta.env.DEV) {
+				console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
+			}
 			setTimeout(() => this.connect(url), this.reconnectInterval);
 		}
 	}
