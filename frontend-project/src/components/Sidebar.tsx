@@ -16,7 +16,7 @@ const Sidebar = () => {
 	const location = useLocation();
 
 	const navItems: SidebarNavItem[] = [
-		{ to: "/", label: t("dashboard"), icon: FiHome },
+		{ to: "/dashboard", label: t("dashboard"), icon: FiHome },
 		{ to: "/markets", label: t("markets"), icon: FiTrendingUp },
 		{ to: "/portfolio", label: t("portfolio"), icon: FiBriefcase },
 		{ to: "/orders", label: t("orders"), icon: FiShoppingCart },
@@ -43,10 +43,7 @@ const Sidebar = () => {
 				<nav className="flex flex-1 flex-col gap-1.5">
 					{navItems.map((item) => {
 						const Icon = item.icon;
-						const isActive =
-							item.to === "/"
-								? location.pathname === "/"
-								: location.pathname.startsWith(item.to);
+						const isActive = location.pathname.startsWith(item.to);
 
 						return (
 							<NavLink

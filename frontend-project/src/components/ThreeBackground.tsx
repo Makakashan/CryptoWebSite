@@ -47,23 +47,54 @@ const ThreeBackground = () => {
 	const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 	const frameRef = useRef<number>(0);
 
-	const onMouseMove = useCallback((e: MouseEvent) => {
+	const updatePointer = useCallback((clientX: number, clientY: number) => {
 		const { innerWidth, innerHeight } = window;
-		mouseRef.current.targetX = (e.clientX / innerWidth) * 2 - 1;
-		mouseRef.current.targetY = -(e.clientY / innerHeight) * 2 + 1;
+		mouseRef.current.targetX = (clientX / innerWidth) * 2 - 1;
+		mouseRef.current.targetY = -(clientY / innerHeight) * 2 + 1;
+	}, []);
+
+	const onMouseMove = useCallback((e: MouseEvent) => {
+		updatePointer(e.clientX, e.clientY);
+	}, [updatePointer]);
+
+	const onTouchMove = useCallback((e: TouchEvent) => {
+		const touch = e.touches[0];
+		if (!touch) return;
+		updatePointer(touch.clientX, touch.clientY);
+	}, [updatePointer]);
+
+	const onDeviceOrientation = useCallback((e: DeviceOrientationEvent) => {
+		if (typeof e.gamma !== "number" || typeof e.beta !== "number") return;
+		mouseRef.current.targetX = Math.max(-1, Math.min(1, e.gamma / 28));
+		mouseRef.current.targetY = Math.max(-1, Math.min(1, (e.beta - 45) / -38));
 	}, []);
 
 	useEffect(() => {
 		const container = containerRef.current;
 		if (!container) return;
 
-		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-		camera.position.z = 30;
+		const isMobile = window.innerWidth < 768;
+		const meshCount = isMobile ? 8 : 16;
+		const spriteCount = isMobile ? 3 : 8;
+		const chartCount = isMobile ? 2 : 4;
+		const particleCount = isMobile ? 100 : 240;
+		const getViewportSize = () => ({
+			width: Math.max(container.clientWidth, window.visualViewport?.width ?? window.innerWidth, 1),
+			height: Math.max(container.clientHeight, window.visualViewport?.height ?? window.innerHeight, 1),
+		});
+		const viewport = getViewportSize();
 
-		const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-		renderer.setSize(window.innerWidth, window.innerHeight);
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+		const scene = new THREE.Scene();
+		const camera = new THREE.PerspectiveCamera(isMobile ? 62 : 55, viewport.width / viewport.height, 0.1, 1000);
+		camera.position.z = isMobile ? 34 : 30;
+
+		const renderer = new THREE.WebGLRenderer({
+			alpha: true,
+			antialias: !isMobile,
+			preserveDrawingBuffer: import.meta.env.DEV,
+		});
+		renderer.setSize(viewport.width, viewport.height, false);
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
 		container.appendChild(renderer.domElement);
 
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -92,17 +123,17 @@ const ThreeBackground = () => {
 			new THREE.MeshStandardMaterial({ color: 0xaaaaaa, wireframe: false, transparent: true, opacity: 0.06 }),
 		];
 
-		for (let i = 0; i < 16; i++) {
+		for (let i = 0; i < meshCount; i++) {
 			const geo = geometries[i % geometries.length];
 			const mat = i < 10 ? wireMats[i % wireMats.length] : solidMats[i % solidMats.length];
 			const mesh = new THREE.Mesh(geo, mat);
-			const spread = 36;
+			const spread = isMobile ? 25 : 36;
 			mesh.position.set(
 				(Math.random() - 0.5) * spread,
 				(Math.random() - 0.5) * spread,
 				(Math.random() - 0.5) * 20 - 5,
 			);
-			const s = 0.5 + Math.random() * 1.5;
+			const s = (isMobile ? 0.42 : 0.5) + Math.random() * (isMobile ? 1.05 : 1.5);
 			mesh.scale.set(s, s, s);
 			mesh.userData = {
 				rotSpeed: { x: (Math.random() - 0.5) * 0.015, y: (Math.random() - 0.5) * 0.015, z: (Math.random() - 0.5) * 0.007 },
@@ -117,12 +148,12 @@ const ThreeBackground = () => {
 
 		const cryptoSymbols = ["₿", "$", "Ξ", "₸", "◈"];
 		const sprites: THREE.Sprite[] = [];
-		for (let i = 0; i < 8; i++) {
+		for (let i = 0; i < spriteCount; i++) {
 			const symbol = cryptoSymbols[i % cryptoSymbols.length];
 			const texture = createTextTexture(symbol, 72, "rgba(200,200,200,0.6)");
 			const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.25 });
 			const sprite = new THREE.Sprite(material);
-			const spread = 32;
+			const spread = isMobile ? 22 : 32;
 			sprite.position.set(
 				(Math.random() - 0.5) * spread,
 				(Math.random() - 0.5) * spread,
@@ -142,10 +173,10 @@ const ThreeBackground = () => {
 		}
 
 		const chartLines: THREE.Line[] = [];
-		for (let i = 0; i < 4; i++) {
+		for (let i = 0; i < chartCount; i++) {
 			const points = generateFakeChart(20 + Math.floor(Math.random() * 15), 3 + Math.random() * 5);
 			const line = createChartLine(points, 4 + Math.random() * 3, 1.5 + Math.random() * 1.5, 0x999999, 0.15 + Math.random() * 0.1);
-			const spread = 28;
+			const spread = isMobile ? 20 : 28;
 			line.position.set(
 				(Math.random() - 0.5) * spread,
 				(Math.random() - 0.5) * spread,
@@ -162,12 +193,11 @@ const ThreeBackground = () => {
 			chartLines.push(line);
 		}
 
-		const particleCount = 240;
 		const particleGeo = new THREE.BufferGeometry();
 		const positions = new Float32Array(particleCount * 3);
 		for (let i = 0; i < particleCount; i++) {
-			positions[i * 3] = (Math.random() - 0.5) * 60;
-			positions[i * 3 + 1] = (Math.random() - 0.5) * 45;
+			positions[i * 3] = (Math.random() - 0.5) * (isMobile ? 36 : 60);
+			positions[i * 3 + 1] = (Math.random() - 0.5) * (isMobile ? 58 : 45);
 			positions[i * 3 + 2] = (Math.random() - 0.5) * 30 - 5;
 		}
 		particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -192,8 +222,8 @@ const ThreeBackground = () => {
 			mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.04;
 			mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.04;
 
-			camera.position.x = mx * 3;
-			camera.position.y = my * 2;
+			camera.position.x = mx * (isMobile ? 1.7 : 3);
+			camera.position.y = my * (isMobile ? 1.2 : 2);
 			camera.lookAt(0, 0, 0);
 
 			pointLight1.position.x = 12 + mx * 6;
@@ -232,7 +262,7 @@ const ThreeBackground = () => {
 			const lpos = lines.geometry.attributes.position.array as Float32Array;
 			let lineIdx = 0;
 			const maxLines = particleCount * 2;
-			const threshold = 7;
+			const threshold = isMobile ? 6 : 7;
 			for (let i = 0; i < particleCount && lineIdx < maxLines; i++) {
 				for (let j = i + 1; j < particleCount && lineIdx < maxLines; j++) {
 					const dx = ppos[i * 3] - ppos[j * 3];
@@ -259,22 +289,48 @@ const ThreeBackground = () => {
 		frameRef.current = requestAnimationFrame(animate);
 
 		const onResize = () => {
-			camera.aspect = window.innerWidth / window.innerHeight;
+			const { width, height } = getViewportSize();
+			camera.aspect = width / height;
 			camera.updateProjectionMatrix();
-			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setSize(width, height, false);
 		};
 
 		window.addEventListener("mousemove", onMouseMove);
+		window.addEventListener("touchmove", onTouchMove, { passive: true });
+		window.addEventListener("deviceorientation", onDeviceOrientation);
 		window.addEventListener("resize", onResize);
+		window.visualViewport?.addEventListener("resize", onResize);
 
 		return () => {
 			cancelAnimationFrame(frameRef.current);
 			window.removeEventListener("mousemove", onMouseMove);
+			window.removeEventListener("touchmove", onTouchMove);
+			window.removeEventListener("deviceorientation", onDeviceOrientation);
 			window.removeEventListener("resize", onResize);
+			window.visualViewport?.removeEventListener("resize", onResize);
+			for (const geometry of geometries) {
+				geometry.dispose();
+			}
+			for (const material of [...wireMats, ...solidMats]) {
+				material.dispose();
+			}
+			for (const sprite of sprites) {
+				const material = sprite.material as THREE.SpriteMaterial;
+				material.map?.dispose();
+				material.dispose();
+			}
+			for (const line of chartLines) {
+				line.geometry.dispose();
+				(line.material as THREE.Material).dispose();
+			}
+			particleGeo.dispose();
+			particleMat.dispose();
+			lineGeo.dispose();
+			linesMat.dispose();
 			renderer.dispose();
 			container.removeChild(renderer.domElement);
 		};
-	}, [onMouseMove]);
+	}, [onDeviceOrientation, onMouseMove, onTouchMove]);
 
 	return (
 		<div
