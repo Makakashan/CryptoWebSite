@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { register, loginWithGoogle } from "../store/slices/authSlice";
+import { register } from "../store/slices/authSlice";
 import { Headset } from "lucide-react";
 import ThreeBackground from "@/components/ThreeBackground";
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { AvatarUpload } from "../components/ui/AvatarUpload";
 import Button from "@/components/ui/button";
 import Card, {
@@ -26,64 +27,9 @@ const Register = () => {
 	const navigate = useNavigate();
 	const { isLoading, error } = useAppSelector((state) => state.auth);
 	const [avatar, setAvatar] = useState<string | null>(null);
-	const [googleReady, setGoogleReady] = useState(false);
-	const [googleLoading, setGoogleLoading] = useState(false);
-	const [googleError, setGoogleError] = useState<string | null>(null);
-	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-	const googlePromptStartedRef = useRef(false);
-	const googleCredentialReceivedRef = useRef(false);
 
-	useEffect(() => {
-		if (!googleClientId) return;
-
-		const existingScript = document.getElementById("google-identity-script");
-		if (existingScript) {
-			setGoogleReady(true);
-			return;
-		}
-
-		const script = document.createElement("script");
-		script.id = "google-identity-script";
-		script.src = "https://accounts.google.com/gsi/client";
-		script.async = true;
-		script.defer = true;
-		script.onload = () => setGoogleReady(true);
-		script.onerror = () => setGoogleError("Failed to load Google Sign-In.");
-		document.body.appendChild(script);
-	}, [googleClientId]);
-
-	useEffect(() => {
-		if (!googleReady || !googleClientId || !window.google?.accounts?.id) {
-			return;
-		}
-
-		window.google.accounts.id.initialize({
-			client_id: googleClientId,
-			callback: async (response) => {
-				if (!response.credential) {
-					setGoogleError("Google sign-up failed.");
-					return;
-				}
-				try {
-					googleCredentialReceivedRef.current = true;
-					setGoogleLoading(true);
-					setGoogleError(null);
-					await dispatch(loginWithGoogle(response.credential)).unwrap();
-					navigate("/dashboard");
-				} catch (signUpError) {
-					const message =
-						typeof signUpError === "string"
-							? signUpError
-							: signUpError instanceof Error
-								? signUpError.message
-								: "Google sign-up failed.";
-					setGoogleError(message);
-				} finally {
-					setGoogleLoading(false);
-				}
-			},
-		});
-	}, [dispatch, googleClientId, googleReady, navigate]);
+	const onGoogleSuccess = useCallback(() => navigate("/dashboard"), [navigate]);
+	const { loading: googleLoading, error: googleError, triggerPrompt } = useGoogleAuth(onGoogleSuccess);
 
 	const validationSchema = Yup.object({
 		username: Yup.string()
@@ -117,52 +63,6 @@ const Register = () => {
 			});
 		},
 	});
-
-	const handleGoogleSignUp = () => {
-		if (!googleClientId) {
-			setGoogleError("Google sign-up is not configured.");
-			return;
-		}
-		if (!googleReady || !window.google?.accounts?.id) {
-			setGoogleError("Google Sign-In is still loading.");
-			return;
-		}
-		setGoogleError(null);
-		googlePromptStartedRef.current = true;
-		googleCredentialReceivedRef.current = false;
-		window.google.accounts.id.prompt((notification) => {
-			if (googleCredentialReceivedRef.current) {
-				return;
-			}
-			if (notification.isNotDisplayed()) {
-				const reason = notification.getNotDisplayedReason();
-				setGoogleError(
-					reason === "browser_not_supported"
-						? "Google Sign-In not supported in this browser."
-						: reason === "invalid_client"
-							? "Invalid Google Client ID."
-							: reason === "third_party_cookies_blocked"
-								? "Third-party cookies are blocked."
-								: reason === "origin_mismatch"
-									? "Origin mismatch. Check Google OAuth origins."
-									: "Google Sign-In not displayed.",
-				);
-				googlePromptStartedRef.current = false;
-			}
-			if (notification.isSkippedMoment()) {
-				if (googlePromptStartedRef.current) {
-					setGoogleError("Google Sign-In was skipped.");
-					googlePromptStartedRef.current = false;
-				}
-			}
-			if (notification.isDismissedMoment()) {
-				if (googlePromptStartedRef.current) {
-					setGoogleError("Google Sign-In was closed.");
-					googlePromptStartedRef.current = false;
-				}
-			}
-		});
-	};
 
 	return (
 		<div className="login-screen">
@@ -274,8 +174,8 @@ const Register = () => {
 						<Button
 							variant="outline"
 							className="login-google w-full"
-							onClick={handleGoogleSignUp}
-							disabled={googleLoading || !googleClientId}
+							onClick={triggerPrompt}
+							disabled={googleLoading}
 						>
 							<span className="login-google-icon" aria-hidden="true">
 								G
