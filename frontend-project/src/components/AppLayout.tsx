@@ -35,6 +35,17 @@ const MobileNav = () => {
 		setIsOpen(false);
 	}, [location.pathname]);
 
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const previousOverflow = document.body.style.overflow;
+		document.body.style.overflow = "hidden";
+
+		return () => {
+			document.body.style.overflow = previousOverflow;
+		};
+	}, [isOpen]);
+
 	return (
 		<div className="mobile-nav">
 			<button
@@ -51,25 +62,50 @@ const MobileNav = () => {
 			</button>
 
 			{isOpen ? (
-				<nav id="mobile-nav-list" className="mobile-nav__panel" aria-label="Mobile navigation">
-					{navItems.map((item) => {
-						const Icon = item.icon;
-						const isActive = location.pathname.startsWith(item.to);
-
-						return (
-							<NavLink
-								key={item.to}
-								to={item.to}
-								className={cn("mobile-nav__link", isActive && "mobile-nav__link--active")}
+				<>
+					<button
+						type="button"
+						className="mobile-nav__backdrop"
+						aria-label="Close navigation"
+						onClick={() => setIsOpen(false)}
+					/>
+					<nav id="mobile-nav-list" className="mobile-nav__panel" aria-label="Mobile navigation">
+						<div className="mobile-nav__panel-header">
+							<div className="mobile-nav__panel-brand">
+								<img src="/favicon.svg" alt="" className="mobile-nav__panel-logo" />
+								<span>MakakaTrade</span>
+							</div>
+							<button
+								type="button"
+								className="mobile-nav__close"
+								aria-label="Close navigation"
+								onClick={() => setIsOpen(false)}
 							>
-								<span className="mobile-nav__link-icon">
-									<Icon />
-								</span>
-								<span>{item.label}</span>
-							</NavLink>
-						);
-					})}
-				</nav>
+								<FiX />
+							</button>
+						</div>
+
+						<div className="mobile-nav__links">
+							{navItems.map((item) => {
+								const Icon = item.icon;
+								const isActive = location.pathname.startsWith(item.to);
+
+								return (
+									<NavLink
+										key={item.to}
+										to={item.to}
+										className={cn("mobile-nav__link", isActive && "mobile-nav__link--active")}
+									>
+										<span className="mobile-nav__link-icon">
+											<Icon />
+										</span>
+										<span>{item.label}</span>
+									</NavLink>
+								);
+							})}
+						</div>
+					</nav>
+				</>
 			) : null}
 		</div>
 	);
