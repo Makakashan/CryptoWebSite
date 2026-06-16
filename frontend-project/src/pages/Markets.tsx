@@ -211,13 +211,17 @@ const Markets = () => {
 	return (
 		<div className="glass-page-shell">
 			<div className="glass-page-body">
-				<div className="glass-hero-glass px-6 py-5">
-					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+				<div className="glass-hero-glass px-6 py-7 md:px-8 md:py-9">
+					<div className="glass-panel-inner flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 						<div className="max-w-2xl">
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+							<div className="glass-eyebrow">
+								<span className="glass-eyebrow-dot" />
+								Markets
+							</div>
+							<h1 className="mt-3 text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
 								{t("markets")}
 							</h1>
-							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+							<p className="mt-2 max-w-xl text-sm text-text-secondary md:text-base">
 								Discover and track your favorite assets
 							</p>
 						</div>

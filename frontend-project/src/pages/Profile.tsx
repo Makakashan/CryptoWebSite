@@ -179,10 +179,7 @@ const Profile = () => {
 	};
 
 	const hasChanges = avatar !== user?.avatar;
-	const balanceText = useMemo(
-		() => `$${(user?.balance ?? 0).toFixed(2)}`,
-		[user?.balance],
-	);
+	const balanceText = useMemo(() => `$${(user?.balance ?? 0).toFixed(2)}`, [user?.balance]);
 
 	if (!user) {
 		return (
@@ -196,22 +193,24 @@ const Profile = () => {
 	return (
 		<div className="glass-page-shell">
 			<div className="glass-page-body space-y-5">
-				<div className="glass-hero-glass px-6 py-5">
+				<div className="glass-hero-glass px-6 py-7 md:px-8 md:py-9">
 					<div className="glass-panel-inner flex items-center justify-between gap-4">
 						<div>
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+							<div className="glass-eyebrow">
+								<User className="h-3 w-3" />
+								Account
+							</div>
+							<h1 className="mt-3 text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
 								{t("profile")}
 							</h1>
-							<p className="mt-1.5 text-sm text-text-secondary">
+							<p className="mt-2 text-sm text-text-secondary md:text-base">
 								Manage your identity, security and account preferences
 							</p>
 						</div>
-						<div className="hidden md:flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-2">
+						<div className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
 							<ShieldCheck className="h-4 w-4 text-emerald-300" />
 							<span className="text-xs text-text-secondary">
-								{preferences?.email_verified
-									? "Account verified"
-									: "Verification pending"}
+								{preferences?.email_verified ? "Account verified" : "Verification pending"}
 							</span>
 						</div>
 					</div>
@@ -305,7 +304,9 @@ const Profile = () => {
 														<div className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/4">
 															<Icon className="h-4 w-4 text-text-secondary" />
 														</div>
-														<span className="text-sm text-text-primary">{item.title}</span>
+														<span className="text-sm text-text-primary">
+															{item.title}
+														</span>
 													</div>
 													<span className="text-xs text-text-secondary">
 														{formatRelativeTime(item.created_at)}
@@ -327,7 +328,9 @@ const Profile = () => {
 								</p>
 								<div className="flex items-center gap-2">
 									<User className="h-4 w-4 text-text-secondary" />
-									<p className="text-xl font-semibold text-text-primary">{user.username}</p>
+									<p className="text-xl font-semibold text-text-primary">
+										{user.username}
+									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -438,9 +441,7 @@ const Profile = () => {
 									</div>
 									<span
 										className={`text-xs ${
-											preferences?.email_verified
-												? "text-emerald-300"
-												: "text-amber-300"
+											preferences?.email_verified ? "text-emerald-300" : "text-amber-300"
 										}`}
 									>
 										{preferences?.email_verified ? "Verified" : "Unverified"}

@@ -3,7 +3,12 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import "./i18n/config";
 import "./index.css";
+import "./styles/glass-premium.css";
+import { initGlassInteractions } from "./lib/glassInteractions";
 import App from "./App.tsx";
+
+// Initialise pointer-tracked spotlight + 3D tilt on every glass surface.
+initGlassInteractions();
 
 // Unregister any existing Service Workers in dev to avoid reload loops
 if (!import.meta.env.PROD && "serviceWorker" in navigator) {

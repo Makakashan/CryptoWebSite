@@ -1,0 +1,592 @@
+/* =================================================================
+   MakakaTrade · Liquid Glass · Premium Layer
+   -----------------------------------------------------------------
+   Loaded AFTER index.css.  Adds:
+     · Pointer-tracked specular spotlight on every glass surface
+     · Iridescent 1px border that brightens near the cursor
+     · 3D tilt on .glass-tilt elements
+     · Aurora orbs in the page background
+     · Shimmer sweep on .glass-cta-button
+     · Recharts tooltip polish
+     · Reveal-on-mount animation utility
+     · Custom scrollbar + reduced-motion support
+   All opt-in via CSS variables; no JS required except for the
+   spotlight/tilt (see src/lib/glassInteractions.ts).
+   ================================================================= */
+
+/* -----------------------------------------------------------------
+   1. Design tokens (override-able from index.css :root)
+   ----------------------------------------------------------------- */
+:root {
+  --glass-aurora-opacity: 0.9;
+  --glass-tilt-max: 6deg;
+  --glass-spotlight-size: 280px;
+  --glass-spotlight-opacity: 0.18;
+  --glass-iridescent-opacity: 0.7;
+  --glass-sheen-duration: 0.7s;
+  --glass-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* -----------------------------------------------------------------
+   2. Ambient aurora background — two slow-floating orbs
+   ----------------------------------------------------------------- */
+.glass-page-shell {
+  background:
+    radial-gradient(1100px 700px at 12% -8%, rgba(255, 255, 255, 0.06), transparent 60%),
+    radial-gradient(900px 600px at 110% 0%, rgba(255, 255, 255, 0.04), transparent 55%),
+    radial-gradient(1200px 900px at 50% 120%, rgba(255, 255, 255, 0.03), transparent 60%),
+    #020202;
+}
+
+.glass-page-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+
+.glass-page-shell::after {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 70vh;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(420px 420px at 22% 30%, rgba(255, 255, 255, 0.07), transparent 65%),
+    radial-gradient(520px 520px at 78% 18%, rgba(255, 255, 255, 0.045), transparent 70%);
+  filter: blur(40px);
+  opacity: var(--glass-aurora-opacity);
+  animation: glass-aurora 22s var(--glass-ease) infinite alternate;
+}
+
+@keyframes glass-aurora {
+  0%   { transform: translate3d(-2%, 0, 0) scale(1);    opacity: 0.85; }
+  50%  { transform: translate3d(3%, -2%, 0) scale(1.08); opacity: 1; }
+  100% { transform: translate3d(-1%, 1%, 0) scale(1);   opacity: 0.9; }
+}
+
+/* -----------------------------------------------------------------
+   3. Hero — diagonal sheen that slides on hover
+   ----------------------------------------------------------------- */
+.glass-hero-glass,
+.portfolio-hero-glass {
+  position: relative;
+  isolation: isolate;
+}
+
+.glass-hero-glass::before,
+.portfolio-hero-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.07) 47%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.07) 53%,
+    transparent 70%);
+  opacity: 0.7;
+  pointer-events: none;
+  transform: translateX(-15%);
+  transition: transform var(--glass-sheen-duration) var(--glass-ease);
+}
+
+.glass-hero-glass:hover::before,
+.portfolio-hero-glass:hover::before {
+  transform: translateX(15%);
+}
+
+.glass-hero-glass > *,
+.portfolio-hero-glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* -----------------------------------------------------------------
+   4. Cards — add rim-light (::before) + corner-glint (::after)
+   -----------------------------------------------------------------
+   The existing index.css already has ::before for some cards
+   (e.g. .glass-market-card). We use ::after for the corner glint
+   and a separate masked layer for the rim to avoid conflicts.
+   ----------------------------------------------------------------- */
+
+.glass-metric-card,
+.portfolio-glass-card,
+.portfolio-glass-metric,
+.glass-chart-panel,
+.glass-surface-panel,
+.glass-filter-panel,
+.glass-empty-panel,
+.glass-table-panel,
+.portfolio-glass-panel,
+.portfolio-glass-panel-assets,
+.glass-market-card {
+  transition: transform 0.45s var(--glass-ease),
+              box-shadow 0.45s var(--glass-ease),
+              border-color 0.35s var(--glass-ease);
+}
+
+/* Hover lift for metric cards & inline metrics */
+.glass-metric-card:hover,
+.portfolio-glass-card:hover,
+.portfolio-glass-metric:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Inline metric (Top movers, asset pills) */
+.glass-inline-metric {
+  transition: background 0.3s var(--glass-ease),
+              border-color 0.3s var(--glass-ease),
+              transform 0.3s var(--glass-ease);
+}
+
+.glass-inline-metric:hover {
+  transform: translateX(2px);
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* -----------------------------------------------------------------
+   5. Pointer-tracked spotlight layer
+   -----------------------------------------------------------------
+   JS injects <span class="glass-spotlight-layer"> as the first
+   child of every glass surface. We expose --mx / --my (percent)
+   which JS sets on pointermove.
+   ----------------------------------------------------------------- */
+.glass-spotlight-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.5s var(--glass-ease);
+  background: radial-gradient(var(--glass-spotlight-size) var(--glass-spotlight-size)
+              at var(--mx, 50%) var(--my, 0%),
+              rgba(255, 255, 255, var(--glass-spotlight-opacity)),
+              rgba(255, 255, 255, 0.06) 30%,
+              transparent 60%);
+  mix-blend-mode: screen;
+}
+
+.glass-metric-card:hover .glass-spotlight-layer,
+.portfolio-glass-card:hover .glass-spotlight-layer,
+.portfolio-glass-metric:hover .glass-spotlight-layer,
+.glass-chart-panel:hover .glass-spotlight-layer,
+.glass-surface-panel:hover .glass-spotlight-layer,
+.glass-filter-panel:hover .glass-spotlight-layer,
+.glass-table-panel:hover .glass-spotlight-layer,
+.glass-empty-panel:hover .glass-spotlight-layer,
+.portfolio-glass-panel:hover .glass-spotlight-layer,
+.portfolio-glass-panel-assets:hover .glass-spotlight-layer,
+.glass-market-card:hover .glass-spotlight-layer,
+.top-performer-card:hover .glass-spotlight-layer,
+.glass-inline-metric:hover .glass-spotlight-layer,
+.glass-hero-glass:hover .glass-spotlight-layer,
+.portfolio-hero-glass:hover .glass-spotlight-layer {
+  opacity: 1;
+}
+
+/* -----------------------------------------------------------------
+   6. Iridescent 1px border that follows the cursor
+   ----------------------------------------------------------------- */
+.glass-iridescent-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  z-index: 3;
+  background: radial-gradient(180px 180px at var(--mx, 50%) var(--my, 0%),
+              rgba(255, 255, 255, 0.7),
+              rgba(255, 255, 255, 0.18) 35%,
+              rgba(255, 255, 255, 0.08) 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.45s var(--glass-ease);
+}
+
+.glass-metric-card:hover .glass-iridescent-border,
+.portfolio-glass-card:hover .glass-iridescent-border,
+.portfolio-glass-metric:hover .glass-iridescent-border,
+.glass-chart-panel:hover .glass-iridescent-border,
+.glass-surface-panel:hover .glass-iridescent-border,
+.glass-filter-panel:hover .glass-iridescent-border,
+.glass-table-panel:hover .glass-iridescent-border,
+.glass-empty-panel:hover .glass-iridescent-border,
+.portfolio-glass-panel:hover .glass-iridescent-border,
+.glass-market-card:hover .glass-iridescent-border,
+.top-performer-card:hover .glass-iridescent-border,
+.glass-hero-glass:hover .glass-iridescent-border,
+.portfolio-hero-glass:hover .glass-iridescent-border {
+  opacity: var(--glass-iridescent-opacity);
+}
+
+/* -----------------------------------------------------------------
+   7. 3D tilt — opt-in via .glass-tilt
+   ----------------------------------------------------------------- */
+.glass-tilt {
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.4s var(--glass-ease);
+  will-change: transform;
+}
+
+.glass-tilt:active {
+  transform: perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.985);
+}
+
+.glass-tilt > * {
+  transform: translateZ(20px);
+}
+
+/* -----------------------------------------------------------------
+   8. CTA button — shimmer sweep on hover
+   ----------------------------------------------------------------- */
+.glass-cta-button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.glass-cta-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.18) 48%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0.18) 52%,
+    transparent 70%);
+  transform: translateX(-120%);
+  transition: transform var(--glass-sheen-duration) var(--glass-ease);
+  pointer-events: none;
+}
+
+.glass-cta-button:hover::after {
+  transform: translateX(120%);
+}
+
+.glass-cta-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.glass-cta-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+    0 18px 40px rgba(0, 0, 0, 0.42),
+    0 16px 48px rgba(255, 255, 255, 0.06) !important;
+}
+
+.glass-cta-button:active {
+  transform: translateY(0);
+}
+
+.glass-muted-button {
+  transition: background 0.25s var(--glass-ease),
+              border-color 0.25s var(--glass-ease),
+              transform 0.25s var(--glass-ease),
+              color 0.25s var(--glass-ease);
+}
+
+.glass-muted-button:hover {
+  transform: translateY(-1px);
+}
+
+.glass-muted-button:active {
+  transform: translateY(0);
+}
+
+/* -----------------------------------------------------------------
+   9. Status chip glow
+   ----------------------------------------------------------------- */
+.portfolio-status-chip-positive {
+  box-shadow:
+    inset 0 1px 0 rgba(227, 250, 241, 0.12),
+    0 0 14px rgba(128, 204, 179, 0.08) !important;
+}
+
+.portfolio-status-chip-negative {
+  box-shadow:
+    inset 0 1px 0 rgba(248, 229, 236, 0.1),
+    0 0 14px rgba(177, 116, 136, 0.08) !important;
+}
+
+.portfolio-status-chip-unusual {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 224, 0.12),
+    0 0 14px rgba(194, 153, 94, 0.08) !important;
+}
+
+/* -----------------------------------------------------------------
+   10. Recharts tooltip polish
+   ----------------------------------------------------------------- */
+.recharts-default-tooltip,
+.recharts-tooltip-wrapper > div {
+  background: rgba(10, 10, 14, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+  padding: 10px 14px !important;
+}
+
+.recharts-default-tooltip .recharts-tooltip-label,
+.recharts-tooltip-wrapper .recharts-tooltip-label {
+  color: #f4f4f6 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  letter-spacing: -0.01em;
+}
+
+.recharts-default-tooltip .recharts-tooltip-item,
+.recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: rgba(244, 244, 246, 0.6) !important;
+  font-size: 12px !important;
+}
+
+.recharts-cartesian-axis-tick text {
+  fill: rgba(244, 244, 246, 0.5) !important;
+  font-size: 11px !important;
+}
+
+/* -----------------------------------------------------------------
+   11. Skeleton shimmer
+   ----------------------------------------------------------------- */
+.glass-chart-skeleton {
+  background:
+    linear-gradient(90deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.09) 50%,
+      rgba(255, 255, 255, 0.04) 100%) !important;
+  background-size: 200% 100% !important;
+  animation: glass-shimmer 1.6s linear infinite;
+}
+
+@keyframes glass-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* -----------------------------------------------------------------
+   12. Eyebrow label utility (used by enhanced pages)
+   ----------------------------------------------------------------- */
+.glass-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 246, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.glass-eyebrow-dot {
+  position: relative;
+  display: inline-flex;
+  width: 6px;
+  height: 6px;
+}
+
+.glass-eyebrow-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.glass-eyebrow-dot--ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.5);
+  animation: glass-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes glass-ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+/* -----------------------------------------------------------------
+   13. Metric card icon pill — used by enhanced Dashboard cards
+   ----------------------------------------------------------------- */
+.glass-icon-pill {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(244, 244, 246, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s var(--glass-ease);
+}
+
+.group:hover .glass-icon-pill {
+  transform: scale(1.1);
+}
+
+/* -----------------------------------------------------------------
+   14. Reveal-on-mount animation
+   ----------------------------------------------------------------- */
+.glass-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: glass-reveal 0.7s var(--glass-ease) forwards;
+}
+
+.glass-reveal:nth-child(1) { animation-delay: 0.04s; }
+.glass-reveal:nth-child(2) { animation-delay: 0.08s; }
+.glass-reveal:nth-child(3) { animation-delay: 0.12s; }
+.glass-reveal:nth-child(4) { animation-delay: 0.16s; }
+.glass-reveal:nth-child(5) { animation-delay: 0.20s; }
+.glass-reveal:nth-child(6) { animation-delay: 0.24s; }
+
+@keyframes glass-reveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* -----------------------------------------------------------------
+   15. Custom scrollbar
+   ----------------------------------------------------------------- */
+.glass-page-shell ::-webkit-scrollbar { width: 8px; height: 8px; }
+.glass-page-shell ::-webkit-scrollbar-track { background: transparent; }
+.glass-page-shell ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+.glass-page-shell ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+  background-clip: padding-box;
+}
+
+.glass-page-shell * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+/* -----------------------------------------------------------------
+   16. Selection
+   ----------------------------------------------------------------- */
+::selection {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+/* -----------------------------------------------------------------
+   17. Reduced motion
+   ----------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .glass-page-shell::after { animation: none; }
+  .glass-cta-button::after { transition: none; }
+  .glass-hero-glass::before,
+  .portfolio-hero-glass::before { transition: none; }
+}
+
+/* -----------------------------------------------------------------
+   18. Filter inputs refinement
+   ----------------------------------------------------------------- */
+.glass-filter-grid select,
+.glass-filter-grid input[type="text"],
+.glass-filter-grid input[type="date"],
+.glass-filter-grid .input,
+.glass-filter-grid .select {
+  transition: all 0.25s var(--glass-ease);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.glass-filter-grid select:focus,
+.glass-filter-grid input[type="text"]:focus,
+.glass-filter-grid input[type="date"]:focus,
+.glass-filter-grid .input:focus,
+.glass-filter-grid .select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+.glass-filter-grid select option {
+  background: #0a0a0d;
+  color: #f4f4f6;
+}
+
+/* -----------------------------------------------------------------
+   19. Table row hover gradient
+   ----------------------------------------------------------------- */
+.portfolio-assets-table tbody tr:hover,
+.orders-table-wrap tbody tr:hover {
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.015)) !important;
+}
+
+/* -----------------------------------------------------------------
+   20. Top performer card polish
+   ----------------------------------------------------------------- */
+.top-performer-card {
+  transition: transform 0.4s var(--glass-ease),
+              border-color 0.4s var(--glass-ease),
+              background 0.4s var(--glass-ease);
+  isolation: isolate;
+}
+
+.top-performer-card:hover {
+  transform: translateY(-2px);
+}
+
+/* -----------------------------------------------------------------
+   21. Sidebar / header polish — keep monochrome
+   ----------------------------------------------------------------- */
+.sidebar-active-link::before {
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+.sidebar-active-link::after {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.sidebar-active-icon {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+              rgba(10, 10, 10, 0.92) !important;
+}

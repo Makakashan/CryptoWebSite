@@ -47,14 +47,23 @@ const DashboardMetricCard = ({
 	icon: typeof Wallet;
 	valueClassName?: string;
 }) => (
-	<Card className="glass-metric-card">
+	<Card className="glass-metric-card glass-tilt group">
 		<CardHeader className="pb-2">
-			<CardDescription>{title}</CardDescription>
-			<CardTitle className={valueClassName}>{value}</CardTitle>
+			<div className="flex items-start justify-between gap-3">
+				<CardDescription className="text-[11px] uppercase tracking-[0.14em] font-medium">
+					{title}
+				</CardDescription>
+				<span className="glass-icon-pill">
+					<Icon className="h-3.5 w-3.5" />
+				</span>
+			</div>
+			<CardTitle className={`mt-1 ${valueClassName} tabular-nums tracking-tight`}>
+				{value}
+			</CardTitle>
 		</CardHeader>
 		<CardContent>
 			<p className="text-xs text-text-secondary flex items-center gap-2">
-				<Icon className="w-3.5 h-3.5" />
+				<span className="h-1 w-1 rounded-full bg-white/30" />
 				{description}
 			</p>
 		</CardContent>
@@ -426,13 +435,17 @@ const Dashboard = () => {
 	return (
 		<div className="glass-page-shell">
 			<div className="glass-page-body">
-				<div className="glass-hero-glass px-6 py-5">
-					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+				<div className="glass-hero-glass px-6 py-7 md:px-8 md:py-9">
+					<div className="glass-panel-inner flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 						<div className="max-w-2xl">
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
+							<div className="glass-eyebrow">
+								<span className="glass-eyebrow-dot glass-eyebrow-dot--ping" />
+								Live
+							</div>
+							<h1 className="mt-3 text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
 								{t("dashboard")}
 							</h1>
-							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+							<p className="mt-2 max-w-xl text-sm text-text-secondary md:text-base">
 								Live balance, market pulse, and your next trading moves.
 							</p>
 						</div>
@@ -441,6 +454,7 @@ const Dashboard = () => {
 							onClick={() => navigate("/markets")}
 						>
 							{t("viewMarkets")}
+							<ArrowRight className="w-4 h-4" />
 						</Button>
 					</div>
 				</div>
@@ -477,18 +491,27 @@ const Dashboard = () => {
 					<Card className="glass-chart-panel dashboard-chart-panel xl:col-span-2">
 						<div className="glass-panel-inner">
 							<CardHeader className="dashboard-chart-header">
-								<CardTitle className="text-xl">{t("balanceOverTime")}</CardTitle>
-								<CardDescription>{t("balanceOverTimeDescription")}</CardDescription>
-								<CardAction>
-									<Button
-										variant="outline"
-										size="sm"
-										className="glass-muted-button"
-										onClick={() => navigate("/statistics")}
-									>
-										{t("details")}
-									</Button>
-								</CardAction>
+								<div className="flex items-start justify-between gap-3">
+									<div>
+										<span className="text-[11px] uppercase tracking-[0.16em] text-text-secondary">
+											Performance
+										</span>
+										<CardTitle className="text-xl mt-1">{t("balanceOverTime")}</CardTitle>
+										<CardDescription className="mt-1">
+											{t("balanceOverTimeDescription")}
+										</CardDescription>
+									</div>
+									<CardAction>
+										<Button
+											variant="outline"
+											size="sm"
+											className="glass-muted-button"
+											onClick={() => navigate("/statistics")}
+										>
+											{t("details")}
+										</Button>
+									</CardAction>
+								</div>
 							</CardHeader>
 							<CardContent className="dashboard-chart-content">
 								{isLoading || isBalanceHistoryLoading ? (
@@ -592,10 +615,13 @@ const Dashboard = () => {
 					<Card className="glass-chart-panel">
 						<div className="glass-panel-inner">
 							<CardHeader>
-								<CardTitle className="text-xl">{t("topMovers")}</CardTitle>
+								<span className="text-[11px] uppercase tracking-[0.16em] text-text-secondary">
+									Market pulse
+								</span>
+								<CardTitle className="text-xl mt-1">{t("topMovers")}</CardTitle>
 								<CardDescription>{t("strongest24hMove")}</CardDescription>
 							</CardHeader>
-							<CardContent className="space-y-3">
+							<CardContent className="space-y-2.5">
 								{topMovers.length === 0 ? (
 									<p className="text-sm text-text-secondary">{t("noMarketDataYet")}</p>
 								) : (
@@ -609,14 +635,14 @@ const Dashboard = () => {
 											<button
 												type="button"
 												key={asset.symbol}
-												className="glass-inline-metric w-full flex items-center justify-between p-3 rounded-3xl transition-colors hover:bg-white/4"
+												className="glass-inline-metric w-full flex items-center justify-between p-3 rounded-2xl"
 												onClick={() => navigate(`/markets/${asset.symbol}`)}
 											>
 												<div className="flex items-center gap-3 text-left">
 													<img
 														src={asset.image_url || defaultIcon}
 														alt={shortName}
-														className="w-8 h-8 rounded-full"
+														className="w-9 h-9 rounded-full border border-white/10"
 														onError={(e) => {
 															e.currentTarget.src = defaultIcon;
 														}}
@@ -625,7 +651,7 @@ const Dashboard = () => {
 														<p className="text-sm font-semibold text-text-primary">
 															{shortName}
 														</p>
-														<p className="text-xs text-text-secondary">
+														<p className="text-xs text-text-secondary tabular-nums">
 															{formatPrice(price)}
 														</p>
 													</div>
@@ -647,7 +673,7 @@ const Dashboard = () => {
 
 								<Button
 									variant="outline"
-									className="glass-cta-button w-full mt-2"
+									className="glass-cta-button w-full mt-3"
 									onClick={() => navigate("/markets")}
 								>
 									{t("viewMarkets")}
@@ -661,7 +687,10 @@ const Dashboard = () => {
 				<Card className="glass-surface-panel">
 					<div className="glass-panel-inner">
 						<CardHeader>
-							<CardTitle className="text-xl">{t("quickActions")}</CardTitle>
+							<span className="text-[11px] uppercase tracking-[0.16em] text-text-secondary">
+								Shortcuts
+							</span>
+							<CardTitle className="text-xl mt-1">{t("quickActions")}</CardTitle>
 							<CardDescription>{t("shortcutsForNextMove")}</CardDescription>
 						</CardHeader>
 						<CardContent className="flex flex-wrap gap-3">
