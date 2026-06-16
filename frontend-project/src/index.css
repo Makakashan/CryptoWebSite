@@ -3030,10 +3030,51 @@
 		padding: 0 1rem 1rem !important;
 	}
 
+	.statistics-page .stats-chart-card {
+		border-radius: 1.2rem;
+	}
+
+	.statistics-page .stats-chart-card::before {
+		left: 1rem;
+		right: 1rem;
+	}
+
+	.statistics-page .stats-chart-header {
+		align-items: flex-start;
+		gap: 0.65rem;
+		margin-bottom: 0.25rem;
+		padding: 1rem 1rem 0.7rem !important;
+	}
+
+	.statistics-page .stats-chart-header h3 {
+		font-size: 1rem;
+		line-height: 1.15;
+	}
+
+	.statistics-page .stats-chart-meta {
+		flex: 0 0 auto;
+	}
+
+	.statistics-page .stats-chart-pill {
+		padding: 0.22rem 0.55rem;
+		font-size: 0.7rem;
+		white-space: nowrap;
+	}
+
+	.statistics-page .stats-chart-subtitle {
+		margin-top: 0.3rem !important;
+		font-size: 0.78rem;
+		line-height: 1.35;
+	}
+
+	.statistics-page .stats-chart-content {
+		padding: 0 1rem 1rem !important;
+	}
+
 	.glass-chart-shell,
 	.glass-chart-skeleton,
 	.glass-chart-empty {
-		height: 13.75rem;
+		height: 12.75rem;
 		border-radius: 1rem;
 		padding: 0.35rem;
 	}
@@ -3110,10 +3151,31 @@
 		font-size: 0.78rem;
 	}
 
+	.statistics-page .grid.mb-8 {
+		margin-bottom: 1rem;
+	}
+
+	.statistics-page .stats-chart-card {
+		border-radius: 1.1rem;
+	}
+
+	.statistics-page .stats-chart-header {
+		padding: 0.9rem 0.9rem 0.6rem !important;
+	}
+
+	.statistics-page .stats-chart-subtitle {
+		max-width: 13.5rem;
+		font-size: 0.74rem;
+	}
+
+	.statistics-page .stats-chart-content {
+		padding: 0 0.9rem 0.9rem !important;
+	}
+
 	.glass-chart-shell,
 	.glass-chart-skeleton,
 	.glass-chart-empty {
-		height: 12.25rem;
+		height: 10.75rem;
 	}
 }
 
