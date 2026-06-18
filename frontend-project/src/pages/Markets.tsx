@@ -1,29 +1,23 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { fetchAssets, setFilters, fetchChartData } from "../store/slices/assetsSlice";
-import type { AssetsFilters } from "../store/types/assets.types";
-import { useBinanceWebSocket } from "../hooks/useBinanceWebSocket";
-import AssetCard from "../components/AssetCard";
-import Button from "@/components/ui/button";
-import Input from "@/components/ui/input";
-import Select from "@/components/ui/select";
-import Card, { CardContent } from "@/components/ui/card";
-import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
-import AssetCardSkeleton from "../components/skeletons/AssetCardSkeleton";
-import { iconLoaderService } from "../services/iconLoader";
+import { useLocation } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchAssets, setFilters, fetchChartData } from "@/store/slices/assetsSlice";
+import type { AssetsFilters } from "@/store/types/assets.types";
+import { useBinanceWebSocket } from "@/hooks/useBinanceWebSocket";
+import { iconLoaderService } from "@/services/iconLoader";
+import { MarketsHero } from "./markets/MarketsHero";
+import { MarketsFilters } from "./markets/MarketsFilters";
+import { MarketsGrid } from "./markets/MarketsGrid";
+import { MarketsPagination } from "./markets/MarketsPagination";
 
 const Markets = () => {
-	const { t } = useTranslation();
-	const navigate = useNavigate();
 	const location = useLocation();
 	const dispatch = useAppDispatch();
 	const { assets, isLoading, error, filters, pagination, chartData } = useAppSelector(
 		(state) => state.assets,
 	);
 
-	// Use backend WebSocket for real-time price updates
+	// Backend WebSocket for real-time price updates
 	const symbols = useMemo(() => assets.map((asset) => asset.symbol), [assets]);
 	useBinanceWebSocket({ symbols, enabled: assets.length > 0 });
 
@@ -40,9 +34,7 @@ const Markets = () => {
 			const batch = symbolsToFetch.filter(
 				(symbol) => !chartRequestsInFlight.current.has(symbol),
 			);
-
 			if (batch.length === 0) return;
-
 			batch.forEach((symbol) => chartRequestsInFlight.current.add(symbol));
 			dispatch(fetchChartData(batch)).finally(() => {
 				batch.forEach((symbol) => chartRequestsInFlight.current.delete(symbol));
@@ -51,34 +43,20 @@ const Markets = () => {
 		[dispatch],
 	);
 
-	const categories = [
-		"Layer 1",
-		"DeFi",
-		"Smart Contract Platform",
-		"Exchange Token",
-		"Meme",
-		"Gaming",
-	];
-
+	// Initial fetch on mount — ensure limit is 12
 	useEffect(() => {
-		// Always fetch assets on mount to ensure we have the correct limit (12)
 		const shouldFetch = assets.length === 0 || (pagination?.limit ?? filters.limit) !== 12;
-
 		if (shouldFetch) {
-			const initialFilters = {
-				...filters,
-				limit: 12,
-				page: 1,
-			};
+			const initialFilters = { ...filters, limit: 12, page: 1 };
 			dispatch(setFilters(initialFilters));
 			dispatch(fetchAssets(initialFilters));
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.key, filters.limit, pagination?.limit]);
 
+	// Lazy-load missing chart data in batches of 4
 	useEffect(() => {
 		if (assets.length === 0) return;
-
 		const BATCH_SIZE = 4;
 		const symbolsNeedingData = assets
 			.filter(
@@ -87,74 +65,54 @@ const Markets = () => {
 					!chartRequestsInFlight.current.has(asset.symbol),
 			)
 			.map((asset) => asset.symbol);
-
 		if (symbolsNeedingData.length === 0) return;
 
 		const timeoutIds: ReturnType<typeof setTimeout>[] = [];
-
 		const loadBatch = (startIndex: number) => {
 			if (startIndex >= symbolsNeedingData.length) return;
-
 			const batch = symbolsNeedingData.slice(startIndex, startIndex + BATCH_SIZE);
 			fetchChartBatch(batch);
-
 			if (startIndex + BATCH_SIZE < symbolsNeedingData.length) {
 				const timeoutId = setTimeout(() => loadBatch(startIndex + BATCH_SIZE), 500);
 				timeoutIds.push(timeoutId);
 			}
 		};
-
 		loadBatch(0);
-
-		return () => {
-			timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
-		};
+		return () => timeoutIds.forEach((id) => clearTimeout(id));
 	}, [assets, chartData, fetchChartBatch]);
 
+	// Preload icons for assets missing image_url
 	useEffect(() => {
 		if (assets.length === 0) return;
-
 		const assetsNeedingIcons = assets
 			.filter((asset) => !asset.image_url)
 			.map((asset) => asset.symbol);
-
-		if (assetsNeedingIcons.length > 0) {
-			iconLoaderService.preloadIcons(assetsNeedingIcons);
-		}
+		if (assetsNeedingIcons.length > 0) iconLoaderService.preloadIcons(assetsNeedingIcons);
 	}, [assets]);
 
+	// Periodic chart refresh (every 60s while page is visible)
 	useEffect(() => {
 		if (assets.length === 0) return;
-
 		const timeoutIds: ReturnType<typeof setTimeout>[] = [];
-
 		const intervalId = setInterval(() => {
-			if (!document.hidden && assets.length > 0) {
-				const symbols = assets.map((asset) => asset.symbol);
-				const BATCH_SIZE = 6;
-				for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
-					const batch = symbols.slice(i, i + BATCH_SIZE);
-					const timeoutId = setTimeout(
-						() => {
-							fetchChartBatch(batch);
-						},
-						(i / BATCH_SIZE) * 1000,
-					);
-					timeoutIds.push(timeoutId);
-				}
+			if (document.hidden || assets.length === 0) return;
+			const syms = assets.map((asset) => asset.symbol);
+			const BATCH_SIZE = 6;
+			for (let i = 0; i < syms.length; i += BATCH_SIZE) {
+				const batch = syms.slice(i, i + BATCH_SIZE);
+				const timeoutId = setTimeout(() => fetchChartBatch(batch), (i / BATCH_SIZE) * 1000);
+				timeoutIds.push(timeoutId);
 			}
 		}, 60000);
-
 		return () => {
 			clearInterval(intervalId);
-			timeoutIds.forEach((timeoutId) => clearTimeout(timeoutId));
+			timeoutIds.forEach((id) => clearTimeout(id));
 		};
 	}, [fetchChartBatch, assets]);
 
 	const handleApplyFilters = () => {
 		if (fetchInProgress.current) return;
 		fetchInProgress.current = true;
-
 		const newFilters = {
 			search: search || undefined,
 			category: category || undefined,
@@ -173,7 +131,6 @@ const Markets = () => {
 	const handleReset = () => {
 		if (fetchInProgress.current) return;
 		fetchInProgress.current = true;
-
 		setSearch("");
 		setCategory("");
 		setSortBy("price");
@@ -193,7 +150,6 @@ const Markets = () => {
 	const handlePageChange = (page: number) => {
 		if (fetchInProgress.current) return;
 		fetchInProgress.current = true;
-
 		window.scrollTo({ top: 0, behavior: "smooth" });
 		const newFilters = { ...filters, page };
 		dispatch(setFilters(newFilters));
@@ -202,196 +158,41 @@ const Markets = () => {
 		});
 	};
 
-	const showSkeletons = isLoading;
-
 	const currentPage = pagination?.page || 1;
 	const totalPages = pagination?.totalPages || 1;
-	const hasActiveFilters = search || category || sortBy !== "price" || sortOrder !== "desc";
+	const hasActiveFilters =
+		Boolean(search) || Boolean(category) || sortBy !== "price" || sortOrder !== "desc";
 
 	return (
 		<div className="glass-page-shell">
 			<div className="glass-page-body">
-				<div className="glass-hero-glass px-6 py-5">
-					<div className="glass-panel-inner flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-						<div className="max-w-2xl">
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-								{t("markets")}
-							</h1>
-							<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
-								Discover and track your favorite assets
-							</p>
-						</div>
-						<Button
-							onClick={() => navigate("/markets/add")}
-							className="glass-cta-button gap-2 shrink-0 self-start lg:self-center"
-						>
-							<Plus className="w-4 h-4" />
-							{t("addNewAsset")}
-						</Button>
-					</div>
-				</div>
-
-				<Card className="glass-filter-panel">
-					<CardContent className="glass-panel-inner p-4">
-						<div className="glass-filter-grid">
-							<div className="flex flex-col sm:flex-row gap-3">
-								<div className="flex-1 relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
-									<Input
-										type="text"
-										placeholder={t("searchAssets")}
-										value={search}
-										onChange={(e) => setSearch(e.target.value)}
-										onKeyPress={(e) => e.key === "Enter" && handleApplyFilters()}
-										className="pl-10"
-									/>
-								</div>
-
-								<div className="flex gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => setShowFilters(!showFilters)}
-										className={`glass-muted-button gap-2 ${hasActiveFilters ? "border-white/20 text-white" : ""}`}
-									>
-										<SlidersHorizontal className="w-4 h-4" />
-										{t("filters")}
-										{hasActiveFilters && (
-											<span className="ml-1 h-2 w-2 rounded-full bg-white/80" />
-										)}
-									</Button>
-									<Button
-										size="sm"
-										className="glass-cta-button"
-										onClick={handleApplyFilters}
-									>
-										{t("apply")}
-									</Button>
-									{hasActiveFilters && (
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={handleReset}
-											className="glass-muted-button gap-1"
-										>
-											<X className="w-4 h-4" />
-										</Button>
-									)}
-								</div>
-							</div>
-
-							{showFilters && (
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-white/8 animate-in fade-in slide-in-from-top-2 duration-200">
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("category")}
-										</label>
-										<Select
-											value={category}
-											onChange={(e) => setCategory(e.target.value)}
-										>
-											<option value="">{t("all")}</option>
-											{categories.map((cat) => (
-												<option key={cat} value={cat}>
-													{cat}
-												</option>
-											))}
-										</Select>
-									</div>
-
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("sortBy")}
-										</label>
-										<Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-											<option value="price">{t("price")}</option>
-											<option value="symbol">{t("symbol")}</option>
-											<option value="name">{t("name")}</option>
-										</Select>
-									</div>
-
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("order")}
-										</label>
-										<Select
-											value={sortOrder}
-											onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-										>
-											<option value="desc">{t("highToLow")}</option>
-											<option value="asc">{t("lowToHigh")}</option>
-										</Select>
-									</div>
-								</div>
-							)}
-						</div>
-					</CardContent>
-				</Card>
-
-				{error && (
-					<Card className="glass-empty-panel border-white/10">
-						<CardContent className="glass-panel-inner p-6 text-center">
-							<p className="text-red text-base">{error}</p>
-						</CardContent>
-					</Card>
-				)}
-
-				{!error && (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-						{showSkeletons
-							? Array.from({ length: 12 }).map((_, index) => (
-									<AssetCardSkeleton key={`skeleton-${index}`} />
-								))
-							: assets.map((asset) => <AssetCard key={asset.symbol} asset={asset} />)}
-					</div>
-				)}
-
-				{!error && !showSkeletons && assets.length === 0 && (
-					<Card className="glass-empty-panel">
-						<CardContent className="glass-panel-inner p-14 text-center">
-							<div className="flex flex-col items-center gap-3">
-								<div className="glass-inline-metric w-16 h-16 rounded-full flex items-center justify-center">
-									<Search className="w-8 h-8 text-text-secondary" />
-								</div>
-								<p className="text-text-secondary text-lg">{t("noAssetsAvailable")}</p>
-								<Button
-									variant="outline"
-									size="sm"
-									className="glass-muted-button"
-									onClick={handleReset}
-								>
-									{t("resetFilters")}
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
-				)}
-
-				{totalPages > 1 && (
-					<div className="flex justify-center items-center gap-4 pt-6">
-						<Button
-							variant="outline"
-							size="sm"
-							className="glass-muted-button"
-							onClick={() => handlePageChange(currentPage - 1)}
-							disabled={currentPage === 1}
-						>
-							{t("previous")}
-						</Button>
-						<span className="text-text-secondary text-sm font-medium px-4">
-							{t("page")} {currentPage} {t("of")} {totalPages}
-						</span>
-						<Button
-							variant="outline"
-							size="sm"
-							className="glass-muted-button"
-							onClick={() => handlePageChange(currentPage + 1)}
-							disabled={currentPage === totalPages}
-						>
-							{t("next")}
-						</Button>
-					</div>
-				)}
+				<MarketsHero />
+				<MarketsFilters
+					search={search}
+					setSearch={setSearch}
+					category={category}
+					setCategory={setCategory}
+					sortBy={sortBy}
+					setSortBy={setSortBy}
+					sortOrder={sortOrder}
+					setSortOrder={setSortOrder}
+					showFilters={showFilters}
+					setShowFilters={setShowFilters}
+					hasActiveFilters={hasActiveFilters}
+					onApply={handleApplyFilters}
+					onReset={handleReset}
+				/>
+				<MarketsGrid
+					assets={assets}
+					isLoading={isLoading}
+					error={error}
+					onReset={handleReset}
+				/>
+				<MarketsPagination
+					currentPage={currentPage}
+					totalPages={totalPages}
+					onChange={handlePageChange}
+				/>
 			</div>
 		</div>
 	);
