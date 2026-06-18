@@ -29,6 +29,7 @@ import { ChartContainer, ChartLegend, ChartTooltip } from "@/components/ui/chart
 import Card, { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 import StatsChartSkeleton from "../components/skeletons/StatsChartSkeleton";
+import { StatisticsHero } from "./statistics/StatisticsHero";
 
 const STARTING_BALANCE = 10000;
 
@@ -378,16 +379,7 @@ const Statistics = () => {
 	return (
 		<div className="statistics-page glass-page-shell">
 			<div className="glass-page-body">
-				<div className="glass-hero-glass px-6 py-5">
-					<div className="glass-panel-inner max-w-2xl">
-						<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-							{t("tradingStatistics")}
-						</h1>
-						<p className="mt-1.5 max-w-xl text-sm text-text-secondary">
-							Execution quality, portfolio behavior, and realized performance.
-						</p>
-					</div>
-				</div>
+				<StatisticsHero />
 
 				<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 					{showSkeletons ? (
@@ -603,7 +595,9 @@ const Statistics = () => {
 																	/>
 																}
 															/>
-															{!isCompactChart && <Legend content={<ChartLegend />} />}
+															{!isCompactChart && (
+																<Legend content={<ChartLegend />} />
+															)}
 															<Area
 																type="monotone"
 																dataKey="profit"
