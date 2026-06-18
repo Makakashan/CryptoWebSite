@@ -17,6 +17,7 @@ import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import MetricCard from "../components/MetricCard";
 import { PageHero, PageShell } from "../components/PageShell";
+import { ParticleCanvas } from "@/components/three";
 
 const AUTO_REFRESH_MS = 30000;
 
@@ -67,18 +68,13 @@ const Orders = () => {
 		if (!portfolio) return 0;
 
 		return portfolio.assets.reduce((sum, portfolioAsset) => {
-			const assetData = assets.find(
-				(a) => a.symbol === portfolioAsset.asset_symbol,
-			);
+			const assetData = assets.find((a) => a.symbol === portfolioAsset.asset_symbol);
 			const currentPrice = assetData?.price || assetData?.current_price || 0;
 			return sum + portfolioAsset.amount * currentPrice;
 		}, 0);
 	}, [portfolio, assets]);
 
-	const buyOrders = useMemo(
-		() => orders.filter((order) => order.order_type === "BUY"),
-		[orders],
-	);
+	const buyOrders = useMemo(() => orders.filter((order) => order.order_type === "BUY"), [orders]);
 
 	const sellOrders = useMemo(
 		() => orders.filter((order) => order.order_type === "SELL"),
@@ -86,20 +82,12 @@ const Orders = () => {
 	);
 
 	const totalBuyAmount = useMemo(
-		() =>
-			buyOrders.reduce(
-				(sum, order) => sum + order.amount * order.price_at_transaction,
-				0,
-			),
+		() => buyOrders.reduce((sum, order) => sum + order.amount * order.price_at_transaction, 0),
 		[buyOrders],
 	);
 
 	const totalSellAmount = useMemo(
-		() =>
-			sellOrders.reduce(
-				(sum, order) => sum + order.amount * order.price_at_transaction,
-				0,
-			),
+		() => sellOrders.reduce((sum, order) => sum + order.amount * order.price_at_transaction, 0),
 		[sellOrders],
 	);
 
@@ -204,10 +192,7 @@ const Orders = () => {
 		if (fetchInProgress.current) return;
 		fetchInProgress.current = true;
 
-		Promise.all([
-			dispatch(fetchOrders(filters)),
-			dispatch(fetchPortfolio()),
-		]).finally(() => {
+		Promise.all([dispatch(fetchOrders(filters)), dispatch(fetchPortfolio())]).finally(() => {
 			fetchInProgress.current = false;
 		});
 	};
@@ -229,6 +214,7 @@ const Orders = () => {
 		return (
 			<PageShell bodyClassName="space-y-6">
 				<PageHero
+					eyebrow="Activity"
 					title={t("orderHistory")}
 					description="Track and analyze all your trade activity"
 				/>
@@ -262,351 +248,342 @@ const Orders = () => {
 
 	return (
 		<PageShell>
-			<PageHero
-				title={t("orderHistory")}
-				description="Analyze your execution flow, timing and profit footprint"
-				actions={
-					<>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleManualRefresh}
-							className="glass-muted-button gap-2"
-						>
-							<RefreshCcw className="w-4 h-4" />
-							{t("refresh")}
-						</Button>
-						<Button onClick={() => navigate("/markets")} className="glass-cta-button gap-2">
-							<ArrowUpRight className="w-4 h-4" />
-							{t("placeNewOrder")}
-						</Button>
-					</>
-				}
-			/>
-
-				<Card className="glass-filter-panel">
-					<CardContent className="glass-panel-inner p-4">
-						<div className="glass-filter-grid">
-							<div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-								<div className="lg:col-span-3 flex flex-col gap-1.5">
-									<label className="text-xs font-medium text-text-secondary">
-										{t("asset")}
-									</label>
-									<div className="relative">
-										<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
-										<Select
-											value={assetSymbol}
-											onChange={(e) =>
-												setAssetSymbol(e.target.value)
-											}
-											className="pl-10"
-										>
-											<option value="">{t("allAssets")}</option>
-											{uniqueAssetSymbols.map((symbol) => (
-												<option key={symbol} value={symbol}>
-													{symbol.replace("USDT", "")}
-												</option>
-											))}
-										</Select>
-									</div>
-								</div>
-
-								<div className="lg:col-span-2 flex flex-col gap-1.5">
-									<label className="text-xs font-medium text-text-secondary">
-										{t("orderType")}
-									</label>
-									<Select
-										value={orderType}
-										onChange={(e) =>
-											setOrderType(
-												e.target.value as "" | "BUY" | "SELL",
-											)
-										}
-									>
-										<option value="">{t("all")}</option>
-										<option value="BUY">{t("buy")}</option>
-										<option value="SELL">{t("sell")}</option>
-									</Select>
-								</div>
-
-								<div className="lg:col-span-2 flex flex-col gap-1.5">
-									<label className="text-xs font-medium text-text-secondary">
-										{t("dateFrom")}
-									</label>
-									<Input
-										type="date"
-										value={dateFrom}
-										onChange={(e) => setDateFrom(e.target.value)}
-									/>
-								</div>
-
-								<div className="lg:col-span-2 flex flex-col gap-1.5">
-									<label className="text-xs font-medium text-text-secondary">
-										{t("dateTo")}
-									</label>
-									<Input
-										type="date"
-										value={dateTo}
-										onChange={(e) => setDateTo(e.target.value)}
-									/>
-								</div>
-
-								<div className="lg:col-span-3 grid grid-cols-2 gap-3">
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("sortBy")}
-										</label>
-										<Select
-											value={sortBy}
-											onChange={(e) => setSortBy(e.target.value)}
-										>
-											<option value="timestamp">{t("date")}</option>
-											<option value="amount">{t("amount")}</option>
-											<option value="asset_symbol">
-												{t("asset")}
-											</option>
-											<option value="price_at_transaction">
-												{t("price")}
-											</option>
-										</Select>
-									</div>
-									<div className="flex flex-col gap-1.5">
-										<label className="text-xs font-medium text-text-secondary">
-											{t("sortOrder")}
-										</label>
-										<Select
-											value={sortOrder}
-											onChange={(e) =>
-												setSortOrder(
-													e.target.value as "asc" | "desc",
-												)
-											}
-										>
-											<option value="desc">{t("descending")}</option>
-											<option value="asc">{t("ascending")}</option>
-										</Select>
-									</div>
-								</div>
-							</div>
-
-							<div className="flex flex-wrap justify-end gap-2 pt-1">
+			<div className="relative overflow-hidden rounded-[2.5rem]">
+				{/* Ambient particle field behind the Orders hero */}
+				<ParticleCanvas
+					count={60}
+					spread={24}
+					size={0.06}
+					opacity={0.4}
+					connect={false}
+					parallax={1.2}
+					position="absolute"
+					zIndex={0}
+				/>
+				<div className="relative z-10">
+					<PageHero
+						eyebrow="Activity"
+						title={t("orderHistory")}
+						description="Analyze your execution flow, timing and profit footprint"
+						actions={
+							<>
 								<Button
 									variant="outline"
 									size="sm"
+									onClick={handleManualRefresh}
 									className="glass-muted-button gap-2"
-									onClick={handleResetFilters}
 								>
-									<Filter className="w-4 h-4" />
-									{t("reset")}
+									<RefreshCcw className="w-4 h-4" />
+									{t("refresh")}
 								</Button>
 								<Button
-									size="sm"
-									className="glass-cta-button"
-									onClick={handleApplyFilters}
+									onClick={() => navigate("/markets")}
+									className="glass-cta-button gap-2"
 								>
-									{t("apply")}
+									<ArrowUpRight className="w-4 h-4" />
+									{t("placeNewOrder")}
 								</Button>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				<div className="glass-metric-grid glass-metric-grid--four">
-					<MetricCard
-						title={t("totalOrders")}
-						value={pagination?.total || orders.length}
-						description={t("allTime")}
-						icon={Clock3}
-					/>
-					<MetricCard
-						title={t("buyOrders")}
-						value={buyOrders.length}
-						description={`${formatPrice(totalBuyAmount)} ${t("spent")}`}
-					/>
-					<MetricCard
-						title={t("sellOrders")}
-						value={sellOrders.length}
-						description={`${formatPrice(totalSellAmount)} ${t("earned")}`}
-					/>
-					<MetricCard
-						title={t("netProfit")}
-						value={formatPrice(netProfit)}
-						description={t("totalGainLoss")}
-						valueClassName={netProfit >= 0 ? "text-green" : "text-red"}
+							</>
+						}
 					/>
 				</div>
+			</div>
 
-				<Card className="glass-table-panel">
-					<CardContent className="glass-panel-inner p-0">
-						<div className="px-6 pt-5 pb-3 flex items-center justify-between">
-							<h2 className="text-xl font-semibold text-text-primary">
-								{t("recentOrders")}
-							</h2>
-							{hasActiveFilters && (
-								<span className="glass-market-chip text-xs">
-									{t("filters")}
-								</span>
-							)}
+			<Card className="glass-filter-panel">
+				<CardContent className="glass-panel-inner p-4">
+					<div className="glass-filter-grid">
+						<div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+							<div className="lg:col-span-3 flex flex-col gap-1.5">
+								<label className="text-xs font-medium text-text-secondary">
+									{t("asset")}
+								</label>
+								<div className="relative">
+									<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+									<Select
+										value={assetSymbol}
+										onChange={(e) => setAssetSymbol(e.target.value)}
+										className="pl-10"
+									>
+										<option value="">{t("allAssets")}</option>
+										{uniqueAssetSymbols.map((symbol) => (
+											<option key={symbol} value={symbol}>
+												{symbol.replace("USDT", "")}
+											</option>
+										))}
+									</Select>
+								</div>
+							</div>
+
+							<div className="lg:col-span-2 flex flex-col gap-1.5">
+								<label className="text-xs font-medium text-text-secondary">
+									{t("orderType")}
+								</label>
+								<Select
+									value={orderType}
+									onChange={(e) => setOrderType(e.target.value as "" | "BUY" | "SELL")}
+								>
+									<option value="">{t("all")}</option>
+									<option value="BUY">{t("buy")}</option>
+									<option value="SELL">{t("sell")}</option>
+								</Select>
+							</div>
+
+							<div className="lg:col-span-2 flex flex-col gap-1.5">
+								<label className="text-xs font-medium text-text-secondary">
+									{t("dateFrom")}
+								</label>
+								<Input
+									type="date"
+									value={dateFrom}
+									onChange={(e) => setDateFrom(e.target.value)}
+								/>
+							</div>
+
+							<div className="lg:col-span-2 flex flex-col gap-1.5">
+								<label className="text-xs font-medium text-text-secondary">
+									{t("dateTo")}
+								</label>
+								<Input
+									type="date"
+									value={dateTo}
+									onChange={(e) => setDateTo(e.target.value)}
+								/>
+							</div>
+
+							<div className="lg:col-span-3 grid grid-cols-2 gap-3">
+								<div className="flex flex-col gap-1.5">
+									<label className="text-xs font-medium text-text-secondary">
+										{t("sortBy")}
+									</label>
+									<Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+										<option value="timestamp">{t("date")}</option>
+										<option value="amount">{t("amount")}</option>
+										<option value="asset_symbol">{t("asset")}</option>
+										<option value="price_at_transaction">{t("price")}</option>
+									</Select>
+								</div>
+								<div className="flex flex-col gap-1.5">
+									<label className="text-xs font-medium text-text-secondary">
+										{t("sortOrder")}
+									</label>
+									<Select
+										value={sortOrder}
+										onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+									>
+										<option value="desc">{t("descending")}</option>
+										<option value="asc">{t("ascending")}</option>
+									</Select>
+								</div>
+							</div>
 						</div>
 
-						{orders.length === 0 ? (
-							<div className="p-14 text-center">
-								<p className="text-text-secondary mb-4">
-									{t("noOrdersYet")}
-								</p>
-								<Button
-									className="glass-cta-button"
-									onClick={() => navigate("/markets")}
-								>
-									{t("startTrading")}
-								</Button>
-							</div>
-						) : (
-							<>
-								<div className="orders-table-wrap overflow-x-auto">
-									<table className="w-full border-collapse">
-										<thead>
-											<tr className="border-b border-white/10">
-												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-													{t("date")}
-												</th>
-												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-													{t("asset")}
-												</th>
-												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-													{t("type")}
-												</th>
-												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-													{t("amount")}
-												</th>
-												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-													{t("price")}
-												</th>
-												<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-													{t("total")}
-												</th>
-											</tr>
-										</thead>
-										<tbody>
-											{orders.map((order) => {
-												const shortName = order.asset_symbol.replace(
-													"USDT",
-													"",
-												);
-												const total =
-													order.amount * order.price_at_transaction;
-												const date = new Date(
-													order.timestamp,
-												).toLocaleString();
-												const isBuy = order.order_type === "BUY";
-
-												return (
-													<tr
-														key={order.id}
-														className="border-b border-white/6 transition-colors duration-200 hover:bg-white/2"
-													>
-														<td className="px-6 py-4 text-sm text-text-primary">
-															{date}
-														</td>
-														<td className="px-6 py-4 text-sm text-text-primary font-semibold">
-															{shortName}
-														</td>
-														<td className="px-6 py-4 text-sm">
-															<span
-																className={`glass-market-chip ${isBuy ? "text-green border-green/30 bg-green/10" : "text-red border-red/30 bg-red/10"}`}
-															>
-																{order.order_type}
-															</span>
-														</td>
-														<td className="px-6 py-4 text-sm text-text-primary">
-															{order.amount.toFixed(6)}
-														</td>
-														<td className="px-6 py-4 text-sm text-text-primary">
-															{formatPrice(
-																order.price_at_transaction,
-															)}
-														</td>
-														<td className="px-6 py-4 text-sm font-semibold text-text-primary">
-															{formatPrice(total)}
-														</td>
-													</tr>
-												);
-											})}
-										</tbody>
-									</table>
-								</div>
-								<div className="orders-mobile-list">
-									{orders.map((order) => {
-										const shortName = order.asset_symbol.replace("USDT", "");
-										const total = order.amount * order.price_at_transaction;
-										const date = new Date(order.timestamp).toLocaleString();
-										const isBuy = order.order_type === "BUY";
-
-										return (
-											<article className="orders-mobile-card" key={order.id}>
-												<div className="orders-mobile-card__top">
-													<div>
-														<span className="orders-mobile-card__label">{t("asset")}</span>
-														<strong>{shortName}</strong>
-													</div>
-													<span
-														className={`glass-market-chip ${isBuy ? "text-green border-green/30 bg-green/10" : "text-red border-red/30 bg-red/10"}`}
-													>
-														{order.order_type}
-													</span>
-												</div>
-												<div className="orders-mobile-card__grid">
-													<div>
-														<span className="orders-mobile-card__label">{t("date")}</span>
-														<span>{date}</span>
-													</div>
-													<div>
-														<span className="orders-mobile-card__label">{t("amount")}</span>
-														<span>{order.amount.toFixed(6)}</span>
-													</div>
-													<div>
-														<span className="orders-mobile-card__label">{t("price")}</span>
-														<span>{formatPrice(order.price_at_transaction)}</span>
-													</div>
-													<div>
-														<span className="orders-mobile-card__label">{t("total")}</span>
-														<strong>{formatPrice(total)}</strong>
-													</div>
-												</div>
-											</article>
-										);
-									})}
-								</div>
-							</>
-						)}
-					</CardContent>
-				</Card>
-
-				{totalPages > 1 && (
-					<div className="flex justify-center items-center gap-4 pt-2">
-						<Button
-							variant="outline"
-							size="sm"
-							className="glass-muted-button"
-							onClick={() => handlePageChange(currentPage - 1)}
-							disabled={currentPage === 1}
-						>
-							{t("previous")}
-						</Button>
-						<span className="text-text-secondary text-sm font-medium px-4">
-							{t("page")} {currentPage} {t("of")} {totalPages}
-						</span>
-						<Button
-							variant="outline"
-							size="sm"
-							className="glass-muted-button"
-							onClick={() => handlePageChange(currentPage + 1)}
-							disabled={currentPage === totalPages}
-						>
-							{t("next")}
-						</Button>
+						<div className="flex flex-wrap justify-end gap-2 pt-1">
+							<Button
+								variant="outline"
+								size="sm"
+								className="glass-muted-button gap-2"
+								onClick={handleResetFilters}
+							>
+								<Filter className="w-4 h-4" />
+								{t("reset")}
+							</Button>
+							<Button size="sm" className="glass-cta-button" onClick={handleApplyFilters}>
+								{t("apply")}
+							</Button>
+						</div>
 					</div>
-				)}
+				</CardContent>
+			</Card>
+
+			<div className="glass-metric-grid glass-metric-grid--four">
+				<MetricCard
+					title={t("totalOrders")}
+					value={pagination?.total || orders.length}
+					description={t("allTime")}
+					icon={Clock3}
+				/>
+				<MetricCard
+					title={t("buyOrders")}
+					value={buyOrders.length}
+					description={`${formatPrice(totalBuyAmount)} ${t("spent")}`}
+				/>
+				<MetricCard
+					title={t("sellOrders")}
+					value={sellOrders.length}
+					description={`${formatPrice(totalSellAmount)} ${t("earned")}`}
+				/>
+				<MetricCard
+					title={t("netProfit")}
+					value={formatPrice(netProfit)}
+					description={t("totalGainLoss")}
+					valueClassName={netProfit >= 0 ? "text-green" : "text-red"}
+				/>
+			</div>
+
+			<Card className="glass-table-panel">
+				<CardContent className="glass-panel-inner p-0">
+					<div className="px-6 pt-5 pb-3 flex items-center justify-between">
+						<h2 className="text-xl font-semibold text-text-primary">{t("recentOrders")}</h2>
+						{hasActiveFilters && (
+							<span className="glass-market-chip text-xs">{t("filters")}</span>
+						)}
+					</div>
+
+					{orders.length === 0 ? (
+						<div className="p-14 text-center">
+							<p className="text-text-secondary mb-4">{t("noOrdersYet")}</p>
+							<Button className="glass-cta-button" onClick={() => navigate("/markets")}>
+								{t("startTrading")}
+							</Button>
+						</div>
+					) : (
+						<>
+							<div className="orders-table-wrap overflow-x-auto">
+								<table className="w-full border-collapse">
+									<thead>
+										<tr className="border-b border-white/10">
+											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+												{t("date")}
+											</th>
+											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+												{t("asset")}
+											</th>
+											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+												{t("type")}
+											</th>
+											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+												{t("amount")}
+											</th>
+											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+												{t("price")}
+											</th>
+											<th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+												{t("total")}
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										{orders.map((order) => {
+											const shortName = order.asset_symbol.replace("USDT", "");
+											const total = order.amount * order.price_at_transaction;
+											const date = new Date(order.timestamp).toLocaleString();
+											const isBuy = order.order_type === "BUY";
+
+											return (
+												<tr
+													key={order.id}
+													className="border-b border-white/6 transition-colors duration-200 hover:bg-white/2"
+												>
+													<td className="px-6 py-4 text-sm text-text-primary">
+														{date}
+													</td>
+													<td className="px-6 py-4 text-sm text-text-primary font-semibold">
+														{shortName}
+													</td>
+													<td className="px-6 py-4 text-sm">
+														<span
+															className={`glass-market-chip ${isBuy ? "text-green border-green/30 bg-green/10" : "text-red border-red/30 bg-red/10"}`}
+														>
+															{order.order_type}
+														</span>
+													</td>
+													<td className="px-6 py-4 text-sm text-text-primary">
+														{order.amount.toFixed(6)}
+													</td>
+													<td className="px-6 py-4 text-sm text-text-primary">
+														{formatPrice(order.price_at_transaction)}
+													</td>
+													<td className="px-6 py-4 text-sm font-semibold text-text-primary">
+														{formatPrice(total)}
+													</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+							<div className="orders-mobile-list">
+								{orders.map((order) => {
+									const shortName = order.asset_symbol.replace("USDT", "");
+									const total = order.amount * order.price_at_transaction;
+									const date = new Date(order.timestamp).toLocaleString();
+									const isBuy = order.order_type === "BUY";
+
+									return (
+										<article className="orders-mobile-card" key={order.id}>
+											<div className="orders-mobile-card__top">
+												<div>
+													<span className="orders-mobile-card__label">
+														{t("asset")}
+													</span>
+													<strong>{shortName}</strong>
+												</div>
+												<span
+													className={`glass-market-chip ${isBuy ? "text-green border-green/30 bg-green/10" : "text-red border-red/30 bg-red/10"}`}
+												>
+													{order.order_type}
+												</span>
+											</div>
+											<div className="orders-mobile-card__grid">
+												<div>
+													<span className="orders-mobile-card__label">
+														{t("date")}
+													</span>
+													<span>{date}</span>
+												</div>
+												<div>
+													<span className="orders-mobile-card__label">
+														{t("amount")}
+													</span>
+													<span>{order.amount.toFixed(6)}</span>
+												</div>
+												<div>
+													<span className="orders-mobile-card__label">
+														{t("price")}
+													</span>
+													<span>{formatPrice(order.price_at_transaction)}</span>
+												</div>
+												<div>
+													<span className="orders-mobile-card__label">
+														{t("total")}
+													</span>
+													<strong>{formatPrice(total)}</strong>
+												</div>
+											</div>
+										</article>
+									);
+								})}
+							</div>
+						</>
+					)}
+				</CardContent>
+			</Card>
+
+			{totalPages > 1 && (
+				<div className="flex justify-center items-center gap-4 pt-2">
+					<Button
+						variant="outline"
+						size="sm"
+						className="glass-muted-button"
+						onClick={() => handlePageChange(currentPage - 1)}
+						disabled={currentPage === 1}
+					>
+						{t("previous")}
+					</Button>
+					<span className="text-text-secondary text-sm font-medium px-4">
+						{t("page")} {currentPage} {t("of")} {totalPages}
+					</span>
+					<Button
+						variant="outline"
+						size="sm"
+						className="glass-muted-button"
+						onClick={() => handlePageChange(currentPage + 1)}
+						disabled={currentPage === totalPages}
+					>
+						{t("next")}
+					</Button>
+				</div>
+			)}
 		</PageShell>
 	);
 };

@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { type CSSProperties, type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "../store/hooks";
-import ThreeBackground from "@/components/ThreeBackground";
-import { MarketConstellation3D } from "@/components/BentoCards3D";
 import { assetsApi } from "@/api/assetsApi";
 import api from "@/api/axiosConfig";
+import { MarketConstellation3D } from "@/components/BentoCards3D";
+import ThreeBackground from "@/components/ThreeBackground";
+import { FloatingShapes, MagneticButton } from "@/components/three";
+import { useAppSelector } from "../store/hooks";
 
 const watchlist = [
 	{ symbol: "ETH", price: "$3,521", change: "+1.8%", direction: "up" },
@@ -55,7 +56,8 @@ const Landing = () => {
 	}, []);
 
 	useEffect(() => {
-		assetsApi.getChartData(["BTCUSDT"], "1h", 48)
+		assetsApi
+			.getChartData(["BTCUSDT"], "1h", 48)
 			.then((r) => {
 				const prices = r.data.BTCUSDT ?? r.data.BTC ?? [];
 				if (prices.length > 0) setChartPrices(prices);
@@ -128,25 +130,47 @@ const Landing = () => {
 	return (
 		<div className="landing">
 			<ThreeBackground />
+			<FloatingShapes
+				count={8}
+				spread={42}
+				opacity={0.32}
+				parallax={2.5}
+				position="fixed"
+				zIndex={0}
+				draggable
+			/>
 			<img src="/favicon.svg" alt="MakakaTrade" className="landing-brand-mark" />
 
 			<div className="landing-body">
 				<section className="landing-hero">
 					<h1 className="landing-hero__title">
-						Trade faster.<br />
+						Trade faster.
+						<br />
 						<span className="landing-hero__title--muted">Track smarter.</span>
 					</h1>
 					<p className="landing-hero__text">
-						Live prices, clean analytics and portfolio control in one place.
-						Built for quick decisions in volatile markets.
+						Live prices, clean analytics and portfolio control in one place. Built for quick
+						decisions in volatile markets.
 					</p>
 					<div className="landing-hero__actions">
-						<button type="button" className="landing-button landing-button--primary" onClick={handleStart}>
+						<MagneticButton
+							type="button"
+							className="landing-button landing-button--primary"
+							onClick={handleStart}
+							strength={0.5}
+							radius={140}
+						>
 							Start Trading
-						</button>
-						<button type="button" className="landing-button landing-button--secondary" onClick={() => navigate("/register")}>
+						</MagneticButton>
+						<MagneticButton
+							type="button"
+							className="landing-button landing-button--secondary"
+							onClick={() => navigate("/register")}
+							strength={0.35}
+							radius={120}
+						>
 							Create Account
-						</button>
+						</MagneticButton>
 					</div>
 				</section>
 
@@ -157,8 +181,11 @@ const Landing = () => {
 						<div {...floatingCardProps("price")}>
 							<span className="landing-float-card__label">BTC / USDT</span>
 							<strong className="landing-float-card__value">{formattedPrice}</strong>
-							<span className={`landing-float-card__change landing-float-card__change--${chartChangeDirection}`}>
-								{chartChange >= 0 ? "+" : ""}{chartChange.toFixed(2)}%
+							<span
+								className={`landing-float-card__change landing-float-card__change--${chartChangeDirection}`}
+							>
+								{chartChange >= 0 ? "+" : ""}
+								{chartChange.toFixed(2)}%
 							</span>
 						</div>
 
@@ -189,7 +216,9 @@ const Landing = () => {
 								<div className="landing-watch-row" key={asset.symbol}>
 									<span>{asset.symbol}</span>
 									<span>{asset.price}</span>
-									<span className={`landing-watch-row__change landing-watch-row__change--${asset.direction}`}>
+									<span
+										className={`landing-watch-row__change landing-watch-row__change--${asset.direction}`}
+									>
 										{asset.change}
 									</span>
 								</div>
@@ -203,12 +232,17 @@ const Landing = () => {
 							</div>
 							{depthRows.map((row) => (
 								<div className="landing-depth-row" key={`${row.side}-${row.price}`}>
-									<span className={`landing-depth-row__side landing-depth-row__side--${row.side.toLowerCase()}`}>
+									<span
+										className={`landing-depth-row__side landing-depth-row__side--${row.side.toLowerCase()}`}
+									>
 										{row.side}
 									</span>
 									<span>{row.price}</span>
 									<span>{row.size}</span>
-									<span className="landing-depth-row__bar" style={{ width: `${row.width}%` }} />
+									<span
+										className="landing-depth-row__bar"
+										style={{ width: `${row.width}%` }}
+									/>
 								</div>
 							))}
 						</div>
