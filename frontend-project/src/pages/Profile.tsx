@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import {
 	User,
 	Wallet,
-	ShieldCheck,
 	Image as ImageIcon,
 	Mail,
 	Lock,
@@ -27,6 +26,7 @@ import type {
 } from "../store/types/profile.types";
 import { formatRelativeTime } from "../utils/dateTime";
 import { mapProfileActivityIcon } from "@/utils/profileActivity";
+import { ProfileHero } from "./profile/ProfileHero";
 
 const Profile = () => {
 	const { t, i18n } = useTranslation();
@@ -179,10 +179,7 @@ const Profile = () => {
 	};
 
 	const hasChanges = avatar !== user?.avatar;
-	const balanceText = useMemo(
-		() => `$${(user?.balance ?? 0).toFixed(2)}`,
-		[user?.balance],
-	);
+	const balanceText = useMemo(() => `$${(user?.balance ?? 0).toFixed(2)}`, [user?.balance]);
 
 	if (!user) {
 		return (
@@ -196,26 +193,7 @@ const Profile = () => {
 	return (
 		<div className="glass-page-shell">
 			<div className="glass-page-body space-y-5">
-				<div className="glass-hero-glass px-6 py-5">
-					<div className="glass-panel-inner flex items-center justify-between gap-4">
-						<div>
-							<h1 className="text-3xl font-bold tracking-tight text-text-primary">
-								{t("profile")}
-							</h1>
-							<p className="mt-1.5 text-sm text-text-secondary">
-								Manage your identity, security and account preferences
-							</p>
-						</div>
-						<div className="hidden md:flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-2">
-							<ShieldCheck className="h-4 w-4 text-emerald-300" />
-							<span className="text-xs text-text-secondary">
-								{preferences?.email_verified
-									? "Account verified"
-									: "Verification pending"}
-							</span>
-						</div>
-					</div>
-				</div>
+				<ProfileHero title={t("profile")} verified={preferences?.email_verified} />
 
 				{message && (
 					<Card className="glass-empty-panel border-white/10">
@@ -305,7 +283,9 @@ const Profile = () => {
 														<div className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/4">
 															<Icon className="h-4 w-4 text-text-secondary" />
 														</div>
-														<span className="text-sm text-text-primary">{item.title}</span>
+														<span className="text-sm text-text-primary">
+															{item.title}
+														</span>
 													</div>
 													<span className="text-xs text-text-secondary">
 														{formatRelativeTime(item.created_at)}
@@ -327,7 +307,9 @@ const Profile = () => {
 								</p>
 								<div className="flex items-center gap-2">
 									<User className="h-4 w-4 text-text-secondary" />
-									<p className="text-xl font-semibold text-text-primary">{user.username}</p>
+									<p className="text-xl font-semibold text-text-primary">
+										{user.username}
+									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -438,9 +420,7 @@ const Profile = () => {
 									</div>
 									<span
 										className={`text-xs ${
-											preferences?.email_verified
-												? "text-emerald-300"
-												: "text-amber-300"
+											preferences?.email_verified ? "text-emerald-300" : "text-amber-300"
 										}`}
 									>
 										{preferences?.email_verified ? "Verified" : "Unverified"}
