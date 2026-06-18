@@ -1,14 +1,11 @@
-import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { register } from "../store/slices/authSlice";
 import { Headset } from "lucide-react";
+import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
 import ThreeBackground from "@/components/ThreeBackground";
-import { useGoogleAuth } from "../hooks/useGoogleAuth";
-import { AvatarUpload } from "../components/ui/AvatarUpload";
+import { CoinField } from "@/components/three";
 import Button from "@/components/ui/button";
 import Card, {
 	CardAction,
@@ -20,6 +17,10 @@ import Card, {
 } from "@/components/ui/card";
 import Input from "@/components/ui/input";
 import Label from "@/components/ui/label";
+import { AvatarUpload } from "../components/ui/AvatarUpload";
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { register } from "../store/slices/authSlice";
 
 const Register = () => {
 	const { t } = useTranslation();
@@ -29,7 +30,11 @@ const Register = () => {
 	const [avatar, setAvatar] = useState<string | null>(null);
 
 	const onGoogleSuccess = useCallback(() => navigate("/dashboard"), [navigate]);
-	const { loading: googleLoading, error: googleError, triggerPrompt } = useGoogleAuth(onGoogleSuccess);
+	const {
+		loading: googleLoading,
+		error: googleError,
+		triggerPrompt,
+	} = useGoogleAuth(onGoogleSuccess);
 	const visibleAuthError = googleError ?? error;
 
 	const validationSchema = Yup.object({
@@ -68,6 +73,15 @@ const Register = () => {
 	return (
 		<div className="login-screen">
 			<ThreeBackground />
+			<CoinField
+				count={6}
+				spread={36}
+				opacity={0.18}
+				parallax={2.5}
+				position="fixed"
+				zIndex={0}
+				draggable
+			/>
 			<div className="login-screen__glow login-screen__glow--one" />
 			<div className="login-screen__glow login-screen__glow--two" />
 			<div className="login-screen__orb login-screen__orb--left" />
@@ -77,7 +91,12 @@ const Register = () => {
 				<Card className="login-card w-full max-w-sm">
 					<CardHeader>
 						<div className="login-hero__brand" style={{ justifyContent: "flex-start" }}>
-							<img src="/favicon.svg" alt="MakakaTrade" className="login-hero__logo" style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.7rem" }} />
+							<img
+								src="/favicon.svg"
+								alt="MakakaTrade"
+								className="login-hero__logo"
+								style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.7rem" }}
+							/>
 							<div>
 								<div className="login-hero__name">MakakaTrade</div>
 							</div>

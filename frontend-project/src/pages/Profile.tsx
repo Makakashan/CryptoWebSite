@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import {
 	User,
 	Wallet,
-	ShieldCheck,
 	Image as ImageIcon,
 	Mail,
 	Lock,
@@ -27,6 +26,7 @@ import type {
 } from "../store/types/profile.types";
 import { formatRelativeTime } from "../utils/dateTime";
 import { mapProfileActivityIcon } from "@/utils/profileActivity";
+import { ProfileHero } from "./profile/ProfileHero";
 
 const Profile = () => {
 	const { t, i18n } = useTranslation();
@@ -193,28 +193,7 @@ const Profile = () => {
 	return (
 		<div className="glass-page-shell">
 			<div className="glass-page-body space-y-5">
-				<div className="glass-hero-glass px-6 py-7 md:px-8 md:py-9">
-					<div className="glass-panel-inner flex items-center justify-between gap-4">
-						<div>
-							<div className="glass-eyebrow">
-								<User className="h-3 w-3" />
-								Account
-							</div>
-							<h1 className="mt-3 text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
-								{t("profile")}
-							</h1>
-							<p className="mt-2 text-sm text-text-secondary md:text-base">
-								Manage your identity, security and account preferences
-							</p>
-						</div>
-						<div className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-							<ShieldCheck className="h-4 w-4 text-emerald-300" />
-							<span className="text-xs text-text-secondary">
-								{preferences?.email_verified ? "Account verified" : "Verification pending"}
-							</span>
-						</div>
-					</div>
-				</div>
+				<ProfileHero title={t("profile")} verified={preferences?.email_verified} />
 
 				{message && (
 					<Card className="glass-empty-panel border-white/10">

@@ -5,7 +5,6 @@
    - Tracks pointer position over every glass surface and writes
      --mx / --my CSS vars so the spotlight + iridescent border can
      follow the cursor.
-   - Adds optional tilt to elements with .glass-tilt.
    - Injects the spotlight/iridescent layers automatically so the
      existing TSX components don't need markup changes.
 
@@ -24,7 +23,6 @@ const GLASS_SURFACE_SELECTOR = [
 	".glass-empty-panel",
 	".glass-table-panel",
 	".portfolio-glass-panel",
-	".portfolio-glass-panel-assets",
 	".glass-market-card",
 	".top-performer-card",
 	".glass-inline-metric",
@@ -32,16 +30,14 @@ const GLASS_SURFACE_SELECTOR = [
 	".portfolio-hero-glass",
 ].join(",");
 
-const TILT_SELECTOR = ".glass-tilt";
-
 let isInitialised = false;
 let boundElements = new WeakSet<HTMLElement>();
 const cleanups: Array<() => void> = [];
 
 /**
- * Injects the spotlight + iridescent layers as the FIRST/LAST child
- * of the surface so they sit beneath the content but above the
- * surface background.
+ * Injects the spotlight + iridescent layers as the FIRST/LAST child of
+ * the surface so they sit beneath the content but above the surface
+ * background.
  */
 function ensureLayers(el: HTMLElement) {
 	if (el.dataset.glassLayers === "true") return;
@@ -74,36 +70,6 @@ function bindSurface(el: HTMLElement) {
 }
 
 /**
- * Optional tilt handler — applies subtle rotateX / rotateY based on
- * pointer position relative to element center.
- */
-function bindTilt(el: HTMLElement) {
-	const MAX = 6; // degrees — keep in sync with --glass-tilt-max
-
-	const onMove = (e: PointerEvent) => {
-		const rect = el.getBoundingClientRect();
-		const cx = rect.left + rect.width / 2;
-		const cy = rect.top + rect.height / 2;
-		const dx = (e.clientX - cx) / (rect.width / 2);
-		const dy = (e.clientY - cy) / (rect.height / 2);
-		el.style.setProperty("--ry", `${(dx * MAX).toFixed(2)}deg`);
-		el.style.setProperty("--rx", `${(-dy * MAX).toFixed(2)}deg`);
-	};
-
-	const onLeave = () => {
-		el.style.setProperty("--rx", "0deg");
-		el.style.setProperty("--ry", "0deg");
-	};
-
-	el.addEventListener("pointermove", onMove);
-	el.addEventListener("pointerleave", onLeave);
-	return () => {
-		el.removeEventListener("pointermove", onMove);
-		el.removeEventListener("pointerleave", onLeave);
-	};
-}
-
-/**
  * Watch the DOM for new glass surfaces (route changes, lazy-loaded
  * lists, etc.) and bind them.
  */
@@ -111,12 +77,7 @@ function observeDOM() {
 	const observer = new MutationObserver(() => {
 		refreshSurfaces();
 	});
-
-	observer.observe(document.body, {
-		childList: true,
-		subtree: true,
-	});
-
+	observer.observe(document.body, { childList: true, subtree: true });
 	return () => observer.disconnect();
 }
 
@@ -128,13 +89,6 @@ function refreshSurfaces() {
 		ensureLayers(el);
 		cleanups.push(bindSurface(el));
 	});
-
-	const tilts = document.querySelectorAll<HTMLElement>(TILT_SELECTOR);
-	tilts.forEach((el) => {
-		if ((el as HTMLElement & { __glassTiltBound?: boolean }).__glassTiltBound) return;
-		(el as HTMLElement & { __glassTiltBound?: boolean }).__glassTiltBound = true;
-		cleanups.push(bindTilt(el));
-	});
 }
 
 /**
@@ -144,7 +98,6 @@ function refreshSurfaces() {
 export function initGlassInteractions() {
 	if (isInitialised) return;
 	isInitialised = true;
-
 	if (typeof window === "undefined") return;
 
 	const start = () => {

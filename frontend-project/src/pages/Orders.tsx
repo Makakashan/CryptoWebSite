@@ -17,6 +17,7 @@ import StatCardSkeleton from "../components/skeletons/StatCardSkeleton";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import MetricCard from "../components/MetricCard";
 import { PageHero, PageShell } from "../components/PageShell";
+import { ParticleCanvas } from "@/components/three";
 
 const AUTO_REFRESH_MS = 30000;
 
@@ -247,28 +248,46 @@ const Orders = () => {
 
 	return (
 		<PageShell>
-			<PageHero
-				eyebrow="Activity"
-				title={t("orderHistory")}
-				description="Analyze your execution flow, timing and profit footprint"
-				actions={
-					<>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleManualRefresh}
-							className="glass-muted-button gap-2"
-						>
-							<RefreshCcw className="w-4 h-4" />
-							{t("refresh")}
-						</Button>
-						<Button onClick={() => navigate("/markets")} className="glass-cta-button gap-2">
-							<ArrowUpRight className="w-4 h-4" />
-							{t("placeNewOrder")}
-						</Button>
-					</>
-				}
-			/>
+			<div className="relative overflow-hidden rounded-[2.5rem]">
+				{/* Ambient particle field behind the Orders hero */}
+				<ParticleCanvas
+					count={60}
+					spread={24}
+					size={0.06}
+					opacity={0.4}
+					connect={false}
+					parallax={1.2}
+					position="absolute"
+					zIndex={0}
+				/>
+				<div className="relative z-10">
+					<PageHero
+						eyebrow="Activity"
+						title={t("orderHistory")}
+						description="Analyze your execution flow, timing and profit footprint"
+						actions={
+							<>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleManualRefresh}
+									className="glass-muted-button gap-2"
+								>
+									<RefreshCcw className="w-4 h-4" />
+									{t("refresh")}
+								</Button>
+								<Button
+									onClick={() => navigate("/markets")}
+									className="glass-cta-button gap-2"
+								>
+									<ArrowUpRight className="w-4 h-4" />
+									{t("placeNewOrder")}
+								</Button>
+							</>
+						}
+					/>
+				</div>
+			</div>
 
 			<Card className="glass-filter-panel">
 				<CardContent className="glass-panel-inner p-4">

@@ -66,7 +66,7 @@ const AssetCard = memo(({ asset }: AssetCardProps) => {
 	return (
 		<Card
 			ref={cardRef}
-			className="glass-market-card cursor-pointer overflow-hidden p-5 transition-all duration-300 hover:-translate-y-1"
+			className="glass-market-card cursor-pointer overflow-hidden p-5 transition-[box-shadow,border-color] duration-300"
 			onClick={handleClick}
 		>
 			<div className="flex items-start justify-between gap-4 h-full">
