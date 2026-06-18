@@ -3,37 +3,42 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import "./i18n/config";
 import "./index.css";
+import "./styles/glass-premium.css";
+import { initGlassInteractions } from "./lib/glassInteractions";
 import App from "./App.tsx";
+
+// Initialise pointer-tracked spotlight + iridescent edge on every glass surface.
+initGlassInteractions();
 
 // Unregister any existing Service Workers in dev to avoid reload loops
 if (!import.meta.env.PROD && "serviceWorker" in navigator) {
-	navigator.serviceWorker.getRegistrations().then((registrations) => {
-		registrations.forEach((registration) => {
-			registration.unregister();
-		});
-	});
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+                registrations.forEach((registration) => {
+                        registration.unregister();
+                });
+        });
 }
 
 // Register Service Worker only in production
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
-	window.addEventListener("load", () => {
-		navigator.serviceWorker
-			.register("/service-worker.js")
-			.then((registration) => {
-				if (import.meta.env.DEV) {
-					console.log("Service Worker registered:", registration.scope);
-				}
-			})
-			.catch((error) => {
-				if (import.meta.env.DEV) {
-					console.error("Service Worker registration failed:", error);
-				}
-			});
-	});
+        window.addEventListener("load", () => {
+                navigator.serviceWorker
+                        .register("/service-worker.js")
+                        .then((registration) => {
+                                if (import.meta.env.DEV) {
+                                        console.log("Service Worker registered:", registration.scope);
+                                }
+                        })
+                        .catch((error) => {
+                                if (import.meta.env.DEV) {
+                                        console.error("Service Worker registration failed:", error);
+                                }
+                        });
+        });
 }
 
 createRoot(document.getElementById("root")!).render(
-	<Provider store={store}>
-		<App />
-	</Provider>,
+        <Provider store={store}>
+                <App />
+        </Provider>,
 );
