@@ -116,6 +116,40 @@ const buildUniqueUsername = async (db: DB, base: string): Promise<string> => {
         }
 };
 
+const isLocalOrigin = (origin: string): boolean => {
+        try {
+                const { hostname } = new URL(origin);
+                return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+        } catch {
+                return false;
+        }
+};
+
+const shouldUseSecureCookies = (): boolean => {
+        const override = process.env.COOKIE_SECURE;
+        if (override) {
+                return override === "true";
+        }
+
+        const corsOrigins = (process.env.CORS_ORIGIN ?? "")
+                .split(",")
+                .map((origin) => origin.trim())
+                .filter(Boolean);
+
+        return process.env.NODE_ENV === "production" && !corsOrigins.some(isLocalOrigin);
+};
+
+const getAuthCookieOptions = () => {
+        const secure = shouldUseSecureCookies();
+
+        return {
+                httpOnly: true,
+                secure,
+                sameSite: secure ? "strict" : "lax",
+                maxAge: 3600000,
+        } as const;
+};
+
 // User Registration Endpoint
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
         const { username, password, avatar } = req.body;
@@ -181,12 +215,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
                 });
 
                 // Set token in HTTP-only cookie
-                res.cookie("token", token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-                        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Lax for dev cross-origin
-                        maxAge: 3600000, // 1 hour
-                });
+                res.cookie("token", token, getAuthCookieOptions());
 
                 await db.run(
                         `INSERT INTO profile_activity (user_id, event_type, title, meta)
@@ -211,7 +240,8 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
 
 // User Logout Endpoint
 router.post("/logout", (_req: Request, res: Response): void => {
-        res.clearCookie("token");
+        const { maxAge: _maxAge, ...cookieOptions } = getAuthCookieOptions();
+        res.clearCookie("token", cookieOptions);
         res.json({ message: "Logout successful." });
 });
 
@@ -267,12 +297,7 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
                         expiresIn: "1h",
                 });
 
-                res.cookie("token", token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === "production",
-                        sameSite: "strict",
-                        maxAge: 3600000,
-                });
+                res.cookie("token", token, getAuthCookieOptions());
 
                 await db.run(
                         `INSERT INTO profile_activity (user_id, event_type, title, meta)

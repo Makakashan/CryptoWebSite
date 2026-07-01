@@ -1,237 +1,280 @@
-# Makakatrade
+<div align="center">
 
-Modern trading platform with real-time market data, portfolio management, and instant navigation.
+# 🚀 MakakaTrade
 
-## Prerequisites
+### Modern Crypto Trading Platform
 
+Live prices, clean analytics and portfolio control in one place.
+Built for quick decisions in volatile markets.
+
+[![React](https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](#)
+
+<br/>
+
+![Landing Page](screenshots/01-landing.png)
+
+</div>
+
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 📊 Real-time Trading
+- **Live price updates** via WebSocket (Binance API)
+- **MQTT market data** with auto-sync every 3s
+- **Instant notifications** for orders & portfolio changes
+- **100+ trading pairs** pre-loaded
+
+</td>
+<td width="50%">
+
+### ⚡ Performance
+- **Instant page navigation** with optimistic UI
+- **Skeleton loading states** for smooth UX
+- **Smart caching** for icons & market data
+- **Debounced & throttled requests**
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🔐 Security
+- **JWT authentication** with secure cookies
+- **Firebase Auth** (Google login support)
+- **bcrypt** password hashing
+- **CORS** protection
+
+</td>
+<td>
+
+### 🌍 Internationalization
+- **Multi-language support** (i18next)
+- **Dark/Light theme** toggle
+- **Responsive design** for all devices
+- **shadcn/ui** components
+
+</td>
+</tr>
+</table>
+
+---
+
+## 📸 Screenshots
+
+### 🏠 Landing Page
+> Trade faster. Track smarter.
+
+![Landing](screenshots/01-landing.png)
+
+---
+
+### 📈 Dashboard
+> Live balance, market pulse, and your next trading moves.
+
+![Dashboard](screenshots/05-dashboard.png)
+
+---
+
+### 💹 Markets
+> Discover and track your favorite assets
+
+![Markets](screenshots/06-markets.png)
+
+---
+
+### 💼 Portfolio
+> Your command center for capital, allocation, and execution.
+
+![Portfolio](screenshots/07-portfolio.png)
+
+---
+
+### 🔑 Auth Pages
+
+<table>
+<tr>
+<td><img src="screenshots/02-login.png" alt="Login" width="100%"></td>
+<td><img src="screenshots/03-register.png" alt="Register" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><b>Login</b></td>
+<td align="center"><b>Register</b></td>
+</tr>
+</table>
+
+---
+
+## 🛠 Tech Stack
+
+<div align="center">
+
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 19 · TypeScript · Vite · Redux Toolkit · shadcn/ui · Tailwind CSS · Recharts |
+| **Backend** | Node.js · Express · TypeScript · SQLite · WebSocket · MQTT |
+| **Auth** | JWT · Firebase Auth · bcrypt · Cookies |
+| **DevOps** | Docker Compose · Multi-stage builds · Nginx |
+
+</div>
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
 - **Docker** with Docker Compose
 - Modern web browser with WebSocket support
 
-## Stack
+### Launch with Docker
 
-**Frontend**
-- React 19 + TypeScript
-- Vite (build tool)
-- Redux Toolkit (state management)
-- shadcn/ui + Radix UI (UI components)
-- Tailwind CSS (styling)
-- WebSocket for real-time updates
-
-**Backend**
-- Node.js + Express + TypeScript
-- SQLite database (auto-populated with 100 top assets)
-- MQTT for market data (Binance integration)
-- WebSocket server (real-time updates)
-- JWT authentication + cookies
-- CORS enabled
-
-## Quick Start
-
-### Launch Everything with Docker Compose
-
-```sh
-# Build and start backend + frontend
+```bash
+# Build and start everything
 npm run dev
 ```
 
-This command will start:
-- **Backend Server** at `http://localhost:3000`
-- **Frontend** at `http://localhost:5173`
-- **SQLite database volume** at Docker volume `makakatrade_backend-data`
+This starts:
+| Service | URL |
+|---------|-----|
+| 🖥 Frontend | `http://localhost:5173` |
+| ⚙️ Backend API | `http://localhost:3000` |
+| 🔌 WebSocket | `ws://localhost:3000` |
 
-Useful commands:
+### Other Commands
 
-```sh
-npm run up      # Build and start in the background
+```bash
+npm run up      # Build and start in background
 npm run logs    # Follow container logs
 npm run down    # Stop and remove containers
 ```
 
 ---
 
-### Environment
-
-Docker Compose reads environment overrides from a root `.env` file if present.
-
-Default values:
-
-```
-VITE_API_URL=http://localhost:3000/api
-VITE_WS_URL=ws://localhost:3000
-GOOGLE_CLIENT_ID=
-VITE_GOOGLE_CLIENT_ID=
-```
-
-Backend container defaults:
-
-```
-PORT=3000
-DB_FILE=/app/data/trading.db
-CORS_ORIGIN=http://localhost:5173
-```
-
-For Google login, set both `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID` before rebuilding the frontend image.
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 Makakatrade/
-├── package.json              # Root scripts to launch entire project
-├── docker-compose.yml        # Backend + frontend services
-├── README.md                 # Documentation
-├── .gitignore               # Git ignore rules
+├── docker-compose.yml        # Services orchestration
+├── package.json              # Root scripts
 │
 ├── backend-project/
-│   ├── Dockerfile            # Multi-stage backend image
 │   ├── src/
-│   │   ├── server.ts        # Express server + WebSocket
-│   │   ├── market.ts        # MQTT market data simulator
-│   │   ├── routes/          # API endpoints
-│   │   ├── services/        # Business logic
-│   │   ├── middleware/      # Auth & validation
-│   │   └── utils/           # Helpers
-│   ├── trading.db           # SQLite database
-│   └── dist/                # Build output
+│   │   ├── server.ts         # Express + WebSocket server
+│   │   ├── database.ts       # SQLite setup & migrations
+│   │   ├── routes/           # REST API endpoints
+│   │   ├── services/         # Business logic
+│   │   ├── middleware/       # Auth & validation
+│   │   └── utils/            # Helpers
+│   └── Dockerfile
 │
 └── frontend-project/
-    ├── Dockerfile            # Multi-stage frontend image
-    ├── nginx.conf            # Static SPA server config
     ├── src/
-    │   ├── components/      # React components
-    │   │   └── ui/          # shadcn/ui components
-    │   ├── pages/           # Page layouts
-    │   ├── store/           # Redux state management
-    │   ├── api/             # API clients (REST + WebSocket)
-    │   └── i18n/            # Translations (i18next)
-    ├── components.json      # shadcn/ui configuration
-    └── dist/                # Build output
+    │   ├── components/       # React components
+    │   │   └── ui/           # shadcn/ui components
+    │   ├── pages/            # Page layouts
+    │   ├── store/            # Redux state management
+    │   ├── api/              # REST + WebSocket clients
+    │   └── i18n/             # Translations
+    ├── nginx.conf            # SPA server config
+    └── Dockerfile
 ```
 
+---
 
-## Features
-
-### Real-time Features
-- **Live price updates** via WebSocket (Binance API integration)
-- **MQTT market data** with automatic price synchronization every 3 seconds
-- **Instant notifications** for order execution and portfolio changes
-
-### Performance
-- **Instant page navigation** with optimistic UI updates
-- **Skeleton loading states** for better UX
-- **Smart caching** for icons and market data
-- **Debounced requests** to prevent duplicate API calls
-- **Throttled UI updates** (max 1 per second) to prevent performance issues
-
-### Trading Features
-- User authentication & authorization (JWT)
-- Portfolio management with live asset tracking
-- Order execution (buy/sell)
-- Trading statistics & performance charts
-- Multi-currency support
-
-### UI/UX
-- **shadcn/ui components** - Modern, accessible UI components built with Radix UI
-- Multi-language support (i18n)
-- Automatic cryptocurrency icon loading & caching (CryptoCompare API)
-- Fallback to generated avatars for missing icons
-- Responsive design for all devices
-- Dark/Light theme support
-
-## API Endpoints
+## 🔌 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Register new user |
+| `POST` | `/api/auth/login` | Login |
+| `GET`  | `/api/auth/profile` | Get current user |
 
 ### Trading
-- `GET /api/portfolio` - Get user portfolio
-- `POST /api/orders` - Place buy/sell order
-- `GET /api/orders` - Get order history
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/portfolio` | User portfolio |
+| `POST` | `/api/orders` | Place buy/sell order |
+| `GET`  | `/api/orders` | Order history |
 
 ### Market Data
-- `GET /api/assets` - Get available trading assets
-- `GET /api/stats` - Get trading statistics
-- `WS /` - WebSocket connection for real-time updates
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/assets` | All trading assets |
+| `GET`  | `/api/stats` | Trading statistics |
+| `WS`   | `/` | Real-time price updates |
 
-### MQTT Topics
-- `vacetmax/market/{SYMBOL}` - Real-time price updates for each asset
+---
 
-## Database Schema
+## 🗄 Database Schema
 
-The SQLite database (`trading.db`) is automatically created with the following tables:
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│    Users     │     │  Portfolio   │     │    Orders    │
+├──────────────┤     ├──────────────┤     ├──────────────┤
+│ id           │◄────│ user_id      │◄────│ user_id      │
+│ username     │     │ asset_symbol │     │ asset_symbol │
+│ password     │     │ amount       │     │ order_type   │
+│ balance      │     └──────────────┘     │ amount       │
+│ avatar       │                          │ price        │
+└──────────────┘                          │ timestamp    │
+                                          └──────────────┘
+┌──────────────┐
+│    Assets    │
+├──────────────┤
+│ symbol       │
+│ name         │
+│ image_url    │
+│ category     │
+│ is_active    │
+└──────────────┘
+```
 
-### Users
-- `id` - Primary key
-- `username` - Unique username
-- `password` - Hashed password (bcrypt)
-- `balance` - Default $10,000 starting balance
-- `avatar` - User avatar URL
+> **Note:** Database auto-populates with top 100 trading pairs on first run.
 
-### Portfolio
-- `id` - Primary key
-- `user_id` - Foreign key to users
-- `asset_symbol` - Cryptocurrency symbol (e.g., BTCUSDT)
-- `amount` - Amount owned
+---
 
-### Orders
-- `id` - Primary key
-- `user_id` - Foreign key to users
-- `asset_symbol` - Cryptocurrency symbol
-- `order_type` - 'BUY' or 'SELL'
-- `amount` - Order quantity
-- `price_at_transaction` - Price at execution time
-- `timestamp` - Order timestamp
+## ⚙️ Environment Variables
 
-### Assets
-- `id` - Primary key
-- `symbol` - Unique symbol (e.g., BTCUSDT)
-- `name` - Asset name
-- `image_url` - Icon URL from CoinGecko
-- `category` - Asset category
-- `description` - Asset description
-- `is_active` - Active status
-- `created_at` - Creation timestamp
-
-**Note:** Database auto-populates with top 100 trading pairs from Binance on first run.
-
-## Environment
-
-- **Backend API:** `http://localhost:3000`
-- **Frontend:** `http://localhost:5173`
-- **WebSocket:** `ws://localhost:3000`
-- **MQTT Broker:** `mqtt://test.mosquitto.org`
-
-## Technologies & Libraries
+### Root `.env`
+```env
+VITE_API_URL=http://localhost:3000/api
+VITE_WS_URL=ws://localhost:3000
+VITE_FIREBASE_API_KEY=your_key
+VITE_FIREBASE_AUTH_DOMAIN=your_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+```
 
 ### Backend
-- `express` - Web framework
-- `typescript` - Type safety
-- `tsx` - TypeScript execution for development
-- `sqlite3` + `sqlite` - Database
-- `ws` - WebSocket server
-- `mqtt` - MQTT client for market data
-- `jsonwebtoken` - JWT authentication
-- `bcryptjs` - Password hashing
-- `cookie-parser` - Cookie parsing middleware
-- `cors` - Cross-Origin Resource Sharing
-- `axios` - HTTP client (Binance & CoinGecko APIs)
+```env
+PORT=3000
+DB_FILE=/app/data/trading.db
+CORS_ORIGIN=http://localhost:5173
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=your_email
+FIREBASE_PRIVATE_KEY=your_key
+```
 
-### Frontend
-- `vite` - Build tool & dev server
-- `react` 19 - UI framework
-- `react-router-dom` - Routing
-- `@reduxjs/toolkit` - State management
-- `redux` - Core state management
-- `react-redux` - React bindings for Redux
-- `shadcn/ui` - UI component library (built on Radix UI)
-- `@radix-ui/*` - Accessible UI primitives
-- `tailwindcss` - Utility-first CSS framework
-- `class-variance-authority` - CVA for component variants
-- `clsx` + `tailwind-merge` - Conditional styling utilities
-- `axios` - API client
-- `recharts` - Charts and graphs
-- `formik` + `yup` - Form validation
-- `i18next` + `react-i18next` - Internationalization
-- `lucide-react` + `react-icons` - Icon libraries
+---
 
-Built with Vite & Express. Optimized for speed. Cross-platform support.
+## 📄 License
+
+MIT
+
+---
+
+<div align="center">
+
+**Built with Vite & Express · Optimized for speed · Cross-platform**
+
+</div>

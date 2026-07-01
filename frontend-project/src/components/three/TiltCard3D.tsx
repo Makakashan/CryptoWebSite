@@ -31,7 +31,7 @@ export const TiltCard3D = ({
 	glare = 0.18,
 }: Props) => {
 	const ref = useRef<HTMLDivElement>(null);
-	const [style, setStyle] = useState<React.CSSProperties>({});
+	const [innerStyle, setInnerStyle] = useState<React.CSSProperties>({});
 	const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
 	const reduced = useReducedMotion();
 
@@ -44,7 +44,7 @@ export const TiltCard3D = ({
 		const dy = (e.clientY - cy) / (rect.height / 2);
 		const rx = -dy * maxTilt;
 		const ry = dx * maxTilt;
-		setStyle({
+		setInnerStyle({
 			transform: `perspective(${perspective}px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${scale})`,
 		});
 		setGlarePos({
@@ -55,7 +55,7 @@ export const TiltCard3D = ({
 	};
 
 	const handleLeave = () => {
-		setStyle({
+		setInnerStyle({
 			transform: `perspective(${perspective}px) rotateX(0deg) rotateY(0deg) scale(1)`,
 			transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
 		});
@@ -67,22 +67,23 @@ export const TiltCard3D = ({
 			ref={ref}
 			onPointerMove={handleMove}
 			onPointerLeave={handleLeave}
-			className={cn(
-				"relative [transform-style:preserve-3d] transition-transform duration-200 ease-out",
-				className,
-			)}
-			style={style}
+			className={cn("glass-tilt-card relative", className)}
 		>
-			{children}
 			<div
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 z-10 rounded-[inherit] transition-opacity duration-300"
-				style={{
-					background: `radial-gradient(220px 220px at ${glarePos.x}% ${glarePos.y}%, rgba(255,255,255,${glarePos.opacity}), transparent 60%)`,
-					opacity: glarePos.opacity,
-					mixBlendMode: "screen",
-				}}
-			/>
+				className="relative h-full [transform-style:preserve-3d] transition-transform duration-200 ease-out"
+				style={innerStyle}
+			>
+				{children}
+				<div
+					aria-hidden="true"
+					className="pointer-events-none absolute inset-0 z-10 rounded-[inherit] transition-opacity duration-300"
+					style={{
+						background: `radial-gradient(220px 220px at ${glarePos.x}% ${glarePos.y}%, rgba(255,255,255,${glarePos.opacity}), transparent 60%)`,
+						opacity: glarePos.opacity,
+						mixBlendMode: "screen",
+					}}
+				/>
+			</div>
 		</div>
 	);
 };
